@@ -246,7 +246,7 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | Task | Title | Depends on | Status |
 | --- | --- | --- | --- |
 | task-01 | V1 foundation — NestJS scaffold, Supabase schema, stack activation | — | Done |
-| task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Ready |
+| task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Done |
 | task-03 | Template import + car template matching | task-01 | Ready |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Ready |
 | task-05 | Requirements + Langflow classification + initial email | task-02, task-04 | Ready |
@@ -309,7 +309,7 @@ Blocking dependencies:
 - [done] open-decisions - non-blocking operational items documented
 - [done] exec-plan - this plan active
 - [done] task-01 - NestJS foundation
-- [pending] task-02 - idempotency, audit, side-effects
+- [done] task-02 - idempotency, audit, side-effects
 - [pending] task-03 - template import + matching
 - [pending] task-04 - workflow start + Bitrix read
 - [pending] task-05 - requirements + Langflow + initial email
@@ -324,6 +324,7 @@ Blocking dependencies:
 - Repository was harness-only before this initiative; no existing application code.
 - Prior active ExecPlan `docs-compression-refactor.md` was harness documentation maintenance (completed).
 - task-01 (2026-06-17): NestJS scaffold landed; stack.env switched to nestjs profile; 14-table migration in `supabase/migrations/`.
+- task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
 
 ## Decision Log
 
@@ -403,7 +404,7 @@ Linear Issues:
 |-----------|--------------|---------------|
 | Architecture | [SEL-73](https://linear.app/sellgenius-dev/issue/SEL-73) | Done |
 | task-01 | [SEL-77](https://linear.app/sellgenius-dev/issue/SEL-77) | Done |
-| task-02 | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76) | Backlog |
+| task-02 | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76) | Done |
 | task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Backlog |
 | task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Backlog |
 | task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Backlog |

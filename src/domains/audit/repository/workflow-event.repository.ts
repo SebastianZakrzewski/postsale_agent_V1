@@ -4,11 +4,14 @@ import { WorkflowEventRow } from '../../../lib/persistence';
 export interface AppendWorkflowEventInput {
   workflowId: string;
   eventType: WorkflowEventType;
+  statusBefore?: string;
+  statusAfter?: string;
   payload?: Record<string, unknown>;
+  requestId?: string;
 }
 
 export abstract class WorkflowEventRepository {
-  abstract append(input: AppendWorkflowEventInput): Promise<void>;
+  abstract append(input: AppendWorkflowEventInput): Promise<WorkflowEventRow>;
   abstract findByWorkflowId(workflowId: string): Promise<WorkflowEventRow[]>;
 }
 
