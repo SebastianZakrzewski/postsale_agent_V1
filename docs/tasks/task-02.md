@@ -281,7 +281,7 @@ If none: None.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76/task-02-cross-cutting-idempotency-audit-events-side-effect-records)  
-Linear status: Backlog
+Linear status: Done
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 
@@ -300,6 +300,7 @@ Blocks: task-04, task-05, task-06, task-07, task-08
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-76)
+2026-06-17 - Implemented - IdempotencyService, AuditService, SideEffectService, Supabase repos, guard, tests
 
 ## Final Report Template
 

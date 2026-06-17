@@ -18,6 +18,8 @@ export abstract class SideEffectRecordRepository {
     id: string,
     status: SideEffectRecordStatus,
     errorCode?: string,
+    retryAllowed?: boolean,
+    providerResponse?: Record<string, unknown>,
   ): Promise<void>;
 }
 
