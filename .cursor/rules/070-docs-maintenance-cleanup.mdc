@@ -1,0 +1,48 @@
+---
+description: Use when maintaining docs, cleaning stale files, fixing harness drift, or removing AI slop without changing business behavior
+alwaysApply: false
+---
+
+# Docs Maintenance and Cleanup
+
+Use Docs Maintenance or Cleanup Mode for documentation hygiene and repository cleanup.
+
+Read and follow:
+
+- `docs/agents/modes/docs-maintenance.md`
+- `docs/agents/modes/cleanup.md`
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- relevant docs, plans, and tasks
+
+Allowed work:
+
+- fix broken links
+- update stale docs
+- align templates
+- remove duplicated or dead documentation
+- improve clarity
+- detect architecture drift
+- detect task/plan drift
+- detect AI slop
+- maintain decision-log/open-decisions consistency
+
+Forbidden work:
+
+- changing business behavior
+- implementing product features
+- changing runtime behavior
+- changing stack behavior without accepted decision
+- resolving blocking OPEN_DECISIONs without Human Architect approval
+
+Run:
+
+```bash
+bash ./scripts/docs-check
+bash ./scripts/architecture-check
+bash ./scripts/plans-check
+bash ./scripts/tasks-check
+bash ./scripts/harness-check
+```
+
+Report changed files, checks, drift fixed, and remaining risks.

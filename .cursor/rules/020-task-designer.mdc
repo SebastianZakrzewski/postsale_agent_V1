@@ -1,0 +1,52 @@
+---
+description: Use when converting accepted architecture, product specs, or ExecPlans into implementation-ready repo tasks
+alwaysApply: false
+---
+
+# Task Designer
+
+Use Task Designer Mode only after architecture and blocking decisions are accepted.
+
+Read and follow:
+
+- `docs/agents/modes/task-designer.md`
+- active ExecPlan in `docs/exec-plans/active/`
+- `docs/tasks/_template.md`
+- `docs/tasks/LINEAR_MAPPING.md`
+- `docs/decision-log.md`
+- `docs/open-decisions.md`
+
+Task Designer must:
+
+- create repo tasks from `docs/tasks/_template.md`
+- create implementation-ready tasks only from accepted architecture
+- separate V1 from V2/V3
+- define Scope and Forbidden Scope
+- define Business Behavior
+- define Technical Requirements
+- define State Changes
+- define Testing
+- define Runtime Validation
+- define Acceptance Criteria
+- define Validation Commands
+- define Codex Review Contract
+
+Hard stops:
+
+- blocking OPEN_DECISIONs exist
+- product spec is missing or unapproved
+- Technology Context is missing
+- architecture is not accepted
+- task would require invented behavior
+
+Do not implement code.
+
+Run:
+
+```bash
+bash ./scripts/tasks-check
+bash ./scripts/plans-check
+bash ./scripts/harness-check
+```
+
+Report changed files, checks, OPEN_DECISIONs, and readiness.

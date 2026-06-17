@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ERRORS=0
+
+check_file() {
+  local file="$1"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: missing required file: $file"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file"
+  fi
+}
+
+check_contains() {
+  local file="$1"
+  local pattern="$2"
+  local description="$3"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: cannot check '$description'; file missing: $file"
+    ERRORS=$((ERRORS + 1))
+    return
+  fi
+
+  if ! grep -qi "$pattern" "$file"; then
+    echo "ERROR: $file missing: $description"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file contains $description"
+  fi
+}
+
+echo "Running architecture-check..."
+echo
+
+echo "Checking architecture source files..."
+check_file "ARCHITECTURE.md"
+check_file "docs/agents/modes/architect.md"
+check_file "docs/agents/modes/implementation.md"
+check_file "docs/agents/modes/review.md"
+check_file "docs/agents/modes/codex-audit.md"
+check_file "docs/agents/modes/cleanup.md"
+check_file "docs/agents/modes/docs-maintenance.md"
+
+echo
+echo "Checking architecture core rules..."
+check_contains "ARCHITECTURE.md" "Technology Context" "Technology Context"
+check_contains "ARCHITECTURE.md" "Boundary Parsing" "Boundary Parsing"
+check_contains "ARCHITECTURE.md" "Model Separation" "Model Separation"
+check_contains "ARCHITECTURE.md" "Forbidden Dependency Edges" "Forbidden Dependency Edges"
+check_contains "ARCHITECTURE.md" "Providers" "Providers"
+check_contains "ARCHITECTURE.md" "Side Effects" "Side Effects"
+check_contains "ARCHITECTURE.md" "Runtime Validation" "Runtime Validation"
+check_contains "ARCHITECTURE.md" "Linear" "Linear source-of-truth rule"
+check_contains "ARCHITECTURE.md" "Codex" "Codex audit rule"
+
+echo
+echo "Checking Technology Context enforcement..."
+check_contains "docs/agents/modes/architect.md" "Technology Context" "Architect defines Technology Context"
+check_contains "docs/agents/modes/implementation.md" "Technology Context" "Implementation checks Technology Context"
+check_contains "docs/agents/modes/review.md" "Technology Context Gate" "Review Technology Context Gate"
+check_contains "docs/agents/modes/codex-audit.md" "Technology Context Gate" "Codex Audit Technology Context Gate"
+
+echo
+echo "Checking architecture boundary enforcement in modes..."
+check_contains "docs/agents/modes/implementation.md" "boundary" "Implementation boundary parsing rule"
+check_contains "docs/agents/modes/review.md" "boundary" "Review boundary parsing gate"
+check_contains "docs/agents/modes/codex-audit.md" "boundary" "Codex Audit boundary parsing gate"
+check_contains "docs/agents/modes/cleanup.md" "AI slop" "Cleanup AI slop rule"
+check_contains "docs/agents/modes/docs-maintenance.md" "drift" "Docs maintenance drift rule"
+
+echo
+
+if [[ "$ERRORS" -eq 0 ]]; then
+  echo "ARCHITECTURE CHECK PASSED"
+  exit 0
+else
+  echo "ARCHITECTURE CHECK FAILED: $ERRORS error(s)"
+  exit 1
+fi

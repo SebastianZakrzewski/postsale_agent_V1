@@ -1,0 +1,29 @@
+name: Harness Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  harness-check:
+    name: Run harness checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable
+        run: |
+          chmod +x scripts/harness-check
+          chmod +x scripts/docs-check
+          chmod +x scripts/architecture-check
+          chmod +x scripts/plans-check
+          chmod +x scripts/tasks-check
+          chmod +x scripts/stack-check
+
+      - name: Run harness check
+        run: bash ./scripts/harness-check

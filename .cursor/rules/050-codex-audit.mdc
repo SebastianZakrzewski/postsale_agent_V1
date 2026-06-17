@@ -1,0 +1,50 @@
+---
+description: Use when risky work requires independent Codex Audit before final approval
+alwaysApply: false
+---
+
+# Codex Audit
+
+Use Codex Audit for risky changes.
+
+Read and follow:
+
+- `docs/agents/modes/codex-audit.md`
+- active ExecPlan
+- active repo task
+- changed files
+- validation output
+- `docs/SECURITY.md`
+- `docs/RELIABILITY.md`
+- `docs/OBSERVABILITY.md`
+
+Codex Audit is required for:
+
+- CRM writes
+- customer messaging
+- pricing/payments
+- auth/security
+- DB migrations
+- external integrations
+- production automation
+- LLM business behavior
+- architecture boundaries
+
+Audit must verify:
+
+- accepted decisions exist
+- side effects are explicit and controlled
+- idempotency/retry/failure behavior is defined
+- observability/audit evidence exists
+- validation passed
+- no blocking OPEN_DECISIONs were bypassed
+
+Codex Audit must not implement fixes unless explicitly asked.
+
+Report:
+
+- audit verdict
+- blocking issues
+- non-blocking risks
+- evidence reviewed
+- required follow-up

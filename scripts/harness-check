@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running SellGenius harness check..."
+echo
+
+./scripts/docs-check
+echo
+
+./scripts/architecture-check
+echo
+
+./scripts/plans-check
+echo
+
+./scripts/tasks-check
+echo
+
+./scripts/stack-check
+echo
+
+echo "HARNESS CHECK PASSED"

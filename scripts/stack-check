@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ! -f ".harness/stack.env" ]]; then
+  echo "ERROR: missing .harness/stack.env"
+  exit 1
+fi
+
+# shellcheck disable=SC1091
+source ".harness/stack.env"
+
+echo "Running stack-check..."
+echo "APP_STACK=${APP_STACK:-unknown}"
+echo "APPLICATION_TYPE=${APPLICATION_TYPE:-unknown}"
+echo "LANGUAGE=${LANGUAGE:-unknown}"
+echo "PACKAGE_MANAGER=${PACKAGE_MANAGER:-unknown}"
+echo
+
+if [[ "${RUN_NODE_CHECKS:-false}" == "true" ]]; then
+  if [[ ! -f "package.json" ]]; then
+    echo "ERROR: RUN_NODE_CHECKS=true but package.json is missing"
+    exit 1
+  fi
+
+  echo "Running Node checks..."
+
+  npm ci
+
+  if [[ "${REQUIRE_LINT:-false}" == "true" ]]; then
+    npm run lint
+  fi
+
+  if [[ "${REQUIRE_TYPECHECK:-false}" == "true" ]]; then
+    npm run typecheck
+  fi
+
+  if [[ "${REQUIRE_TEST:-false}" == "true" ]]; then
+    npm test
+  fi
+
+  if [[ "${REQUIRE_BUILD:-false}" == "true" ]]; then
+    npm run build
+  fi
+fi
+
+if [[ "${RUN_PYTHON_CHECKS:-false}" == "true" ]]; then
+  if [[ ! -f "pyproject.toml" && ! -f "requirements.txt" ]]; then
+    echo "ERROR: RUN_PYTHON_CHECKS=true but no Python dependency file found"
+    exit 1
+  fi
+
+  echo "Running Python checks..."
+
+  if [[ -f "requirements.txt" ]]; then
+    pip install -r requirements.txt
+  fi
+
+  if [[ -f "pyproject.toml" ]]; then
+    pip install -e .
+  fi
+
+  pytest
+fi
+
+if [[ "${RUN_PLAYWRIGHT:-false}" == "true" ]]; then
+  if [[ ! -f "package.json" ]]; then
+    echo "ERROR: RUN_PLAYWRIGHT=true but package.json is missing"
+    exit 1
+  fi
+
+  echo "Running Playwright checks..."
+
+  npx playwright install --with-deps
+
+  if [[ "${REQUIRE_E2E:-false}" == "true" ]]; then
+    npm run test:e2e
+  fi
+fi
+
+echo "STACK CHECK PASSED"

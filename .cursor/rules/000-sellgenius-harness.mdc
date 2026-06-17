@@ -1,0 +1,95 @@
+---
+description: SellGenius Harness entry map, sources of truth, and hard stops
+alwaysApply: true
+---
+
+# SellGenius Harness
+
+Humans decide. Composer implements. Codex audits. Checks verify. Human Architect gives final approval.
+
+Cursor Rules are not source of truth. They are only a thin routing layer into the repository source-of-truth.
+
+## Sources Of Truth
+
+Use only:
+
+- explicit human instruction
+- `AGENTS.md`
+- `ARCHITECTURE.md`
+- active ExecPlan in `docs/exec-plans/active/`
+- relevant repo task in `docs/tasks/`
+- `docs/`
+- `docs/decision-log.md`
+- `docs/open-decisions.md`
+- existing tests/code behavior
+
+`docs/` is source of truth. Linear is tracking only.
+
+Do not invent business rules, architecture, statuses, contracts, integrations, AI behavior, persistence, runtime behavior, or side effects.
+
+Unknowns become `OPEN_DECISION` entries in `docs/open-decisions.md`.
+
+## Read Before Work
+
+1. `AGENTS.md`
+2. `docs/agents/runtime-strategy.md`
+3. `ARCHITECTURE.md`
+4. active plan in `docs/exec-plans/active/`
+5. relevant product spec in `docs/product-specs/`
+6. relevant mode in `docs/agents/modes/`
+7. relevant repo task in `docs/tasks/` when implementing
+
+## Modes
+
+Use one mode per run.
+
+Mode docs:
+
+- Architect: `docs/agents/modes/architect.md`
+- Task Designer: `docs/agents/modes/task-designer.md`
+- Implementation: `docs/agents/modes/implementation.md`
+- Review: `docs/agents/modes/review.md`
+- Fix: `docs/agents/modes/fix.md`
+- Codex Audit: `docs/agents/modes/codex-audit.md`
+- QA: `docs/agents/modes/qa.md`
+- Cleanup: `docs/agents/modes/cleanup.md`
+- Docs Maintenance: `docs/agents/modes/docs-maintenance.md`
+
+## Hard Stops
+
+Stop when:
+
+- docs or active plan are missing
+- behavior is ambiguous
+- Technology Context is missing or conflicts with `.harness/stack.env`
+- scope expansion is required
+- checks cannot run
+- production credentials/data are needed
+- blocking `OPEN_DECISION`s exist
+- there is no active ExecPlan or repo task for implementation
+
+## Checks
+
+Use validation commands from the active ExecPlan or repo task.
+
+If unsure, run:
+
+```bash
+bash ./scripts/harness-check
+```
+
+Do not assume npm, package.json, Node, Python, Playwright, or application runtime exists unless `.harness/stack.env` enables that stack.
+
+## Final Report
+
+End implementation, fix, review, cleanup, or audit runs with:
+
+```text
+Summary:
+Changed files:
+Checks run:
+Result:
+Risks:
+OPEN_DECISIONs:
+Next recommended step:
+```

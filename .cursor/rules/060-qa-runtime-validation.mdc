@@ -1,0 +1,41 @@
+---
+description: Use when validating runtime behavior, UI flows, API behavior, workflow behavior, or runtime evidence
+alwaysApply: false
+---
+
+# QA Runtime Validation
+
+Use QA Mode for runtime validation.
+
+Read and follow:
+
+- `docs/agents/modes/qa.md`
+- active ExecPlan
+- active repo task
+- `docs/OBSERVABILITY.md`
+- `docs/RELIABILITY.md`
+- `.harness/stack.env`
+
+QA must validate real behavior when Runtime Validation is required.
+
+Evidence may include:
+
+- app start result
+- healthcheck result
+- API check
+- E2E check
+- browser/UI check
+- structured logs
+- audit event
+- correlation/request/workflow ID
+- screenshot or trace artifact
+- no-console-error check
+- sandbox/mock integration proof
+
+Do not use production credentials or production customer data.
+
+Do not trigger real customer messaging, CRM writes, payments, or other production side effects unless explicitly approved in task scope.
+
+Run validation commands from the active task.
+
+Report runtime evidence, failed checks, risks, and remaining gaps.
