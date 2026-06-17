@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ERRORS=0
+
+check_file() {
+  local file="$1"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: missing required file: $file"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file"
+  fi
+}
+
+check_contains() {
+  local file="$1"
+  local pattern="$2"
+  local description="$3"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: cannot check '$description'; file missing: $file"
+    ERRORS=$((ERRORS + 1))
+    return
+  fi
+
+  if ! grep -qi "$pattern" "$file"; then
+    echo "ERROR: $file missing: $description"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file contains $description"
+  fi
+}
+
+check_task_file() {
+  local file="$1"
+
+  echo
+  echo "Checking task file: $file"
+
+  check_contains "$file" "^# Task:" "task title"
+  check_contains "$file" "Status:" "Status metadata"
+  check_contains "$file" "Stage:" "Stage metadata"
+  check_contains "$file" "Mode:" "Mode metadata"
+  check_contains "$file" "Owner:" "Owner metadata"
+  check_contains "$file" "Codex Role:" "Codex Role metadata"
+  check_contains "$file" "Risk Level:" "Risk Level metadata"
+  check_contains "$file" "Runtime Validation:" "Runtime Validation metadata/section"
+
+  check_contains "$file" "## Sources" "Sources section"
+  check_contains "$file" "## Required Docs" "Required Docs section"
+  check_contains "$file" "## Technology Context" "Technology Context section"
+  check_contains "$file" "## Context" "Context section"
+  check_contains "$file" "## Goal" "Goal section"
+  check_contains "$file" "## Scope" "Scope section"
+  check_contains "$file" "## Forbidden Scope" "Forbidden Scope section"
+  check_contains "$file" "## Business Behavior" "Business Behavior section"
+  check_contains "$file" "## Technical Requirements" "Technical Requirements section"
+  check_contains "$file" "## State Changes" "State Changes section"
+  check_contains "$file" "## Testing" "Testing section"
+  check_contains "$file" "## Runtime Validation" "Runtime Validation section"
+  check_contains "$file" "## Acceptance Criteria" "Acceptance Criteria section"
+  check_contains "$file" "## Validation Commands" "Validation Commands section"
+  check_contains "$file" "## Codex Review Contract" "Codex Review Contract section"
+  check_contains "$file" "## OPEN_DECISIONs" "OPEN_DECISIONs section"
+  check_contains "$file" "## Linear Mapping" "Linear Mapping section"
+  check_contains "$file" "## Trace" "Trace section"
+  check_contains "$file" "## History" "History section"
+  check_contains "$file" "## Final Report Template" "Final Report Template section"
+}
+
+echo "Running tasks-check..."
+echo
+
+echo "Checking task system files..."
+check_file "docs/tasks/_template.md"
+check_file "docs/tasks/LINEAR_MAPPING.md"
+
+check_contains "docs/tasks/_template.md" "## Forbidden Scope" "Forbidden Scope section in template"
+check_contains "docs/tasks/_template.md" "## Technology Context" "Technology Context section in template"
+check_contains "docs/tasks/_template.md" "## Runtime Validation" "Runtime Validation section in template"
+check_contains "docs/tasks/_template.md" "## Codex Review Contract" "Codex Review Contract section in template"
+check_contains "docs/tasks/_template.md" "## Linear Mapping" "Linear Mapping section in template"
+
+echo
+echo "Checking implementation task files..."
+
+TASK_FILES_FOUND=0
+
+shopt -s nullglob
+for file in docs/tasks/*.md; do
+  case "$file" in
+    "docs/tasks/_template.md"|"docs/tasks/LINEAR_MAPPING.md"|"docs/tasks/README.md")
+      continue
+      ;;
+  esac
+
+  TASK_FILES_FOUND=1
+  check_task_file "$file"
+done
+shopt -u nullglob
+
+if [[ "$TASK_FILES_FOUND" -eq 0 ]]; then
+  echo "OK: no implementation task files found yet"
+fi
+
+echo
+
+if [[ "$ERRORS" -eq 0 ]]; then
+  echo "TASKS CHECK PASSED"
+  exit 0
+else
+  echo "TASKS CHECK FAILED: $ERRORS error(s)"
+  exit 1
+fi

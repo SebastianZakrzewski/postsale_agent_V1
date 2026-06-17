@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ERRORS=0
+
+check_file() {
+  local file="$1"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: missing required file: $file"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file"
+  fi
+}
+
+check_dir() {
+  local dir="$1"
+
+  if [[ ! -d "$dir" ]]; then
+    echo "ERROR: missing required directory: $dir"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $dir"
+  fi
+}
+
+check_contains() {
+  local file="$1"
+  local pattern="$2"
+  local description="$3"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: cannot check '$description'; file missing: $file"
+    ERRORS=$((ERRORS + 1))
+    return
+  fi
+
+  if ! grep -qi "$pattern" "$file"; then
+    echo "ERROR: $file missing: $description"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file contains $description"
+  fi
+}
+
+check_plan_file() {
+  local file="$1"
+
+  echo
+  echo "Checking ExecPlan file: $file"
+
+  check_contains "$file" "# " "plan title"
+  check_contains "$file" "## Purpose" "Purpose section"
+  check_contains "$file" "## Context" "Context section"
+  check_contains "$file" "## Technology Context" "Technology Context section"
+  check_contains "$file" "## Mode / Risk Level" "Mode / Risk Level section"
+  check_contains "$file" "## Source Of Truth" "Source Of Truth section"
+  check_contains "$file" "## V1 Scope" "V1 Scope section"
+  check_contains "$file" "## Deferred V2/V3" "Deferred V2/V3 section"
+  check_contains "$file" "## Architecture Summary" "Architecture Summary section"
+  check_contains "$file" "## Repo Task List" "Repo Task List section"
+  check_contains "$file" "## Dependencies" "Dependencies section"
+  check_contains "$file" "## Progress" "Progress section"
+  check_contains "$file" "## Surprises & Discoveries" "Surprises & Discoveries section"
+  check_contains "$file" "## Decision Log" "Decision Log section"
+  check_contains "$file" "## OPEN_DECISIONs" "OPEN_DECISIONs section"
+  check_contains "$file" "## Validation" "Validation section"
+  check_contains "$file" "## Runtime Evidence" "Runtime Evidence section"
+  check_contains "$file" "## Linear Mapping" "Linear Mapping section"
+  check_contains "$file" "## Risks" "Risks section"
+  check_contains "$file" "## Outcomes & Retrospective" "Outcomes & Retrospective section"
+}
+
+echo "Running plans-check..."
+echo
+
+echo "Checking ExecPlan system files..."
+check_dir "docs/exec-plans"
+check_dir "docs/exec-plans/active"
+check_dir "docs/exec-plans/completed"
+check_file "docs/exec-plans/PLANS.md"
+check_file "docs/exec-plans/PLAN_TEMPLATE.md"
+
+echo
+echo "Checking PLANS.md required rules..."
+check_contains "docs/exec-plans/PLANS.md" "Technology Context" "Technology Context requirement"
+check_contains "docs/exec-plans/PLANS.md" "Repo Task List" "Repo Task List requirement"
+check_contains "docs/exec-plans/PLANS.md" "Runtime Evidence" "Runtime Evidence requirement"
+check_contains "docs/exec-plans/PLANS.md" "Linear Mapping" "Linear Mapping requirement"
+check_contains "docs/exec-plans/PLANS.md" "OPEN_DECISION" "OPEN_DECISION requirement"
+check_contains "docs/exec-plans/PLANS.md" "docs/tasks/_template.md" "repo task template reference"
+
+echo
+echo "Checking PLAN_TEMPLATE.md required sections..."
+check_plan_file "docs/exec-plans/PLAN_TEMPLATE.md"
+
+echo
+echo "Checking active/completed ExecPlans..."
+
+PLAN_FILES_FOUND=0
+
+shopt -s nullglob
+for file in docs/exec-plans/active/*.md docs/exec-plans/completed/*.md; do
+  PLAN_FILES_FOUND=1
+  check_plan_file "$file"
+done
+shopt -u nullglob
+
+if [[ "$PLAN_FILES_FOUND" -eq 0 ]]; then
+  echo "OK: no active or completed ExecPlan files found yet"
+fi
+
+echo
+
+if [[ "$ERRORS" -eq 0 ]]; then
+  echo "PLANS CHECK PASSED"
+  exit 0
+else
+  echo "PLANS CHECK FAILED: $ERRORS error(s)"
+  exit 1
+fi

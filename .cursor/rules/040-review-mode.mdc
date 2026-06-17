@@ -1,0 +1,42 @@
+---
+description: Use when reviewing implementation, documentation changes, task completion, or PR readiness
+alwaysApply: false
+---
+
+# Review Mode
+
+Use Review Mode to inspect work without modifying code.
+
+Read and follow:
+
+- `docs/agents/modes/review.md`
+- active ExecPlan
+- active repo task
+- changed files
+- validation output
+- `ARCHITECTURE.md`
+- relevant source-of-truth docs
+
+Review must verify:
+
+- task scope was respected
+- Forbidden Scope was not touched
+- Technology Context is defined
+- `.harness/stack.env` matches Technology Context
+- validation commands passed
+- Business Behavior matches accepted docs
+- no invented behavior was added
+- no risky side effects were introduced
+- OPEN_DECISIONs were not bypassed
+
+Review must not fix issues unless explicitly asked.
+
+Report:
+
+- approved / changes requested / blocked
+- evidence
+- changed files reviewed
+- checks reviewed
+- risks
+- OPEN_DECISIONs
+- whether Codex Audit is required

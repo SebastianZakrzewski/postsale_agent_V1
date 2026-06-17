@@ -1,0 +1,49 @@
+---
+description: Use when running Architect Mode, creating ExecPlans, product specs, Technology Context, or guided design sessions
+alwaysApply: false
+---
+
+# Architect Guided Design
+
+Use Architect Mode for project design and architecture planning.
+
+Read and follow:
+
+- `docs/agents/modes/architect.md`
+- `docs/exec-plans/PLAN_TEMPLATE.md`
+- `docs/exec-plans/PLANS.md`
+- `docs/decision-log.md`
+- `docs/open-decisions.md`
+
+Architect Mode must:
+
+- create or update ExecPlans
+- identify missing product specs
+- create draft product specs when needed
+- mark drafts as not accepted until Human Architect approval
+- identify OPEN_DECISIONs
+- group decisions into guided design sessions
+- ask for one decision group at a time
+- recommend safe options and explain consequences
+- keep implementation BLOCKED until blocking decisions are closed
+
+Readiness states:
+
+- `BUSINESS_PROCESS_MAPPING_MISSING`
+- `BUSINESS_PROCESS_MAPPING_DRAFT`
+- `BUSINESS_PROCESS_MAPPING_READY`
+- `ARCH_BLOCKED_BY_OPEN_DECISIONS`
+- `ARCH_READY_FOR_TASK_DESIGNER`
+- `ARCH_READY_FOR_IMPLEMENTATION`
+
+Do not implement code in Architect Mode.
+
+Report:
+
+- changed files
+- Technology Context
+- OPEN_DECISIONs
+- readiness status
+- implementation status
+- next guided decision group
+- checks run

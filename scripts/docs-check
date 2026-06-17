@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ERRORS=0
+
+check_file() {
+  local file="$1"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: missing required file: $file"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file"
+  fi
+}
+
+check_contains() {
+  local file="$1"
+  local pattern="$2"
+  local description="$3"
+
+  if [[ ! -f "$file" ]]; then
+    echo "ERROR: cannot check '$description'; file missing: $file"
+    ERRORS=$((ERRORS + 1))
+    return
+  fi
+
+  if ! grep -qi "$pattern" "$file"; then
+    echo "ERROR: $file missing: $description"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK: $file contains $description"
+  fi
+}
+
+echo "Running docs-check..."
+echo
+
+echo "Checking root source-of-truth docs..."
+check_file "AGENTS.md"
+check_file "ARCHITECTURE.md"
+
+echo
+echo "Checking docs source-of-truth files..."
+check_file "docs/PRODUCT_SENSE.md"
+check_file "docs/SECURITY.md"
+check_file "docs/RELIABILITY.md"
+check_file "docs/OBSERVABILITY.md"
+check_file "docs/QUALITY_SCORE.md"
+check_file "docs/decision-log.md"
+check_file "docs/open-decisions.md"
+
+echo
+echo "Checking required sections..."
+check_contains "ARCHITECTURE.md" "Technology Context" "Technology Context section"
+check_contains "ARCHITECTURE.md" "Boundary Parsing" "Boundary Parsing section"
+check_contains "ARCHITECTURE.md" "Model Separation" "Model Separation section"
+check_contains "ARCHITECTURE.md" "Forbidden Dependency Edges" "Forbidden Dependency Edges section"
+check_contains "docs/PRODUCT_SENSE.md" "Sellable MVP" "Sellable MVP section"
+check_contains "docs/SECURITY.md" "Customer Messaging" "Customer Messaging section"
+check_contains "docs/SECURITY.md" "AI Output Security" "AI Output Security section"
+check_contains "docs/RELIABILITY.md" "Idempotency" "Idempotency section"
+check_contains "docs/RELIABILITY.md" "Retry Rules" "Retry Rules section"
+check_contains "docs/OBSERVABILITY.md" "Runtime Evidence" "Runtime Evidence section"
+check_contains "docs/OBSERVABILITY.md" "Audit Events" "Audit Events section"
+check_contains "docs/QUALITY_SCORE.md" "Score Categories" "Score Categories section"
+
+echo
+
+if [[ "$ERRORS" -eq 0 ]]; then
+  echo "DOCS CHECK PASSED"
+  exit 0
+else
+  echo "DOCS CHECK FAILED: $ERRORS error(s)"
+  exit 1
+fi

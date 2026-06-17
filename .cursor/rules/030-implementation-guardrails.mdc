@@ -1,0 +1,51 @@
+---
+description: Use when implementing code, modifying modules, APIs, persistence, integrations, LLM behavior, or side effects
+alwaysApply: false
+---
+
+# Implementation Guardrails
+
+Use Implementation Mode only when an implementation-ready repo task exists.
+
+Read and follow:
+
+- `docs/agents/modes/implementation.md`
+- active ExecPlan in `docs/exec-plans/active/`
+- active repo task in `docs/tasks/`
+- `ARCHITECTURE.md`
+- `docs/SECURITY.md`
+- `docs/RELIABILITY.md`
+- `docs/OBSERVABILITY.md`
+
+Implementation is allowed only when:
+
+- an active repo task exists
+- blocking OPEN_DECISIONs are closed
+- Technology Context is explicit
+- `.harness/stack.env` matches Technology Context
+- Scope and Forbidden Scope are explicit
+- validation commands are defined
+
+Hard stops:
+
+- no repo task
+- blocking OPEN_DECISIONs
+- missing Technology Context
+- stack config drift
+- unclear boundary parsing
+- unapproved side effects
+- changes outside task scope
+
+Do not introduce without accepted decision and task scope:
+
+- CRM writes
+- customer messaging
+- payments/pricing
+- DB migrations
+- LLM business behavior
+- external integrations
+- production automation
+
+Run validation commands from the active task.
+
+Final report must include changed files, checks, scope compliance, risks, and OPEN_DECISIONs.
