@@ -21,7 +21,8 @@
     "@nestjs/platform-express": "^10.4.15",
     "@supabase/supabase-js": "^2.108.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
