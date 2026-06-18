@@ -1,7 +1,14 @@
--- Postsale Agent V1 foundation schema
--- Apply: supabase db push  OR  supabase migration up
+-- Postsale Agent V1 foundation schema (dedicated namespace)
+-- Target schema: postsale_agent_evapremium
+-- Apply: supabase db push  OR  supabase migration up  OR  Supabase MCP apply_migration
+
+CREATE SCHEMA IF NOT EXISTS postsale_agent_evapremium;
+
+GRANT USAGE ON SCHEMA postsale_agent_evapremium TO postgres, service_role;
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+SET search_path TO postsale_agent_evapremium;
 
 CREATE TYPE workflow_status AS ENUM (
   'STARTED',
@@ -260,3 +267,14 @@ CREATE TABLE idempotency_keys (
 
 CREATE UNIQUE INDEX idx_idempotency_keys_key ON idempotency_keys (idempotency_key);
 CREATE INDEX idx_idempotency_keys_workflow_id ON idempotency_keys (workflow_id);
+
+GRANT ALL ON ALL TABLES IN SCHEMA postsale_agent_evapremium TO postgres, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA postsale_agent_evapremium TO postgres, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA postsale_agent_evapremium
+  GRANT ALL ON TABLES TO postgres, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA postsale_agent_evapremium
+  GRANT ALL ON SEQUENCES TO postgres, service_role;
+
+RESET search_path;

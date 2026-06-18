@@ -1,0 +1,35 @@
+[
+  {
+    "Brand": "BMW",
+    "Model": "X5",
+    "Body Type": "SUV",
+    "Generation": "G05",
+    "Aliases": "bmw x5 suv",
+    "Product": "EVA Mat",
+    "Note Body Type": "SUV",
+    "Note Text": "Confirm trunk dimensions",
+    "Source Field": "trunk_note"
+  },
+  {
+    "Brand": "Audi",
+    "Model": "A4",
+    "Body Type": "Sedan",
+    "Generation": "B9",
+    "Aliases": "",
+    "Product": "EVA Mat",
+    "Note Body Type": "Sedan",
+    "Note Text": "Confirm floor mat color",
+    "Source Field": "color_note"
+  },
+  {
+    "Brand": "",
+    "Model": "Missing",
+    "Body Type": "SUV",
+    "Generation": "",
+    "Aliases": "",
+    "Product": "EVA Mat",
+    "Note Body Type": "SUV",
+    "Note Text": "Should be rejected",
+    "Source Field": "invalid"
+  }
+]

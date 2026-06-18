@@ -247,13 +247,15 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | --- | --- | --- | --- |
 | task-01 | V1 foundation — NestJS scaffold, Supabase schema, stack activation | — | Done |
 | task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Done |
-| task-03 | Template import + car template matching | task-01 | Ready |
+| task-03 | Template import + car template matching | task-01 | Done |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Ready |
 | task-05 | Requirements + Langflow classification + initial email | task-02, task-04 | Ready |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
 | task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
 | task-09 | Policy test baseline (15 cases) + runtime validation | task-01–08 | Ready |
+| task-10 | Supabase dedicated schema migration (`postsale_agent_evapremium`) | task-01 | Done |
+| task-11 | EVAMATS production data migration (one-time DML) | task-03, task-10 | Done |
 
 Dependency graph:
 
@@ -310,13 +312,15 @@ Blocking dependencies:
 - [done] exec-plan - this plan active
 - [done] task-01 - NestJS foundation
 - [done] task-02 - idempotency, audit, side-effects
-- [pending] task-03 - template import + matching
+- [done] task-03 - template import + matching
+- [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
 - [pending] task-04 - workflow start + Bitrix read
 - [pending] task-05 - requirements + Langflow + initial email
 - [pending] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
 - [pending] task-08 - Bitrix write + Telegram + n8n webhooks
 - [pending] task-09 - policy test baseline (15 cases)
+- [done] task-10 - Supabase dedicated schema migration (postsale_agent_evapremium)
 - [done] task-list - all repo tasks task-01..task-09 defined (Task Designer 2026-06-17)
 
 ## Surprises & Discoveries
@@ -325,6 +329,7 @@ Blocking dependencies:
 - Prior active ExecPlan `docs-compression-refactor.md` was harness documentation maintenance (completed).
 - task-01 (2026-06-17): NestJS scaffold landed; stack.env switched to nestjs profile; 14-table migration in `supabase/migrations/`.
 - task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
+- task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
 
 ## Decision Log
 

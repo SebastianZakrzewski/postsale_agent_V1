@@ -3,5 +3,15 @@ dist/
 coverage/
 .env
 .env.local
+scripts/output/
+scripts/.mcp-*
+scripts/.import-log.txt
+scripts/.supabase-access-token
+scripts/.active-*.sql
+scripts/.batch-*
+scripts/.chunk-*
+scripts/.query-*
+scripts/.tmp-*
+scripts/.evamats-*
 *.log
 .DS_Store

@@ -1,6 +1,6 @@
 # Task: Template Import + Car Template Matching
 
-Status: Ready  
+Status: Done  
 Stage: Domain | Use Case | Persistence | Integration  
 Mode: Implementation  
 Owner: Implementation agent  
@@ -305,7 +305,35 @@ Blocks: task-04, task-05
 
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
-2026-06-17 - Updated - Linear issue linked (SEL-78)
+2026-06-17 - Updated - Linear issue linked (SEL-78)  
+2026-06-18 - Implemented - ImportTemplateBatchUseCase, MatchTemplateUseCase, SelectNotesUseCase, normalization, Excel parser, EVAMATS slug mappings, CLI (`scripts/import-evamats.ts`), unit/integration tests  
+2026-06-18 - Fix (Codex Audit) - Parse workbook before batch create; mark batch `failed` on import error; CLI supports `--file=` and `--file path`; structured `template_import.batch_failed` log added  
+2026-06-18 - Codex Audit - APPROVED_FOR_HUMAN_REVIEW (re-audit after fix pass)  
+2026-06-18 - Human Architect - Approved
+
+## Implementation Final Report
+
+Summary: Template import and car template matching delivered. One-time import via `scripts/import-evamats.ts`; matching via exact key then alias; notes filtered by product + body type. Codex Audit fix pass: parse-before-write, failure batch status, CLI arg parsing.
+
+Changed files: `src/domains/template-import/`, `src/domains/template-matching/`, `scripts/import-evamats.ts`, `src/lib/cli/parse-file-arg.ts`, tests under `src/tests/`
+
+Checks run: `bash ./scripts/harness-check`, `npm test -- --testPathPattern=template`
+
+Result: Done — Human Architect approved 2026-06-18
+
+Risks: Wrong template match affects customer communication content; Supabase service_role token leaked in chat — operational rotation required outside repo
+
+OPEN_DECISIONs: OD-006 column mapping implemented in `evamats-slug-mappings.ts` (non-blocking; Human Architect has not closed OD-006). OD-004 non-blocking.
+
+Codex Audit required: YES (re-audit after fix pass)
+
+Linear update: SEL-78 status should reflect Done after Human approval
+
+ExecPlan update: task-03 marked done in Progress
+
+PR/Diff: TBD
+
+Next recommended mode: Review / Codex Audit
 
 ## Final Report Template
 
