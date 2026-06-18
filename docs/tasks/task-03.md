@@ -13,7 +13,7 @@ Last updated: 2026-06-18
 
 ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78)  
-PR: TBD
+PR: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (merged)
 
 ## Required Docs
 
@@ -287,7 +287,7 @@ If none: None blocking.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78/task-03-template-import-car-template-matching)  
-Linear status: Backlog
+Linear status: Done
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 
@@ -309,7 +309,8 @@ Blocks: task-04, task-05
 2026-06-18 - Implemented - ImportTemplateBatchUseCase, MatchTemplateUseCase, SelectNotesUseCase, normalization, Excel parser, EVAMATS slug mappings, CLI (`scripts/import-evamats.ts`), unit/integration tests  
 2026-06-18 - Fix (Codex Audit) - Parse workbook before batch create; mark batch `failed` on import error; CLI supports `--file=` and `--file path`; structured `template_import.batch_failed` log added  
 2026-06-18 - Codex Audit - APPROVED_FOR_HUMAN_REVIEW (re-audit after fix pass)  
-2026-06-18 - Human Architect - Approved
+2026-06-18 - Human Architect - Approved  
+2026-06-18 - Merged - PR #4 squash-merged to `postsale-agent-v1/task-01-foundation`; Linear SEL-78 → Done
 
 ## Implementation Final Report
 
