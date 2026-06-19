@@ -8,6 +8,9 @@ import { TemplateMatchingModule } from '../template-matching/template-matching.m
 import { POSTSALE_WORKFLOW_REPOSITORY } from './repository/postsale-workflow.repository';
 import { EscalateWorkflowUseCase } from './use-cases/escalate-workflow.use-case';
 import { FailWorkflowUseCase } from './use-cases/fail-workflow.use-case';
+import { GetWorkflowContextUseCase } from './use-cases/get-workflow-context.use-case';
+import { LoadDealContextUseCase } from './use-cases/load-deal-context.use-case';
+import { MatchWorkflowTemplateUseCase } from './use-cases/match-workflow-template.use-case';
 import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
 
 @Module({
@@ -23,10 +26,20 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
       provide: POSTSALE_WORKFLOW_REPOSITORY,
       useExisting: SupabasePostsaleWorkflowRepository,
     },
+    LoadDealContextUseCase,
+    MatchWorkflowTemplateUseCase,
+    GetWorkflowContextUseCase,
     StartWorkflowUseCase,
     EscalateWorkflowUseCase,
     FailWorkflowUseCase,
   ],
-  exports: [StartWorkflowUseCase, EscalateWorkflowUseCase, FailWorkflowUseCase],
+  exports: [
+    LoadDealContextUseCase,
+    MatchWorkflowTemplateUseCase,
+    GetWorkflowContextUseCase,
+    StartWorkflowUseCase,
+    EscalateWorkflowUseCase,
+    FailWorkflowUseCase,
+  ],
 })
 export class PostsaleWorkflowsModule {}

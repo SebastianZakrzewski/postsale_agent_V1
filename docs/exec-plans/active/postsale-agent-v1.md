@@ -250,7 +250,7 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Done |
 | task-03 | Template import + car template matching | task-01 | Done |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
-| task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Ready |
+| task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Done |
 | task-05 | Requirements + Langflow classification + initial email | task-02, task-12 | Ready |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
@@ -319,7 +319,7 @@ Blocking dependencies:
 - [done] task-03 - template import + matching
 - [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
 - [done] task-04 - workflow start + Bitrix read (Human Architect merge 2026-06-19)
-- [pending] task-12 - workflow capability foundation (schema + start decomposition)
+- [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
 - [pending] task-05 - requirements + Langflow + initial email
 - [pending] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
@@ -417,7 +417,8 @@ Linear Issues:
 | task-02 | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76) | Done |
 | task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Done |
 | task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Done |
-| task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Backlog |
+| task-12 | [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85) | Done |
+| task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Backlog (blocked by SEL-85) |
 | task-06 | [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81) | Backlog |
 | task-07 | [SEL-82](https://linear.app/sellgenius-dev/issue/SEL-82) | Backlog |
 | task-08 | [SEL-83](https://linear.app/sellgenius-dev/issue/SEL-83) | Backlog |

@@ -9,7 +9,7 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-71/100
+72/100
 ```
 
 Last updated:
@@ -21,14 +21,16 @@ Last updated:
 Updated by:
 
 ```text
-Codex Audit (task-04, 2026-06-19)
+Review Mode (task-12, 2026-06-19)
 ```
 
 Evidence basis:
 
 ```text
-Review task-04: lint PASSED; typecheck PASSED; build PASSED; npm test 73/73 PASSED; harness-check PASSED
-Codex Audit task-04: APPROVED_FOR_HUMAN_REVIEW; boundary/architecture PASS; TD-ARCH-001/002/003 and TD-SEC-002 documented non-blockers; Runtime Validation NO per task scope (deferred task-09)
+Review task-12: npm test 83/83 PASSED; build PASSED; local npm run lint FAILED (6889 prettier CRLF on Windows checkout); harness-check not run locally (bash pipefail on Windows; CI ubuntu expected)
+Scope/behavior: behavior-preserving start refactor verified; TD-ARCH-002 resolved; forbidden scope respected
+Gaps: MatchWorkflowTemplateUseCase omits CapabilityResult (acceptance partial); migration remote apply not evidenced; TD-ARCH-005 still Open in tech-debt-tracker (doc drift)
+Verdict: REQUEST_CHANGES (see Review 2026-06-19 task-12)
 ```
 
 ## Score Categories
@@ -36,16 +38,16 @@ Codex Audit task-04: APPROVED_FOR_HUMAN_REVIEW; boundary/architecture PASS; TD-A
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 8 |
-| Architecture consistency | 10 | 7 |
+| Architecture consistency | 10 | 8 |
 | Product clarity | 10 | 8 |
 | Task quality | 10 | 8 |
-| Test coverage | 10 | 7 |
+| Test coverage | 10 | 8 |
 | Runtime validation | 10 | 5 |
 | Security | 10 | 6 |
 | Reliability | 10 | 7 |
 | Observability | 10 | 6 |
-| AI slop / maintainability | 10 | 7 |
-| **Total** | **100** | **71** |
+| AI slop / maintainability | 10 | 8 |
+| **Total** | **100** | **72** |
 
 ## Category Checks
 
@@ -67,19 +69,21 @@ Recommended fixes:
 
 ### 2. Architecture Consistency
 
-Score: 7/10
+Score: 8/10
 
 Check: architecture follows `ARCHITECTURE.md`, especially Technology Context, Providers, Boundary Parsing, Model Separation, Side Effects, Runtime Validation, and Forbidden Dependency Edges.
 
 Problems found:
 
-- **Fixed (2026-06-19):** Bitrix deal parser moved to `src/domains/bitrix/parsers/bitrix-deal.parser.ts`; domain → API forbidden edge removed; no-op `deal-context.mapper.ts` deleted.
-- **Pass:** API controllers route through use cases; use cases do not import external SDKs directly.
-- **Open (see `docs/exec-plans/tech-debt-tracker.md`):** persistence `*Row` types through repository ports; provider payload fields in `StartWorkflowUseCase`; domain modules bind Supabase adapters directly.
+- **Fixed (task-12):** TD-ARCH-002 resolved — `parseBitrixDeal` only in `LoadDealContextUseCase`; `StartWorkflowUseCase` is thin orchestrator.
+- **Fixed (task-12):** TD-ARCH-005 decomposition delivered (load/match/get-context use cases); tracker entry still **Open** — doc drift.
+- **Pass:** API → use case; no SDK in use cases; match rules unchanged (task-03).
+- **Open:** TD-ARCH-001 (rows through ports); TD-ARCH-003 (domain modules bind Supabase).
 
 Recommended fixes:
 
-- Complete TD-ARCH-001–003 before scaling tasks 05–09.
+- Mark TD-ARCH-005 Resolved in `tech-debt-tracker.md` (Docs Maintenance).
+- Complete TD-ARCH-001/003 before scaling tasks 05–09.
 
 ### 3. Product Clarity
 
@@ -107,7 +111,7 @@ Check: repo tasks follow `docs/tasks/_template.md` and link back to active ExecP
 Problems found:
 
 - All 11 task files pass `tasks-check` required sections.
-- Done: `task-01`, `task-02`, `task-03`, `task-04`, `task-10`, `task-11`. Ready: `task-12`, `task-05`–`task-09`.
+- Done: `task-01`, `task-02`, `task-03`, `task-04`, `task-10`, `task-11`. In Review: `task-12`. Ready: `task-05`–`task-09`.
 - `task-09` references `npm run test:policies` (not yet in `package.json` — expected until task-09 starts).
 
 Recommended fixes:
@@ -116,18 +120,17 @@ Recommended fixes:
 
 ### 5. Test Coverage
 
-Score: 7/10
+Score: 8/10
 
 Check: tests and validation commands are defined by the active repo task or ExecPlan; stack-specific checks are governed by `.harness/stack.env` and `docs/agents/_shared/validation-commands.md`.
 
 Problems found:
 
-- `npm run lint` — PASSED (2026-06-19).
-- `npm run typecheck` — PASSED (2026-06-19).
-- `npm test` — PASSED: 21 suites, 73 tests (2026-06-19).
-- Coverage spans foundation, idempotency, audit, side effects, template import/matching, Bitrix read/parser, start workflow, webhooks, health.
-- **Gap:** task-09 policy baseline (15 cases) and `test:policies` script not implemented.
-- **Gap:** tasks 05–08 (email, reply, completion, Bitrix write) have no production tests yet.
+- `npm test` — PASSED: 25 suites, **83 tests** (2026-06-19, task-12 review).
+- `npm run build` — PASSED (2026-06-19).
+- `npm run lint` — **FAILED** locally (prettier CRLF; Windows checkout); verify CI `harness-check.yml` on push/PR.
+- New unit tests: load-deal-context, match-workflow-template, get-workflow-context, workflow-capability helpers; start-workflow regression extended.
+- **Gap:** task-09 policy baseline not implemented.
 
 Recommended fixes:
 
@@ -249,17 +252,17 @@ Do not inflate the score. If evidence is missing, score conservatively. Block ap
 
 ## Current Top Risks
 
-* `task-04` Codex Audit passed — awaiting Human Architect merge; dirty working tree / no PR ref yet.
-* Architecture debt TD-ARCH-001–003 remains (rows through ports, provider payload in use case).
+* task-12 uncommitted / no PR — migration not evidenced on remote Supabase.
+* MatchWorkflowTemplateUseCase idempotency duplicate returns `already_matched` without status guard (recovery edge case; V2).
+* LoadDealContext idempotency key consumed on `parse_failed` — blocks safe retry (V2 recovery).
 * Webhook auth stub until task-08; npm audit 41 vulns (7 high).
-* V1 tasks 05–09 not implemented — score ceiling until product flow complete.
 
 ## Current Top Improvements
 
-* Human Architect merge task-04 complete; start **task-12** next.
-* Complete TD-ARCH-001–003 via task-12 and follow-on cleanup.
-* Implement tasks 12, 05–09 with policy baseline (task-09).
-* Remediate npm audit; link Linear for `task-10`.
+* Fix task-12 review findings (CapabilityResult on match; lint/CI; TD-ARCH-005 tracker).
+* Codex Audit task-12 (schema + lifecycle refactor).
+* Apply migration `20260619100000_task12_workflow_context_columns.sql` on Supabase PROD.
+* Start task-05 after task-12 merge.
 
 ## History
 
@@ -272,4 +275,5 @@ Do not inflate the score. If evidence is missing, score conservatively. Block ap
 2026-06-19 - Updated - Review task-04: APPROVED_FOR_CODEX_AUDIT; acceptance criteria met; minor doc/PR hygiene notes recorded.
 2026-06-19 - Updated - Codex Audit task-04: APPROVED_FOR_HUMAN_REVIEW; security 5→6; overall 70→71.
 2026-06-19 - Updated - Human Architect merge task-04 Done.
+2026-06-19 - Updated - Review task-12: REQUEST_CHANGES; architecture 7→8; test 7→8; slop 7→8; overall 71→72.
 ```

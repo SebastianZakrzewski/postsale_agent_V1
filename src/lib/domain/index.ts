@@ -5,3 +5,5 @@ export * from './side-effect-record.domain';
 export * from './template.domain';
 export * from './deal-context.domain';
 export * from './start-workflow-result.domain';
+export * from './capability-result.domain';
+export * from './workflow-capability.helpers';

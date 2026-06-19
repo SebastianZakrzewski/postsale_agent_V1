@@ -3,6 +3,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import {
   CreateWorkflowInput,
   PostsaleWorkflowRepository,
+  UpdateCarTemplateMatchInput,
+  UpdateDealContextInput,
 } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { Workflow } from '../../lib/domain';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
@@ -83,6 +85,42 @@ export class SupabasePostsaleWorkflowRepository extends PostsaleWorkflowReposito
       throw new Error(
         `Failed to update template match status: ${error.message}`,
       );
+    }
+  }
+
+  async updateDealContext(
+    workflowId: string,
+    input: UpdateDealContextInput,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        deal_context_json: input.dealContext,
+        product: input.product,
+        status: input.status,
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to update deal context: ${error.message}`);
+    }
+  }
+
+  async updateCarTemplateMatch(
+    workflowId: string,
+    input: UpdateCarTemplateMatchInput,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        car_template_id: input.carTemplateId,
+        template_match_status: input.templateMatchStatus,
+        status: input.status,
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to update car template match: ${error.message}`);
     }
   }
 

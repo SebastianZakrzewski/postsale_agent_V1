@@ -3,6 +3,8 @@ import { AuditService } from '../../domains/audit/services/audit.service';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { FailWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/fail-workflow.use-case';
+import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
+import { MatchWorkflowTemplateUseCase } from '../../domains/postsale-workflows/use-cases/match-workflow-template.use-case';
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
 import { DuplicateStartWorkflowInProgressError } from '../../domains/postsale-workflows/errors/start-workflow.errors';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
@@ -60,6 +62,8 @@ describe('StartWorkflowUseCase', () => {
       imports: [TemplateMatchingModule],
       providers: [
         StartWorkflowUseCase,
+        LoadDealContextUseCase,
+        MatchWorkflowTemplateUseCase,
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
@@ -120,6 +124,8 @@ describe('StartWorkflowUseCase', () => {
       imports: [TemplateMatchingModule],
       providers: [
         StartWorkflowUseCase,
+        LoadDealContextUseCase,
+        MatchWorkflowTemplateUseCase,
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
@@ -236,6 +242,8 @@ describe('StartWorkflowUseCase', () => {
       imports: [TemplateMatchingModule],
       providers: [
         StartWorkflowUseCase,
+        LoadDealContextUseCase,
+        MatchWorkflowTemplateUseCase,
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
@@ -283,5 +291,10 @@ describe('StartWorkflowUseCase', () => {
     expect(result.status).toBe(WorkflowStatus.TEMPLATE_MATCHED);
     expect(result.templateMatchStatus).toBe(TemplateMatchStatus.MATCHED);
     expect(result.isDuplicate).toBe(false);
+
+    const persisted = await workflowRepository.findById(result.workflowId);
+    expect(persisted?.dealContext).toMatchObject({ brand: 'BMW', model: 'X5' });
+    expect(persisted?.carTemplateId).toBeTruthy();
+    expect(persisted?.product).toBe('EVA Mat');
   });
 });

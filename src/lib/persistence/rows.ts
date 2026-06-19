@@ -49,6 +49,9 @@ export interface PostsaleWorkflowRow {
   bitrix_deal_id: string;
   status: WorkflowStatus;
   template_match_status: TemplateMatchStatus | null;
+  deal_context_json: Record<string, unknown> | null;
+  car_template_id: string | null;
+  product: string | null;
   created_at: string;
   updated_at: string;
 }

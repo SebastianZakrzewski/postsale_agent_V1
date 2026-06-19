@@ -18,3 +18,18 @@ export interface IngestReplyCommand {
   messageId: string;
   body: string;
 }
+
+export interface LoadDealContextCommand {
+  workflowId: string;
+  bitrixDealId: string;
+  requestId?: string;
+}
+
+export interface MatchWorkflowTemplateCommand {
+  workflowId: string;
+  requestId?: string;
+}
+
+export interface GetWorkflowContextQuery {
+  workflowId: string;
+}

@@ -1,9 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { parseBitrixDeal } from '../../bitrix/parsers/bitrix-deal.parser';
-import {
-  DEFAULT_BITRIX_FIELD_MAPPING,
-  resolveBitrixFieldMapping,
-} from '../../bitrix/config/bitrix-field-mapping';
+import { Inject, Injectable } from '@nestjs/common';
 import { StartWorkflowCommand } from '../../../lib/commands/workflow.commands';
 import { StartWorkflowResult } from '../../../lib/domain';
 import {
@@ -11,14 +6,9 @@ import {
   WorkflowEventType,
   WorkflowStatus,
 } from '../../../lib/enums';
-import {
-  BITRIX_PROVIDER,
-  BitrixProvider,
-} from '../../../integrations/bitrix/bitrix.provider';
 import { BitrixReadError } from '../../../integrations/bitrix/bitrix-read.error';
 import { AuditService } from '../../audit/services/audit.service';
 import { IdempotencyService } from '../../idempotency/services/idempotency.service';
-import { MatchTemplateUseCase } from '../../template-matching/use-cases/match-template.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -26,21 +16,20 @@ import {
 import { DuplicateStartWorkflowInProgressError } from '../errors/start-workflow.errors';
 import { EscalateWorkflowUseCase } from './escalate-workflow.use-case';
 import { FailWorkflowUseCase } from './fail-workflow.use-case';
+import { LoadDealContextUseCase } from './load-deal-context.use-case';
+import { MatchWorkflowTemplateUseCase } from './match-workflow-template.use-case';
 
 const START_WORKFLOW_SCOPE = 'start_workflow';
 
 @Injectable()
 export class StartWorkflowUseCase {
-  private readonly logger = new Logger(StartWorkflowUseCase.name);
-
   constructor(
     private readonly idempotencyService: IdempotencyService,
     private readonly auditService: AuditService,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
-    @Inject(BITRIX_PROVIDER)
-    private readonly bitrixProvider: BitrixProvider,
-    private readonly matchTemplateUseCase: MatchTemplateUseCase,
+    private readonly loadDealContextUseCase: LoadDealContextUseCase,
+    private readonly matchWorkflowTemplateUseCase: MatchWorkflowTemplateUseCase,
     private readonly escalateWorkflowUseCase: EscalateWorkflowUseCase,
     private readonly failWorkflowUseCase: FailWorkflowUseCase,
   ) {}
@@ -92,9 +81,13 @@ export class StartWorkflowUseCase {
       requestId: command.requestId,
     });
 
-    let bitrixPayload;
+    let loadOutcome;
     try {
-      bitrixPayload = await this.bitrixProvider.readDeal(command.bitrixDealId);
+      loadOutcome = await this.loadDealContextUseCase.execute({
+        workflowId: workflow.id,
+        bitrixDealId: command.bitrixDealId,
+        requestId: command.requestId,
+      });
     } catch (error) {
       if (error instanceof BitrixReadError) {
         const failed = await this.failWorkflowUseCase.execute({
@@ -109,87 +102,25 @@ export class StartWorkflowUseCase {
       throw error;
     }
 
-    const fieldMapping = resolveBitrixFieldMapping();
-    const parseResult = parseBitrixDeal(bitrixPayload, fieldMapping);
-
-    if (!parseResult.ok) {
-      this.logger.log({
-        event_name: 'bitrix.deal_context.parse_failed',
-        workflow_id: workflow.id,
-        request_id: command.requestId,
-        bitrix_deal_id: bitrixPayload.id,
-        stage_id: bitrixPayload.stageId ?? null,
-        reason: parseResult.reason,
-        missing_fields: parseResult.missingFields,
-        field_mapping: fieldMapping,
-        raw_field_sample: Object.fromEntries(
-          Object.values(DEFAULT_BITRIX_FIELD_MAPPING).map((key) => [
-            key,
-            bitrixPayload.fields?.[key] ?? null,
-          ]),
-        ),
-      });
-
+    if (loadOutcome.type === 'parse_failed') {
       const escalated = await this.escalateWorkflowUseCase.execute({
         workflowId: workflow.id,
-        reason: parseResult.reason,
+        reason: loadOutcome.reason,
         templateMatchStatus: TemplateMatchStatus.NOT_FOUND,
         requestId: command.requestId,
       });
       return this.toResult(escalated, false);
     }
 
-    this.logger.log({
-      event_name: 'bitrix.deal_context.normalized',
-      workflow_id: workflow.id,
-      request_id: command.requestId,
-      bitrix_deal_id: parseResult.dealContext.bitrixDealId,
-      stage_id: bitrixPayload.stageId ?? null,
-      deal_context: parseResult.dealContext,
-      field_mapping: fieldMapping,
-    });
-
-    await this.workflowRepository.updateStatus(
-      workflow.id,
-      WorkflowStatus.CONTEXT_LOADED,
-    );
-
-    await this.auditService.emit({
+    const matchOutcome = await this.matchWorkflowTemplateUseCase.execute({
       workflowId: workflow.id,
-      eventType: WorkflowEventType.DEAL_CONTEXT_LOADED,
-      statusBefore: WorkflowStatus.STARTED,
-      statusAfter: WorkflowStatus.CONTEXT_LOADED,
       requestId: command.requestId,
     });
 
-    const matchResult = await this.matchTemplateUseCase.execute({
-      brand: parseResult.dealContext.brand,
-      model: parseResult.dealContext.model,
-      bodyType: parseResult.dealContext.bodyType,
-      generation: parseResult.dealContext.generation,
-    });
-
-    if (matchResult.status === TemplateMatchStatus.MATCHED) {
-      await this.workflowRepository.updateTemplateMatchStatus(
-        workflow.id,
-        TemplateMatchStatus.MATCHED,
-      );
-      await this.workflowRepository.updateStatus(
-        workflow.id,
-        WorkflowStatus.TEMPLATE_MATCHED,
-      );
-
-      await this.auditService.emit({
-        workflowId: workflow.id,
-        eventType: WorkflowEventType.TEMPLATE_MATCH_SUCCEEDED,
-        statusBefore: WorkflowStatus.CONTEXT_LOADED,
-        statusAfter: WorkflowStatus.TEMPLATE_MATCHED,
-        payload: {
-          carTemplateId: matchResult.carTemplateId ?? null,
-        },
-        requestId: command.requestId,
-      });
-
+    if (
+      matchOutcome.type === 'success' ||
+      matchOutcome.type === 'already_matched'
+    ) {
       const updated = await this.workflowRepository.findById(workflow.id);
       if (!updated) {
         throw new Error(
@@ -201,8 +132,10 @@ export class StartWorkflowUseCase {
 
     const escalated = await this.escalateWorkflowUseCase.execute({
       workflowId: workflow.id,
-      reason: matchResult.escalationReason ?? matchResult.status,
-      templateMatchStatus: matchResult.status,
+      reason:
+        matchOutcome.matchResult.escalationReason ??
+        matchOutcome.matchResult.status,
+      templateMatchStatus: matchOutcome.matchResult.status,
       requestId: command.requestId,
     });
 

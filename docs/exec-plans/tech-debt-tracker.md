@@ -24,8 +24,8 @@ Impact: Provider payload used beyond single parse boundary
 Recommended fix: Use only DealContext or domain errors after parseBitrixDeal
 Risk: Medium
 Owner: Implementation / Cleanup
-Status: Open
-Source: Cleanup scan 2026-06-19
+Status: Resolved (task-12 — parse boundary only in LoadDealContextUseCase)
+Source: Cleanup scan 2026-06-19; resolved task-12 2026-06-19
 ```
 
 ```text
@@ -88,6 +88,8 @@ Status: Open
 Source: Cleanup scan 2026-06-19
 ```
 
+## Resolved Items
+
 ```text
 ID: TD-ARCH-005
 Domain: postsale-workflows
@@ -96,11 +98,9 @@ Impact: Blocks workflow-wide agent loop (V3); couples n8n happy path to internal
 Recommended fix: Extract LoadDealContextUseCase; thin start orchestrator; WorkflowStateGuard + capability API per docs/design-docs/postsale-agent-capabilities-agent-loop.md (V2+)
 Risk: Low if deferred post-V1; Medium if agent MCP needed early
 Owner: Implementation / V2 planning
-Status: Open
-Source: Architecture discussion 2026-06-19; OD-009; **task-12 implements recommended fix**
+Status: Resolved (task-12 — LoadDealContextUseCase, MatchWorkflowTemplateUseCase, GetWorkflowContextUseCase, CapabilityResult)
+Source: Architecture discussion 2026-06-19; OD-009; resolved task-12 2026-06-19
 ```
-
-## Resolved Items
 
 ```text
 ID: TD-ARCH-004

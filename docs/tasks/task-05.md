@@ -313,7 +313,7 @@ If none: None blocking.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79/task-05-requirements-langflow-classification-initial-email)  
-Linear status: Backlog
+Linear status: Backlog (blocked by SEL-85 / task-12)
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 

@@ -1,9 +1,21 @@
-import { Workflow } from '../../../lib/domain';
+import { DealContext, Workflow } from '../../../lib/domain';
 import { TemplateMatchStatus, WorkflowStatus } from '../../../lib/enums';
 import { PostsaleWorkflowRow } from '../../../lib/persistence';
 
 export interface CreateWorkflowInput {
   bitrixDealId: string;
+  status: WorkflowStatus;
+}
+
+export interface UpdateDealContextInput {
+  dealContext: DealContext;
+  product: string;
+  status: WorkflowStatus;
+}
+
+export interface UpdateCarTemplateMatchInput {
+  carTemplateId: string;
+  templateMatchStatus: TemplateMatchStatus;
   status: WorkflowStatus;
 }
 
@@ -18,6 +30,14 @@ export abstract class PostsaleWorkflowRepository {
   abstract updateTemplateMatchStatus(
     workflowId: string,
     templateMatchStatus: TemplateMatchStatus,
+  ): Promise<void>;
+  abstract updateDealContext(
+    workflowId: string,
+    input: UpdateDealContextInput,
+  ): Promise<void>;
+  abstract updateCarTemplateMatch(
+    workflowId: string,
+    input: UpdateCarTemplateMatchInput,
   ): Promise<void>;
   abstract findRowById(id: string): Promise<PostsaleWorkflowRow | null>;
 }
