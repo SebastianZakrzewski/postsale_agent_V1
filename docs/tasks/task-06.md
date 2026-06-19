@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-langflow-tools.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-langflow-tools.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`.
 
 ## Context
@@ -25,7 +25,7 @@ If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABIL
 Why this task exists:
 
 - Business: Customer replies by email with text, attachments, and links; system must analyze against requirements and store evidence before completion policy runs.
-- Technical: Inbound email normalized from n8n DTO; Langflow analyze-customer-reply; evidence persistence with VALID-without-evidence guard.
+- Technical: Inbound email normalized from n8n DTO; Langflow analyze-customer-reply with **task-local agent loop** (read tools + propose); evidence persistence with VALID-without-evidence guard. **Standalone** `IngestReplyUseCase` and `AnalyzeReplyUseCase` — do not merge into a monolithic reply handler.
 - Current behavior: Workflow WAITING_FOR_CUSTOMER_REPLY without reply handling.
 - Target behavior: IngestReplyUseCase → customer_messages, message_attachments, message_links → AnalyzeReplyUseCase → requirement_evidence + status updates → REQUIREMENTS_UPDATED.
 
@@ -116,10 +116,12 @@ Do not implement:
 - Follow-up send (task-07)
 - Bitrix write (task-08)
 - n8n webhook controller wiring (task-08)
+- Workflow-wide agent loop (V3)
 
 Do not touch:
 
 - CompletionPolicy rules
+- StartWorkflowUseCase or requirements monolith merge
 
 ## Business Behavior
 
@@ -145,7 +147,9 @@ Edge cases:
 
 Implementation:
 
-- IngestReplyUseCase and AnalyzeReplyUseCase
+- IngestReplyUseCase and AnalyzeReplyUseCase as **separate** capabilities (`workflow_id` scoped)
+- AnalyzeReplyUseCase returns `CapabilityResult`; Langflow may `propose_completion | propose_followup | propose_manual_review` — NestJS validates, does not auto-complete (task-07)
+- Langflow analyze flow uses read tools: `get_workflow_requirements`, `get_customer_messages`, `get_previous_evidence`
 - Evidence guard at persistence boundary
 - langflow_runs for analyze flow
 
@@ -323,6 +327,7 @@ Blocks: task-07
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-81)
+2026-06-19 - Updated - Standalone reply capabilities; Langflow level-A agent loop; CapabilityResult (OD-009)
 
 ## Final Report Template
 

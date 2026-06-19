@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/design-docs/postsale-agent-langflow-tools.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`.
 
 ## Context
@@ -25,7 +25,7 @@ If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABIL
 Why this task exists:
 
 - Business: Core safety rules — when workflow may complete, follow up, or escalate — must live in NestJS policies, not Langflow or n8n.
-- Technical: Pure/domain policies + orchestrating use cases; Langflow propose_completion ignored unless CompletionPolicy passes.
+- Technical: Pure/domain policies + **standalone orchestrating use cases**; Langflow `propose_completion` ignored unless CompletionPolicy passes; terminal `CapabilityResult.done` when COMPLETED/ESCALATED pending Bitrix (task-08).
 - Current behavior: REQUIREMENTS_UPDATED without policy evaluation.
 - Target behavior: CompletionPolicy, FollowupPolicy, EscalationPolicy; ApplyCompletionPolicyUseCase; SendFollowupUseCase (draft via Langflow, send via email module); pending Bitrix/Telegram states without external calls.
 
@@ -76,7 +76,8 @@ Expected result:
 - CompletionPolicy.evaluate(): PASS | INCOMPLETE | ESCALATE per product spec checklist
 - FollowupPolicy: 24h, 48h, max 3 attempts
 - EscalationPolicy: reasons from product spec
-- ApplyCompletionPolicyUseCase, SendFollowupUseCase
+- ApplyCompletionPolicyUseCase, SendFollowupUseCase, EscalateFromPolicyUseCase (or equivalent) — **each standalone**, not one mega use case
+- `CapabilityResult`: `done: true` only for terminal or `soft_stop: true` for WAITING_FOR_CUSTOMER_REPLY after follow-up send
 - Status: COMPLETION_PENDING_BITRIX_UPDATE or ESCALATION_PENDING_BITRIX_UPDATE (no external calls)
 
 Complete when:
@@ -305,6 +306,7 @@ Blocks: task-08
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-82)
+2026-06-19 - Updated - Standalone policy use cases; CapabilityResult termination semantics (OD-010 draft)
 
 ## Final Report Template
 

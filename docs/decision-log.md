@@ -137,3 +137,11 @@ This file records accepted architecture, product, security, reliability, integra
 **Rationale:** Task-01 established the Node/NestJS project foundation, so CI can require Node checks, lint, typecheck, tests, and build.
 
 **Owner:** Human Architect
+
+### 2026-06-18 — OD-004 Bitrix DealContext field mapping (EVAPREMIUM)
+
+**Decision:** DealContext parser maps Bitrix deal custom fields on `evapremium.bitrix24.pl` as follows: brand → `UF_CRM_1760788285332`, model → `UF_CRM_1760788302371`, bodyType → `UF_CRM_1760788343011`, generation → `UF_CRM_1768256762509`, product → `UF_CRM_1781552572183`. Generation uses the dedicated “Generacja” field (not “Rok samochodu”). Product uses the string field “Rodzaj kompletu (tech):”, not the legacy enumeration-only field.
+
+**Rationale:** Confirmed via live REST inspection of deal `33950` (`crm.deal.get`, `crm.deal.userfield.list`). Required for live Bitrix read before template matching.
+
+**Owner:** Human Architect (empirical confirmation 2026-06-18; formal sign-off pending if needed)

@@ -294,9 +294,9 @@ Linear tracks only status, owner, priority, PR link, review/audit state, and pro
 ## Trace
 
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
-Related PR: TBD  
-Related reviews: TBD  
-Related QA evidence: TBD  
+Related PR: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (merged 2026-06-18)  
+Related reviews: Codex Audit APPROVED_FOR_HUMAN_REVIEW (2026-06-18); Human Architect approved 2026-06-18  
+Related QA evidence: harness-check PASS (49 tests); PROD import verified via task-11 (2719 templates, 2169 notes)  
 Related decisions: `docs/decision-log.md` (template matching policy, 2026-06-17)  
 Depends on: task-01  
 Blocks: task-04, task-05
@@ -328,13 +328,13 @@ OPEN_DECISIONs: OD-006 column mapping implemented in `evamats-slug-mappings.ts` 
 
 Codex Audit required: YES (re-audit after fix pass)
 
-Linear update: SEL-78 status should reflect Done after Human approval
+Linear update: SEL-78 → Done; completion summary in issue description (2026-06-18)
 
 ExecPlan update: task-03 marked done in Progress
 
-PR/Diff: TBD
+PR/Diff: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 — squash-merged to `postsale-agent-v1/task-01-foundation`
 
-Next recommended mode: Review / Codex Audit
+Next recommended mode: Implementation — task-04
 
 ## Final Report Template
 

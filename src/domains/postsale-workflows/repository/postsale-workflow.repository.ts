@@ -1,5 +1,5 @@
 import { Workflow } from '../../../lib/domain';
-import { WorkflowStatus } from '../../../lib/enums';
+import { TemplateMatchStatus, WorkflowStatus } from '../../../lib/enums';
 import { PostsaleWorkflowRow } from '../../../lib/persistence';
 
 export interface CreateWorkflowInput {
@@ -14,6 +14,10 @@ export abstract class PostsaleWorkflowRepository {
   abstract updateStatus(
     workflowId: string,
     status: WorkflowStatus,
+  ): Promise<void>;
+  abstract updateTemplateMatchStatus(
+    workflowId: string,
+    templateMatchStatus: TemplateMatchStatus,
   ): Promise<void>;
   abstract findRowById(id: string): Promise<PostsaleWorkflowRow | null>;
 }

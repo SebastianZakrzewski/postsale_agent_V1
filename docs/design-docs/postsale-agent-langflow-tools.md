@@ -12,6 +12,8 @@ Linked architecture: `docs/design-docs/postsale-agent-architecture.md`
 
 Langflow is a controlled AI module. NestJS owns all side effects and state transitions.
 
+For **workflow-wide agent loops** (invoking individual NestJS capabilities without full `start_workflow`), see `docs/design-docs/postsale-agent-capabilities-agent-loop.md` and open decisions OD-008–OD-010. V1 Langflow tools below apply to **task-local** agent loops inside classify/draft/analyze flows.
+
 ```text
 NestJS UseCase
   → LangflowProvider.invoke(flow, tools, context)

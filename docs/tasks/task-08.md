@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-architecture.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-architecture.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`.
 
 ## Context
@@ -25,7 +25,7 @@ If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABIL
 Why this task exists:
 
 - Business: Completion and escalation must update Bitrix (**Deale do dodania** / **Do ręcznej weryfikacji**), add comments, and notify operators on Telegram; n8n must invoke NestJS securely.
-- Technical: Execute pending side effects from task-02; wire use cases from tasks 04–07 to HTTP webhooks.
+- Technical: Execute pending side effects from task-02; wire **one webhook → one use case** (no new monolithic orchestrators). V1 n8n endpoints remain event triggers, not workflow-wide agent loop (OD-008).
 - Current behavior: COMPLETION_PENDING / ESCALATION_PENDING states without external execution.
 - Target behavior: Bitrix write + Telegram + three n8n webhook endpoints with WebhookAuthGuard.
 
@@ -80,9 +80,10 @@ Expected result:
 - BitrixProvider write: updateStage, addComment
 - TelegramProvider: sendNotification
 - ExecuteSideEffectsUseCase for completion and escalation paths
-- API controllers: `POST /webhooks/n8n/workflow-start`, `email-inbound`, `follow-up-check`
+- API controllers: `POST /webhooks/n8n/workflow-start` → `StartWorkflowUseCase` (thin orchestrator from task-12), `email-inbound` → `IngestReplyUseCase`, `follow-up-check` → `SendFollowupUseCase` / policy use case
 - WebhookAuthGuard (OD-007)
 - Terminal states COMPLETED / ESCALATED after successful Bitrix side effects
+- Webhook responses may include `status` only in V1; full `CapabilityResult` on HTTP deferred to V2 (OD-010)
 
 Complete when:
 
@@ -121,11 +122,14 @@ Do not implement:
 - New Langflow flows
 - n8n workflow JSON files in repo
 - Business policy changes
+- Public `/capabilities/*` MCP routes (V2 / OD-008)
+- Workflow-wide agent loop runtime (V3)
 
 Do not touch:
 
 - Template import or matching modules
 - Product spec stage semantics
+- **Do not** add requirements/reply/completion logic into `StartWorkflowUseCase` — webhooks delegate to task-specific use cases only
 
 ## Business Behavior
 
@@ -326,6 +330,7 @@ Blocks: task-09
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-83)
+2026-06-19 - Updated - One webhook → one use case; no capability MCP in V1 (OD-008)
 
 ## Final Report Template
 

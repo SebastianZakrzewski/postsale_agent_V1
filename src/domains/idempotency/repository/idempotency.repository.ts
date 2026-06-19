@@ -12,6 +12,7 @@ export abstract class IdempotencyRepository {
     scope: string,
     workflowId?: string,
   ): Promise<IdempotencyInsertResult>;
+  abstract linkWorkflowId(key: string, workflowId: string): Promise<void>;
 }
 
 export const IDEMPOTENCY_REPOSITORY = Symbol('IDEMPOTENCY_REPOSITORY');

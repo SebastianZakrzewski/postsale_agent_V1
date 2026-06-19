@@ -189,11 +189,12 @@ V2 candidates:
 * scheduled EVAMATS template sync
 * fuzzy template matching
 * basic operator dashboard
+* workflow capability API (`LoadDealContext`, guarded `match_template`, read + `allowed_next_actions`) for recovery/replay — see `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, OD-009
 
 V3 candidates:
 
 * image correctness classification
-* multi-agent orchestration
+* multi-agent orchestration and workflow-wide agent loop (level B) — OD-008, OD-010
 * full admin dashboard
 
 ## Architecture Summary
@@ -248,8 +249,9 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-01 | V1 foundation — NestJS scaffold, Supabase schema, stack activation | — | Done |
 | task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Done |
 | task-03 | Template import + car template matching | task-01 | Done |
-| task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Ready |
-| task-05 | Requirements + Langflow classification + initial email | task-02, task-04 | Ready |
+| task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
+| task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Ready |
+| task-05 | Requirements + Langflow classification + initial email | task-02, task-12 | Ready |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
 | task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
@@ -262,16 +264,18 @@ Dependency graph:
 ```text
 task-01
   ├── task-02 ─────────────────────────────┐
-  └── task-03 ── task-04 ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
+  └── task-03 ── task-04 ── task-12 ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
                 └ (task-02 used from 04 onward)
 ```
+
+task-12 (capability foundation) refactors start into discrete use cases + persists DealContext; required before task-05. See `docs/tasks/task-12.md` and `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
 
 Parallel opportunity: task-02 and task-03 may run in parallel after task-01.
 
 Linear mapping (create issues when implementation starts):
 
 - SEL-73 — architecture (Done)
-- task-01 … task-09 — one Linear issue per repo task (TBD)
+- task-01 … task-12 — repo tasks in `docs/tasks/`; Linear issues linked per task file
 
 ## Dependencies
 
@@ -291,8 +295,8 @@ Technical dependencies:
 
 Business dependencies:
 
-* EVAMATS template export for one-time import (OD-006)
-* Bitrix field mapping confirmation (OD-004)
+* EVAMATS template export for one-time import (OD-006 — implemented via task-11; awaiting Human Architect closure)
+* Bitrix field mapping confirmation (OD-004 — resolved 2026-06-18; see `docs/decision-log.md`)
 
 External dependencies:
 
@@ -314,7 +318,8 @@ Blocking dependencies:
 - [done] task-02 - idempotency, audit, side-effects
 - [done] task-03 - template import + matching
 - [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
-- [pending] task-04 - workflow start + Bitrix read
+- [done] task-04 - workflow start + Bitrix read (Human Architect merge 2026-06-19)
+- [pending] task-12 - workflow capability foundation (schema + start decomposition)
 - [pending] task-05 - requirements + Langflow + initial email
 - [pending] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
@@ -326,7 +331,7 @@ Blocking dependencies:
 ## Surprises & Discoveries
 
 - Repository was harness-only before this initiative; no existing application code.
-- Prior active ExecPlan `docs-compression-refactor.md` was harness documentation maintenance (completed).
+- Prior active ExecPlan `docs-compression-refactor.md` was harness documentation maintenance (completed; archived to `docs/exec-plans/completed/`).
 - task-01 (2026-06-17): NestJS scaffold landed; stack.env switched to nestjs profile; 14-table migration in `supabase/migrations/`.
 - task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
 - task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
@@ -410,13 +415,15 @@ Linear Issues:
 | Architecture | [SEL-73](https://linear.app/sellgenius-dev/issue/SEL-73) | Done |
 | task-01 | [SEL-77](https://linear.app/sellgenius-dev/issue/SEL-77) | Done |
 | task-02 | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76) | Done |
-| task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Backlog |
-| task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Backlog |
+| task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Done |
+| task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Done |
 | task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Backlog |
 | task-06 | [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81) | Backlog |
 | task-07 | [SEL-82](https://linear.app/sellgenius-dev/issue/SEL-82) | Backlog |
 | task-08 | [SEL-83](https://linear.app/sellgenius-dev/issue/SEL-83) | Backlog |
 | task-09 | [SEL-84](https://linear.app/sellgenius-dev/issue/SEL-84) | Backlog |
+| task-10 | TBD (repo Done) | Done (repo) |
+| task-11 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) (PROD load noted in description) | Done (repo) |
 
 Note: Previous Linear project instance was trashed; active project recreated 2026-06-17.
 
@@ -426,7 +433,7 @@ Known risks:
 
 - Langflow classification drift
 - Email reply-to matching ambiguity
-- Bitrix field mapping errors (OD-004)
+- Bitrix field mapping errors — mitigated via OD-004 resolution (2026-06-18); validate in task-04 review
 
 Mitigations:
 

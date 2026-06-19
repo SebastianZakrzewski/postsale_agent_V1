@@ -58,13 +58,23 @@ V1 architecture, business rules, lifecycle, integrations, and acceptance criteri
 
 #### OD-004 — Bitrix field mapping
 
-**Unknown:** Exact Bitrix custom field IDs/names for vehicle brand, model, body type, generation, product.
+**Status:** Resolved for `evapremium.bitrix24.pl` (2026-06-18). Production wiring may proceed using the mapping below. Re-open only if Bitrix admin renames custom fields or portal differs.
 
-**Why it matters:** DealContext parser and template matching input.
+**Confirmed mapping** (source: `crm.deal.get` + `crm.deal.userfield.list`, deal `33950`):
 
-**Recommended default:** Document field map in implementation task after Bitrix MCP/schema inspection.
+| DealContext | Bitrix `FIELD_NAME` | Bitrix label (PL) |
+|-------------|---------------------|-------------------|
+| brand | `UF_CRM_1760788285332` | Marka samochodu |
+| model | `UF_CRM_1760788302371` | Model samochodu |
+| bodyType | `UF_CRM_1760788343011` | Typ nadwozia |
+| generation | `UF_CRM_1768256762509` | Generacja |
+| product | `UF_CRM_1781552572183` | Rodzaj kompletu (tech): |
 
-**Impact:** bitrix adapter mapper; blocking for production wiring only, not for schema/policy development.
+**Runtime config:** `BITRIX_DEAL_FIELD_MAP` JSON in `.env` (see `.env.example`). Code default matches the table above.
+
+**Notes:** Legacy fields `UF_CRM_CAR_*` and combined `UF_CRM_1757178018809` exist but were empty on deal `33950`; do not use for DealContext. Product enum `UF_CRM_1757024835301` duplicates product text; string field above is the parser source of truth.
+
+**Impact:** bitrix adapter mapper — resolved for EVAPREMIUM V1 live read path.
 
 ---
 
@@ -101,4 +111,60 @@ V1 architecture, business rules, lifecycle, integrations, and acceptance criteri
 **Recommended default:** Shared secret via `X-Webhook-Secret` header validated in NestJS guard.
 
 **Impact:** API auth module; recommended before production exposure.
+
+---
+
+#### OD-008 — Agent loop runtime ownership
+
+**Unknown:** Where the **workflow-wide** agent decision loop (level B) runs: inside Langflow flows only, inside NestJS as a `RunAgentTurn`-style use case, or in an external parent agent (MCP / Cursor / dedicated orchestrator).
+
+**Why it matters:** Determines API surface, deployment boundaries, observability, and who owns retry/timeout for the loop. V1 already assumes **task-local** loops inside Langflow for classify/draft/analyze (level A); this decision is about orchestration **across** workflow steps.
+
+**Recommended default:**
+
+- **V1:** Level A only — Langflow loops within AI steps; NestJS deterministic use cases between steps (see `docs/design-docs/postsale-agent-langflow-tools.md`).
+- **V2:** NestJS exposes discrete **capabilities** (HTTP or internal); optional recovery/replay without a full `start_workflow`.
+- **V3:** External or NestJS-hosted level B loop calling capabilities + Langflow propose tools; see `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
+
+**Impact:** Non-blocking for V1 task-05–09. Blocks V3 multi-agent ExecPlan and any MCP/agent API design.
+
+**Design reference:** `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
+
+---
+
+#### OD-009 — Workflow capability decomposition
+
+**Unknown:** When and how to split `StartWorkflowUseCase` into externally invokable capabilities (`load_deal_context`, `match_template`, …) with `WorkflowStateGuard` preconditions; whether `start_workflow` remains the only n8n entry in production indefinitely.
+
+**Why it matters:** Enables agent loop (level B) and operator recovery without re-running full start. Without decomposition, every agent action implies duplicate idempotency + Bitrix read + match.
+
+**Recommended default:**
+
+1. Implement task-05+ as **standalone use cases**, not new branches inside `StartWorkflowUseCase`.
+2. After task-04 merge, extract **`LoadDealContextUseCase`** from start; keep `StartWorkflowUseCase` as thin orchestrator for n8n.
+3. Add **`WorkflowStateGuard`** and **`allowed_next_actions`** when first exposing capability HTTP/MCP (V2).
+4. Production n8n continues **`start_workflow` only** until Human Architect approves agent-driven entry.
+
+**Impact:** Non-blocking for V1. Guides refactor hygiene during task-05–08. See capability map in design doc.
+
+**Design reference:** `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
+
+---
+
+#### OD-010 — Agent loop termination and capability response contract
+
+**Unknown:** Exact API response shape for agent-facing capability calls: fields for `done`, `soft_stop`, `allowed_next_actions[]`, and rejection reasons when `propose_completion` or mutating capabilities are denied.
+
+**Why it matters:** Agent loops need deterministic stop conditions. Without an explicit contract, agents may retry forbidden tools or fail to stop on `WAITING_FOR_CUSTOMER_REPLY`.
+
+**Recommended default:**
+
+- **Hard stop:** `status ∈ { COMPLETED, ESCALATED, FAILED }` → `done: true`.
+- **Soft stop:** `WAITING_FOR_CUSTOMER_REPLY` → `done: false`, `soft_stop: true` (resume on webhook/timer).
+- Every mutating capability returns current `status` + `allowed_next_actions[]` derived from `WorkflowStateGuard`.
+- Langflow **proposal** rejections return policy reason; agent continues with read tools or controlled requests.
+
+**Impact:** Non-blocking for V1. Required before V2 agent/MCP exposure or level B loop.
+
+**Design reference:** `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
 

@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-langflow-tools.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-langflow-tools.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`.
 
 ## Context
@@ -25,9 +25,9 @@ If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABIL
 Why this task exists:
 
 - Business: After template match, selected notes must become classified workflow_requirements before any customer email is sent.
-- Technical: Langflow classify + draft flows invoked via LangflowProvider; NestJS validates all LLM output; SideEffectService sends initial email.
-- Current behavior: Matched workflow without requirements or outbound email.
-- Target behavior: Langflow classify → validate → persist requirements → Langflow draft initial email → validate → SEND_INITIAL_EMAIL side effect → WAITING_FOR_CUSTOMER_REPLY.
+- Technical: Langflow classify + draft flows invoked via LangflowProvider; NestJS validates all LLM output; SideEffectService sends initial email. **Capability hygiene:** standalone use cases only — do not extend `StartWorkflowUseCase` monolith (see task-12, OD-009).
+- Current behavior: Matched workflow without requirements or outbound email; after task-12, workflow row holds `deal_context_json` and `car_template_id`.
+- Target behavior: Langflow classify → validate → persist requirements → Langflow draft initial email → validate → SEND_INITIAL_EMAIL side effect → WAITING_FOR_CUSTOMER_REPLY. Each step is a **separate invokable use case** returning `CapabilityResult` (internal; OD-010).
 
 ## Technology Context
 
@@ -63,20 +63,24 @@ Deployment target:
 Technology assumptions:
 
 - task-02 SideEffectService available
-- task-04 matched workflow exists
+- task-12 complete: `deal_context_json`, `car_template_id` on workflow; `GetWorkflowContextUseCase` available for Langflow read tools
+- Matched workflow at status TEMPLATE_MATCHED
 
 Technology OPEN_DECISIONs:
 
 - OD-003 Langflow hosting URL/auth
 - OD-001 email provider (mock in tests)
+- OD-009 capability decomposition — follow standalone use-case rule in this task
 
 ## Goal
 
 Expected result:
 
 - LangflowProvider + classify and email-draft parsers
+- `SelectNotesUseCase` or equivalent: reads `car_template_id` + `product`/`bodyType` from **persisted workflow context** (not Bitrix re-read)
 - CreateRequirementsUseCase: classify → validate confidence ≥ 0.75 → reject unsafe → persist
 - SendInitialEmailUseCase: draft via Langflow → validate → side_effect_record → send
+- Each mutating use case returns `CapabilityResult` with draft `allowedNextActions` per design doc guard matrix
 - Workflow status: REQUIREMENTS_CREATED → WAITING_FOR_CUSTOMER_REPLY
 
 Complete when:
@@ -93,6 +97,7 @@ Allowed changes:
 - `src/domains/requirements/`
 - `src/domains/langflow/` (provider, parsers, flow config)
 - `src/domains/email/` outbound send path
+- `src/lib/domain/capability-result.domain.ts` (extend usage if task-12 landed)
 - Langflow output schemas for classification and email draft
 - langflow_runs audit persistence
 
@@ -100,6 +105,7 @@ Likely files/areas:
 
 - `src/domains/requirements/use-cases/create-requirements.use-case.ts`
 - `src/domains/email/use-cases/send-initial-email.use-case.ts`
+- `src/domains/template-matching/use-cases/select-notes.use-case.ts` (wire to workflow persisted context)
 - `src/domains/langflow/parsers/classify-notes.parser.ts`
 - `src/integrations/langflow/langflow.adapter.ts`
 
@@ -116,10 +122,13 @@ Do not implement:
 - Completion policy (task-07)
 - Bitrix write (task-08)
 - n8n webhook controllers (task-08)
+- Public capability HTTP/MCP routes (V2 / OD-008)
+- Workflow-wide agent loop runtime (V3)
 
 Do not touch:
 
 - Langflow forbidden direct tools (must not be added)
+- `StartWorkflowUseCase` — **do not add requirements or email logic there**; n8n start remains task-04/12 orchestrator only
 
 ## Business Behavior
 
@@ -147,9 +156,11 @@ Edge cases:
 
 Implementation:
 
-- CreateRequirementsUseCase and SendInitialEmailUseCase
+- CreateRequirementsUseCase and SendInitialEmailUseCase as **standalone** capabilities (workflow_id in Command)
+- CreateRequirements reads vehicle/product context via `GetWorkflowContextUseCase` or repository — **never** Bitrix read in this task
 - Confidence threshold 0.75 enforced in validator
 - langflow_runs row for each invocation
+- Langflow classify flow may use read tools (`get_workflow_context`, `get_selected_template_notes`) — task-local agent loop (level A)
 
 Architecture:
 
@@ -210,6 +221,7 @@ Required tests:
 - unit: confidence < 0.75 rejected (case 15)
 - unit: unsafe notes trigger escalation (case 4)
 - integration: requirements before email (case 5)
+- integration: CreateRequirements uses persisted deal_context_json + car_template_id (not Bitrix)
 - integration: langflow_runs and outgoing_messages persisted
 - regression: side-effect record required before send
 - forbidden behavior: email not sent without requirements
@@ -245,6 +257,7 @@ If NO, reason: N/A
 ## Acceptance Criteria
 
 - Requirements persisted only after Langflow validation passes
+- CreateRequirementsUseCase / SendInitialEmailUseCase standalone; StartWorkflowUseCase unchanged by this task
 - Initial email sent only after requirements exist
 - langflow_runs audit for classify and draft flows
 - Confidence threshold 0.75 enforced
@@ -311,7 +324,7 @@ Related PR: TBD
 Related reviews: TBD  
 Related QA evidence: TBD  
 Related decisions: `docs/decision-log.md` (requirement labels, confidence 0.75, Langflow boundaries, 2026-06-17)  
-Depends on: task-02, task-04  
+Depends on: task-02, task-12  
 Blocks: task-06
 
 ## History
@@ -319,6 +332,7 @@ Blocks: task-06
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-79)
+2026-06-19 - Updated - Capability / agent-loop requirements; depends on task-12; standalone use cases (OD-009)
 
 ## Final Report Template
 

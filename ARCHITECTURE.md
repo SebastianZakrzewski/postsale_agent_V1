@@ -294,6 +294,17 @@ Future architecture checks should detect forbidden imports, UI to repository imp
 - Codex audits risky changes.
 - Cleanup is continuous.
 
+## Orchestration Models (V1 vs future agent loop)
+
+V1 uses **deterministic NestJS use-case orchestration** triggered by n8n (e.g. `StartWorkflowUseCase` chains idempotency → context load → template match). Langflow runs **task-local agent loops** only (classify, draft, analyze) with approved read/propose/request tools; it does not own side effects.
+
+Future **workflow-wide agent loops** (invoke individual capabilities, finish when policy allows) are **out of V1 scope** (multi-agent excluded per decision log) but documented for evolution:
+
+- Design: `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
+- Open decisions: OD-008 (runtime ownership), OD-009 (capability decomposition), OD-010 (termination contract) in `docs/open-decisions.md`
+
+Invariant across models: **NestJS validates and executes all side effects**; agents and Langflow may read and propose only through approved tools.
+
 ## Maintenance
 
 Keep this file short. Update `ARCHITECTURE.md` only when stable architecture, boundaries, dependency direction, providers, or invariants change.

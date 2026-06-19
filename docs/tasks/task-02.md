@@ -1,13 +1,13 @@
 # Task: Cross-Cutting — Idempotency, Audit Events, Side-Effect Records
 
-Status: Ready  
+Status: Done  
 Stage: Domain | Use Case | Persistence  
 Mode: Implementation  
 Owner: Implementation agent  
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -301,6 +301,7 @@ Blocks: task-04, task-05, task-06, task-07, task-08
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-76)
 2026-06-17 - Implemented - IdempotencyService, AuditService, SideEffectService, Supabase repos, guard, tests
+2026-06-19 - Status - Header aligned to Done (Cleanup Fala 1)
 
 ## Final Report Template
 

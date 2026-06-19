@@ -51,4 +51,17 @@ export class SupabaseIdempotencyRepository extends IdempotencyRepository {
 
     return { inserted: true, duplicate: false };
   }
+
+  async linkWorkflowId(key: string, workflowId: string): Promise<void> {
+    const { error } = await this.client
+      .from('idempotency_keys')
+      .update({ workflow_id: workflowId })
+      .eq('idempotency_key', key);
+
+    if (error) {
+      throw new Error(
+        `Failed to link workflow to idempotency key: ${error.message}`,
+      );
+    }
+  }
 }

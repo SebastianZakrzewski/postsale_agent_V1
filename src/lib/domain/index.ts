@@ -3,3 +3,5 @@ export * from './idempotency.domain';
 export * from './workflow-event.domain';
 export * from './side-effect-record.domain';
 export * from './template.domain';
+export * from './deal-context.domain';
+export * from './start-workflow-result.domain';

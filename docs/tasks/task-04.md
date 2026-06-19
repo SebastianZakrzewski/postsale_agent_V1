@@ -1,13 +1,13 @@
 # Task: Workflow Start — Bitrix Context Load, Template Match, Escalation Paths
 
-Status: Ready  
+Status: Done  
 Stage: Use Case | Integration | API  
-Mode: Implementation  
+Mode: Review  
 Owner: Implementation agent  
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/design-docs/postsale-agent-architecture.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-process-map.md`, `docs/design-docs/postsale-agent-architecture.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`.
 
 ## Context
@@ -91,15 +91,14 @@ Allowed changes:
 - `src/domains/postsale-workflows/use-cases/start-workflow.use-case.ts`
 - `src/domains/postsale-workflows/use-cases/escalate-workflow.use-case.ts`
 - `src/domains/bitrix/` read adapter and provider interface
-- `src/api/parsers/bitrix-deal.parser.ts`
+- `src/domains/bitrix/parsers/bitrix-deal.parser.ts`
 - postsale_workflows repository implementation
 - Bitrix field mapping config (OD-004 placeholders)
 
 Likely files/areas:
 
 - `src/integrations/bitrix/bitrix-read.adapter.ts`
-- `src/domains/postsale-workflows/repository/postsale-workflows.repository.ts`
-- `src/domains/bitrix/mappers/deal-context.mapper.ts`
+- `src/domains/postsale-workflows/repository/postsale-workflow.repository.ts`
 
 ## Forbidden Scope
 
@@ -163,7 +162,7 @@ Model separation:
 Boundary parsing:
 
 - input source: Bitrix REST deal payload
-- parser/schema/mapper: `bitrix-deal.parser.ts` → DealContext
+- parser/schema/mapper: `domains/bitrix/parsers/bitrix-deal.parser.ts` → DealContext
 - trusted output type: DealContext value object
 - failure mode: escalation if insufficient data; no template match guess
 - forbidden side effects before parse: no workflow persistence from raw Bitrix JSON
@@ -284,7 +283,7 @@ If none: None blocking.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80/task-04-workflow-start-bitrix-read-template-match-escalation)  
-Linear status: Backlog
+Linear status: Done (Human Architect merge 2026-06-19)
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 
@@ -292,17 +291,39 @@ Linear tracks only status, owner, priority, PR link, review/audit state, and pro
 
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Related PR: TBD  
-Related reviews: TBD  
-Related QA evidence: TBD  
+Related reviews: Review 2026-06-19 APPROVED_FOR_CODEX_AUDIT; Codex Audit 2026-06-19 APPROVED_FOR_HUMAN_REVIEW  
+Related QA evidence: Mocked integration tests (start-workflow, bitrix, webhooks); full runtime validation deferred to task-09 per task scope  
 Related decisions: `docs/decision-log.md` (Bitrix stages, template matching, 2026-06-17)  
 Depends on: task-01, task-02, task-03  
-Blocks: task-05
+Blocks: task-12 (capability foundation refactor; then task-05)
+
+## Post-merge follow-up (task-12)
+
+Implementation delivered a **monolithic** `StartWorkflowUseCase` acceptable for V1 review. Before task-05, **task-12** must:
+
+- persist `DealContext` and `car_template_id` on `postsale_workflows`
+- extract `LoadDealContextUseCase` and `MatchWorkflowTemplateUseCase`
+- thin the start orchestrator without changing n8n-visible behavior
+
+See `docs/design-docs/postsale-agent-capabilities-agent-loop.md` and TD-ARCH-005.
+
+Known gaps in current implementation (addressed by task-12, not re-open task-04 acceptance):
+
+- `deal_context_json` not persisted — context exists only in logs
+- `car_template_id` not on workflow row — only in audit payload
+- Bitrix payload referenced after parse (TD-ARCH-002)
 
 ## History
 
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-80)
+2026-06-19 - Implemented - StartWorkflowUseCase, Bitrix read adapter, webhooks controller, unit/integration tests (73-test suite green)
+2026-06-19 - Status - In Review pending Codex Audit and runtime evidence closure (Cleanup Fala 1)
+2026-06-19 - Review - APPROVED_FOR_CODEX_AUDIT; checks green; scope/doc notes in review report
+2026-06-19 - Updated - Post-merge follow-up linked to task-12 (capability / agent-loop path)
+2026-06-19 - Codex Audit - APPROVED_FOR_HUMAN_REVIEW; scope/boundary/architecture PASS with documented debt (TD-ARCH-001/002/003, TD-SEC-002); no required fixes; next Human Architect approval/merge
+2026-06-19 - Done - Human Architect approved merge; 73/73 tests, lint, build PASS
 
 ## Final Report Template
 

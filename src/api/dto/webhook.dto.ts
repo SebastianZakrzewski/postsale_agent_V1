@@ -1,6 +1,7 @@
 export interface StartWorkflowWebhookDto {
   bitrix_deal_id: string;
   idempotency_key: string;
+  request_id?: string;
 }
 
 export interface IngestEmailWebhookDto {

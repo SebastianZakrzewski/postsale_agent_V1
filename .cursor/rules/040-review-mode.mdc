@@ -29,7 +29,9 @@ Review must verify:
 - no risky side effects were introduced
 - OPEN_DECISIONs were not bypassed
 
-Review must not fix issues unless explicitly asked.
+Review may edit `docs/QUALITY_SCORE.md` only. Review must not fix code or other docs unless explicitly asked.
+
+Before `APPROVED_FOR_HUMAN_REVIEW` or `APPROVED_FOR_CODEX_AUDIT`, update `docs/QUALITY_SCORE.md` with evidence-based, conservative scores. Block approval if review evidence is incomplete.
 
 Report:
 
@@ -37,6 +39,7 @@ Report:
 - evidence
 - changed files reviewed
 - checks reviewed
+- QUALITY_SCORE update (what changed; or why blocked)
 - risks
 - OPEN_DECISIONs
 - whether Codex Audit is required

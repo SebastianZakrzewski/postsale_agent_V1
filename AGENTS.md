@@ -58,10 +58,24 @@ Human intent
 → checks again
 → Codex Audit for risky changes
 → PR report
+→ Review updates `docs/QUALITY_SCORE.md` (mandatory before `APPROVED_*` verdict)
 → human approval
 → merge
-→ docs/quality update
+→ post-merge: confirm `docs/QUALITY_SCORE.md` matches merged state (Review follow-up or Docs Maintenance)
 ```
+
+## Quality Score At Review And Merge
+
+After Review passes checks and acceptance criteria for a repo task or PR:
+
+- the Review agent **must update** `docs/QUALITY_SCORE.md` before issuing `APPROVED_FOR_HUMAN_REVIEW` or `APPROVED_FOR_CODEX_AUDIT`
+- scores must be evidence-based and conservative; do not inflate
+- if checks, runtime evidence, or review scope are incomplete, block approval instead of updating the score optimistically
+
+After Human Architect merge:
+
+- run a short Review follow-up or Docs Maintenance pass if merged changes affect categories not covered in pre-merge review
+- `docs/QUALITY_SCORE.md` must not remain stale relative to merged repo tasks, ExecPlan progress, or harness check results
 
 ## Implementation Rules
 

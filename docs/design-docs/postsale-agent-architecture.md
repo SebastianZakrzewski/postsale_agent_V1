@@ -1,4 +1,4 @@
-1# Design Doc: Postsale Agent EVAPREMIUM V1 — Architecture
+# Design Doc: Postsale Agent EVAPREMIUM V1 — Architecture
 
 Status: Accepted
 Owner: Human Architect
@@ -212,3 +212,14 @@ No retry (business uncertainty): template not found/ambiguous, unsafe notes, con
 **Langflow:** classify, draft, analyze, propose only. No direct side effects.
 
 **NestJS:** all business rules, policies, persistence, validated side effects.
+
+## Orchestration vs Agent Loop (evolution)
+
+V1 process map describes **linear deterministic orchestration**: n8n triggers NestJS use cases in a fixed order; Langflow is invoked for specific AI steps only.
+
+Future **capability decomposition** and **workflow-wide agent loops** (level B) are documented separately and are not V1 deliverables:
+
+- `docs/design-docs/postsale-agent-capabilities-agent-loop.md` — split `StartWorkflowUseCase` into guarded capabilities, agent loop semantics, termination contract
+- `docs/open-decisions.md` — OD-008, OD-009, OD-010
+
+V1 invariant unchanged: no direct side-effect tools from Langflow or external agents; NestJS owns state transitions after policy validation.

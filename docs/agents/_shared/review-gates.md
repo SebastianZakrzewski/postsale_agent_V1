@@ -22,6 +22,8 @@ Verify:
 - no production credentials/data, unplanned external effects, or unplanned customer messages were used
 - linked ExecPlan updates Progress, Surprises, Decision Log, Validation, and Outcomes when relevant
 - docs are updated when behavior, architecture, task status, runtime evidence, or decisions changed
+- before `APPROVED_FOR_HUMAN_REVIEW` or `APPROVED_FOR_CODEX_AUDIT`, Review updates `docs/QUALITY_SCORE.md` with evidence-based, conservative scores; incomplete review blocks approval instead of optimistic score updates
+- after merge, `docs/QUALITY_SCORE.md` is confirmed current via Review follow-up or Docs Maintenance when merged changes affect unscored categories
 - Linear reflects repository state only
 - no AI slop was introduced: duplicate helpers, inconsistent naming, YOLO parsing, raw payload leaks, oversized files, unnecessary abstractions, stale docs, or missing task/PR/Linear/ExecPlan links
 

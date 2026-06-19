@@ -32,6 +32,14 @@ class ConcurrentIdempotencyRepository extends IdempotencyRepository {
     return { inserted: true, duplicate: false };
   }
 
+  async linkWorkflowId(key: string, workflowId: string): Promise<void> {
+    const row = this.keys.get(key);
+    if (!row) {
+      throw new Error(`Idempotency key not found: ${key}`);
+    }
+    row.workflow_id = workflowId;
+  }
+
   getInsertCount(): number {
     return this.insertCount;
   }

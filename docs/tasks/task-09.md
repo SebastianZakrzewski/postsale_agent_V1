@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## Sources
 
@@ -17,7 +17,7 @@ PR: TBD
 
 ## Required Docs
 
-Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/agents/modes/qa.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
+Read: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `ARCHITECTURE.md`, `docs/agents/modes/implementation.md`, `docs/agents/modes/qa.md`, `docs/product-specs/postsale-agent-v1.md`, `docs/design-docs/postsale-agent-ai-security-observability.md`, `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, `docs/decision-log.md`, `docs/open-decisions.md`.  
 If risky, also read: `docs/SECURITY.md`, `docs/RELIABILITY.md`, `docs/OBSERVABILITY.md`.
 
 ## Context
@@ -217,6 +217,8 @@ Required tests:
 - unit: N/A as primary (this task is the test suite)
 - integration: all 15 baseline cases end-to-end through NestJS boundaries
 - regression: full `npm run test` suite green
+- regression: after task-12 — `StartWorkflowUseCase` still behavior-equivalent; `deal_context_json` populated on happy path start
+- regression: standalone use cases invokable in isolation in policy fixtures (CreateRequirements, SendInitialEmail, IngestReply, ApplyCompletionPolicy — not only via start monolith)
 - forbidden behavior: explicit assertions in cases 5, 7, 8, 14, 15
 - edge case: each case file includes edge preconditions documented
 
@@ -258,6 +260,7 @@ Optional manual QA checklist in PR for Human Architect sign-off.
 - `bash ./scripts/harness-check` passes
 - Case 14 validates forbidden Langflow tools
 - Test README documents how to run policy suite
+- Policy fixtures document which capability (use case) each case exercises — supports future agent-loop path (OD-009)
 
 ## Validation Commands
 
@@ -327,6 +330,7 @@ Blocks: V1 Review / Codex Audit / Human approval gate
 2026-06-17 - Created - Task Designer Mode  
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-84)
+2026-06-19 - Updated - Capability decomposition regression coverage (task-12, OD-009)
 
 ## Final Report Template
 

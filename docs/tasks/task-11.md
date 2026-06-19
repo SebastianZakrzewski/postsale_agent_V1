@@ -12,8 +12,8 @@ Last updated: 2026-06-18
 ## Sources
 
 ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
-Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / TBD  
-PR: TBD
+Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / no dedicated issue (PROD load noted in [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78))  
+PR: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (merged; shared with task-03 fix pass)
 
 Depends on: task-03 (import code + matching), task-10 (schema `postsale_agent_evapremium`)  
 Blocks: task-04 runtime template match against real data
@@ -305,13 +305,13 @@ Non-blocking:
 ## Linear Mapping
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
-Linear issue: TBD  
-Linear status: Backlog
+Linear issue: none — completion tracked in [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) description (PROD data section)  
+Linear status: Done (repo); Linear issue N/A
 
 ## Trace
 
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
-Related PR: TBD  
+Related PR: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (merged 2026-06-18)  
 Related decisions: `docs/decision-log.md` (one-time EVAMATS import, template matching policy)  
 Depends on: task-03, task-10  
 Unblocks: task-04 runtime template match against real PROD data
@@ -327,7 +327,32 @@ Unblocks: task-04 runtime template match against real PROD data
 2026-06-18 - Fix (Codex Audit) - Standalone script documented as OPS-ONLY one-time PROD workaround (batch self-heal / FK race during production load); official path remains `scripts/import-evamats.ts`. MCP/import temp artifacts removed from repo; `.gitignore` updated.  
 2026-06-18 - Fix (Codex re-audit) - OD-006 wording corrected: mapping implemented, not formally closed by Human Architect  
 2026-06-18 - Codex Audit - APPROVED_FOR_HUMAN_REVIEW (micro re-audit)  
-2026-06-18 - Human Architect - Approved
+2026-06-18 - Human Architect - Approved  
+2026-06-18 - Linear - PROD load completion noted in SEL-78 description (no separate Linear issue)
+
+## Implementation Final Report
+
+Summary: One-time EVAMATS PROD data load completed. 2719 templates, 2169 notes, batch completed (error_count=2 rejected rows). Official future import path: `scripts/import-evamats.ts`; historical load used OPS-ONLY standalone workaround.
+
+Changed files: `scripts/run-evamats-import-standalone.ts` (documented), `docs/tasks/task-11.md`; PROD DML via CLI (no schema change)
+
+Checks run: PROD row-count verification; sample match smoke test
+
+Result: Done — Human Architect approved 2026-06-18
+
+Risks: Duplicate re-import must be avoided; Supabase service_role rotation required outside repo
+
+OPEN_DECISIONs: OD-006 mapping implemented, not formally closed; OD-004 non-blocking
+
+Codex Audit required: YES — APPROVED_FOR_HUMAN_REVIEW
+
+Linear update: PROD section in SEL-78 description (2026-06-18)
+
+ExecPlan update: task-11 marked Done in Progress table
+
+PR/Diff: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (task-03 fix pass; task-11 ops load)
+
+Next recommended step: task-04 implementation
 
 ## Final Report Template
 

@@ -10,5 +10,6 @@ export function parseStartWorkflowDto(
   return {
     bitrixDealId: dto.bitrix_deal_id,
     idempotencyKey: dto.idempotency_key,
+    requestId: dto.request_id,
   };
 }

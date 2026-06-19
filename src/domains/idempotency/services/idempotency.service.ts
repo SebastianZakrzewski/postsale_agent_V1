@@ -80,4 +80,14 @@ export class IdempotencyService {
       workflowId,
     };
   }
+
+  async linkWorkflowId(key: string, workflowId: string): Promise<void> {
+    await this.repository.linkWorkflowId(key, workflowId);
+    this.logger.log(
+      structuredLogFields('idempotency.linked', {
+        idempotency_key: key,
+        workflow_id: workflowId,
+      }),
+    );
+  }
 }

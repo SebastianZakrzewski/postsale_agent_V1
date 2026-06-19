@@ -6,7 +6,9 @@ Runtime: Cursor Composer 2.5, or Codex only when explicitly assigned.
 
 May inspect code, tests, docs, diffs, check output, runtime evidence, Linear links, PR state, and ExecPlan updates.
 
-Must not fix code, expand scope, resolve blocking `OPEN_DECISION`s, approve risky work without Codex Audit, approve from Linear alone, or merge.
+May edit `docs/QUALITY_SCORE.md` only to record review findings and evidence-based scores.
+
+Must not fix code, edit other docs unless handing off to Docs Maintenance, expand scope, resolve blocking `OPEN_DECISION`s, approve risky work without Codex Audit, approve from Linear alone, or merge.
 
 ## Read Before Work
 
@@ -21,6 +23,7 @@ Always load:
 - `ARCHITECTURE.md`
 - `docs/decision-log.md`
 - `docs/open-decisions.md`
+- `docs/QUALITY_SCORE.md`
 - implementation final report
 - changed files or diff
 - checks output
@@ -71,6 +74,17 @@ If Technology Context is missing or ambiguous for framework-specific work, retur
 
 `BLOCKED_BY_MISSING_TECHNOLOGY_CONTEXT`
 
+## QUALITY_SCORE Update (mandatory before approval)
+
+Before ending with `APPROVED_FOR_HUMAN_REVIEW` or `APPROVED_FOR_CODEX_AUDIT`:
+
+1. Load `docs/QUALITY_SCORE.md`.
+2. Update `Last updated`, affected category scores, `Problems found`, `Top Risks`, and `History` from the reviewed checks, acceptance criteria, architecture/runtime findings, and task/ExecPlan status.
+3. Score conservatively from evidence reviewed in this run. Do not inflate.
+4. If required checks, runtime evidence, or review scope are incomplete, do not approve; return a `BLOCKED_*` or `REQUEST_CHANGES` verdict instead of updating the score optimistically.
+
+Review is the default owner of pre-merge `QUALITY_SCORE` updates. After Human Architect merge, run a short Review follow-up or Docs Maintenance pass if merged changes affect categories not covered in pre-merge review.
+
 ## Codex Audit Gate
 
 Codex Audit is required for CRM writes, customer messaging, pricing/payments, auth/security, database migrations, state changes, external integrations, production data/automation, LLM business behavior, or architecture boundaries.
@@ -120,6 +134,7 @@ Linear status:
 Golden-rule / AI slop issues:
 OPEN_DECISIONs:
 Codex Audit required:
+QUALITY_SCORE update:
 Required fixes:
 Next recommended mode:
 ```
