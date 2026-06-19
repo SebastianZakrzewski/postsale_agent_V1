@@ -4,7 +4,7 @@ Status: Active
 Owner: Human Architect
 Risk level: High
 Created: 2026-06-17
-Last updated: 2026-06-17
+Last updated: 2026-06-19
 
 ## Purpose
 
@@ -95,9 +95,9 @@ Technology OPEN_DECISIONs:
 - OD-001 email provider
 - OD-002 deployment target
 - OD-003 Langflow hosting
-- OD-004 Bitrix field mapping
+- OD-004 Bitrix field mapping — **resolved** (2026-06-18; see `docs/open-decisions.md`, `docs/decision-log.md`)
 - OD-005 Telegram target
-- OD-006 EVAMATS column schema
+- OD-006 EVAMATS column schema — **implemented** (task-11; PROD load verified)
 - OD-007 n8n webhook auth
 
 ## Mode / Risk Level
@@ -326,7 +326,7 @@ Blocking dependencies:
 - [pending] task-08 - Bitrix write + Telegram + n8n webhooks
 - [pending] task-09 - policy test baseline (15 cases)
 - [done] task-10 - Supabase dedicated schema migration (postsale_agent_evapremium)
-- [done] task-list - all repo tasks task-01..task-09 defined (Task Designer 2026-06-17)
+- [done] task-list - all repo tasks task-01..task-12 defined (Task Designer 2026-06-17; task-10..12 added 2026-06-19)
 
 ## Surprises & Discoveries
 
@@ -335,6 +335,7 @@ Blocking dependencies:
 - task-01 (2026-06-17): NestJS scaffold landed; stack.env switched to nestjs profile; 14-table migration in `supabase/migrations/`.
 - task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
 - task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
+- task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` + `car_template_id` on workflow row; CapabilityResult internal contract.
 
 ## Decision Log
 
@@ -387,13 +388,25 @@ Regression validation:
 
 ## Runtime Evidence
 
-Runtime Validation: YES
+Runtime Validation: YES (partial — links collected below; production E2E pending task-08)
 
-Evidence to collect:
+Collected evidence (repo):
+
+| Flow | Evidence | Status |
+|------|----------|--------|
+| Workflow start (happy path) | `src/tests/unit/start-workflow.use-case.spec.ts`; `src/tests/integration/postsale-workflows.module.spec.ts`; `src/tests/integration/webhooks.controller.spec.ts` | PASS (Jest) |
+| Template match baseline | `src/tests/unit/template-matching.service.spec.ts` (cases 1–3) | PASS |
+| Idempotency / audit | `src/tests/unit/idempotency.service.spec.ts`; `src/tests/unit/idempotency-concurrent.spec.ts`; `src/tests/unit/audit.service.spec.ts` | PASS |
+| EVAMATS PROD load | task-11 History — 2719/2169 verified | Done |
+| Bitrix sandbox read | `npm run sandbox:bitrix-read` | Script available; live run not linked |
+| task-12 schema migration | `supabase/migrations/20260619100000_task12_workflow_context_columns.sql` | File in repo; PROD apply not verified from harness |
+| n8n production webhooks | — | Pending task-08 |
+
+Evidence to collect (remaining V1):
 
 - Playwright test: not required (no customer portal)
-- API check: n8n webhook endpoints
-- sandbox/mock integration: Bitrix, email, Langflow, Telegram
+- API check: n8n webhook endpoints (task-08)
+- sandbox/mock integration: Bitrix, email, Langflow, Telegram (live credentials)
 - structured log/audit event: workflow_events, side_effect_records
 - trace/request/workflow ID: workflow_id, request_id, idempotency_key
 - idempotency evidence: duplicate trigger test, side_effect_record dedup
@@ -418,7 +431,7 @@ Linear Issues:
 | task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Done |
 | task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Done |
 | task-12 | [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85) | Done |
-| task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Backlog (blocked by SEL-85) |
+| task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Ready (repo; unblock SEL-85 Done — sync Linear) |
 | task-06 | [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81) | Backlog |
 | task-07 | [SEL-82](https://linear.app/sellgenius-dev/issue/SEL-82) | Backlog |
 | task-08 | [SEL-83](https://linear.app/sellgenius-dev/issue/SEL-83) | Backlog |
@@ -434,7 +447,7 @@ Known risks:
 
 - Langflow classification drift
 - Email reply-to matching ambiguity
-- Bitrix field mapping errors — mitigated via OD-004 resolution (2026-06-18); validate in task-04 review
+- Bitrix field mapping errors — mitigated via OD-004 resolution (2026-06-18); validated in task-04 merge + task-11 PROD mapping
 
 Mitigations:
 

@@ -17,4 +17,9 @@ export type MatchWorkflowTemplateOutcome =
       workflow: Workflow;
       carTemplateId: string | null;
     }
-  | { type: 'no_match'; matchResult: TemplateMatchResult };
+  | {
+      type: 'no_match';
+      capability: CapabilityResult;
+      workflow: Workflow;
+      matchResult: TemplateMatchResult;
+    };

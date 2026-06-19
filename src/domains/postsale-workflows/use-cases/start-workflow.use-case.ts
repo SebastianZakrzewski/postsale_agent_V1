@@ -7,8 +7,8 @@ import {
   WorkflowStatus,
 } from '../../../lib/enums';
 import { BitrixReadError } from '../../../integrations/bitrix/bitrix-read.error';
-import { AuditService } from '../../audit/services/audit.service';
-import { IdempotencyService } from '../../idempotency/services/idempotency.service';
+import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
+import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -24,8 +24,8 @@ const START_WORKFLOW_SCOPE = 'start_workflow';
 @Injectable()
 export class StartWorkflowUseCase {
   constructor(
-    private readonly idempotencyService: IdempotencyService,
-    private readonly auditService: AuditService,
+    private readonly checkIdempotencyUseCase: CheckIdempotencyUseCase,
+    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
     private readonly loadDealContextUseCase: LoadDealContextUseCase,
@@ -35,7 +35,7 @@ export class StartWorkflowUseCase {
   ) {}
 
   async execute(command: StartWorkflowCommand): Promise<StartWorkflowResult> {
-    const idempotencyResult = await this.idempotencyService.checkAndRecord({
+    const idempotencyResult = await this.checkIdempotencyUseCase.execute({
       idempotencyKey: command.idempotencyKey,
       scope: START_WORKFLOW_SCOPE,
       requestId: command.requestId,
@@ -57,7 +57,7 @@ export class StartWorkflowUseCase {
       command.bitrixDealId,
     );
     if (existingByDeal) {
-      await this.idempotencyService.linkWorkflowId(
+      await this.checkIdempotencyUseCase.linkWorkflowId(
         command.idempotencyKey,
         existingByDeal.id,
       );
@@ -69,12 +69,12 @@ export class StartWorkflowUseCase {
       status: WorkflowStatus.STARTED,
     });
 
-    await this.idempotencyService.linkWorkflowId(
+    await this.checkIdempotencyUseCase.linkWorkflowId(
       command.idempotencyKey,
       workflow.id,
     );
 
-    await this.auditService.emit({
+    await this.emitWorkflowEventUseCase.execute({
       workflowId: workflow.id,
       eventType: WorkflowEventType.WORKFLOW_STARTED,
       statusAfter: WorkflowStatus.STARTED,

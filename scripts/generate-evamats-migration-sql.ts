@@ -19,7 +19,8 @@ function parseArgs(argv: string[]): { filePath?: string; outDir?: string } {
   const outArg = argv.find((arg) => arg.startsWith('--out='));
   return {
     filePath: fileArg?.slice('--file='.length),
-    outDir: outArg?.slice('--out='.length) ?? './scripts/output/evamats-batches',
+    outDir:
+      outArg?.slice('--out='.length) ?? './scripts/output/evamats-batches',
   };
 }
 
@@ -48,9 +49,7 @@ function buildTemplateAliases(
   },
   normalization: TemplateNormalizationService,
 ): string[] {
-  const aliasSet = new Set<string>(
-    normalization.normalizeAliases(row.aliases),
-  );
+  const aliasSet = new Set<string>(normalization.normalizeAliases(row.aliases));
   for (const alternateBodyType of row.alternateBodyTypes) {
     aliasSet.add(
       normalization.buildMatchKey(
@@ -93,7 +92,9 @@ function main(): void {
   const templateRecords: Array<{
     templateId: string;
     row: ImportRowDto;
-    normalized: ReturnType<TemplateNormalizationService['normalizeVehicleFields']>;
+    normalized: ReturnType<
+      TemplateNormalizationService['normalizeVehicleFields']
+    >;
     aliases: string[];
   }> = [];
 
@@ -137,9 +138,7 @@ function main(): void {
             sqlLiteral(normalized.brand),
             sqlLiteral(normalized.model),
             sqlLiteral(normalized.bodyType),
-            normalized.generation
-              ? sqlLiteral(normalized.generation)
-              : 'NULL',
+            normalized.generation ? sqlLiteral(normalized.generation) : 'NULL',
             sqlTextArray(aliases),
             sqlJson(row.rawRowJson),
           ].join(', '),
@@ -230,7 +229,11 @@ function main(): void {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
-function writeBatchFile(outDir: string, index: number, lines: string[]): string {
+function writeBatchFile(
+  outDir: string,
+  index: number,
+  lines: string[],
+): string {
   const filename = `${String(index).padStart(3, '0')}.sql`;
   const filePath = path.join(outDir, filename);
   fs.writeFileSync(filePath, `${lines.join('\n')}\n`, 'utf-8');

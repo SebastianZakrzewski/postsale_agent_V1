@@ -25,10 +25,7 @@ function labelOf(field: UserFieldListItem): string {
   return field.FIELD_NAME ?? '';
 }
 
-function enumLabel(
-  field: UserFieldListItem,
-  id: string | null,
-): string | null {
+function enumLabel(field: UserFieldListItem, id: string | null): string | null {
   if (!field.LIST || !id) {
     return null;
   }
@@ -61,8 +58,7 @@ async function main(): Promise<void> {
   const variantFields = userFields
     .filter(
       (field) =>
-        keywords.test(labelOf(field)) ||
-        keywords.test(field.FIELD_NAME ?? ''),
+        keywords.test(labelOf(field)) || keywords.test(field.FIELD_NAME ?? ''),
     )
     .map((field) => {
       const fieldName = field.FIELD_NAME ?? '';
@@ -121,7 +117,9 @@ async function main(): Promise<void> {
   ];
 
   const variantFieldCatalog = variantFieldNames.map((fieldName) => {
-    const definition = userFields.find((field) => field.FIELD_NAME === fieldName);
+    const definition = userFields.find(
+      (field) => field.FIELD_NAME === fieldName,
+    );
     if (!definition) {
       return { fieldName, found: false };
     }

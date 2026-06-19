@@ -313,7 +313,7 @@ If none: None blocking.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79/task-05-requirements-langflow-classification-initial-email)  
-Linear status: Backlog (blocked by SEL-85 / task-12)
+Linear status: Ready (repo; SEL-85 / task-12 Done — sync Linear SEL-79 from Backlog)
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 
@@ -333,6 +333,7 @@ Blocks: task-06
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-79)
 2026-06-19 - Updated - Capability / agent-loop requirements; depends on task-12; standalone use cases (OD-009)
+2026-06-19 - Updated - Docs Fala A: Linear status Ready (SEL-79 unblocked; sync Linear)
 
 ## Final Report Template
 

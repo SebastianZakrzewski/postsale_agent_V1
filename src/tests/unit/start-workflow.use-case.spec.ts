@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from '../../domains/audit/services/audit.service';
+import { EmitWorkflowEventUseCase } from '../../domains/audit/use-cases/emit-workflow-event.use-case';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
+import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { FailWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/fail-workflow.use-case';
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
@@ -67,6 +69,8 @@ describe('StartWorkflowUseCase', () => {
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
+        CheckIdempotencyUseCase,
+        EmitWorkflowEventUseCase,
         {
           provide: IDEMPOTENCY_REPOSITORY,
           useValue: idempotencyRepository,
@@ -129,6 +133,8 @@ describe('StartWorkflowUseCase', () => {
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
+        CheckIdempotencyUseCase,
+        EmitWorkflowEventUseCase,
         {
           provide: IDEMPOTENCY_REPOSITORY,
           useValue: idempotencyRepository,
@@ -247,6 +253,8 @@ describe('StartWorkflowUseCase', () => {
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
+        CheckIdempotencyUseCase,
+        EmitWorkflowEventUseCase,
         {
           provide: IDEMPOTENCY_REPOSITORY,
           useValue: new InMemoryIdempotencyRepository(),

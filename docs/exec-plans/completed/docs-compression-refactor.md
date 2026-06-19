@@ -211,7 +211,7 @@ Boundary parsing requirements:
 
 No separate repo task files are required for this docs-only maintenance run.
 
-- docs-compression-refactor - compress documentation policy repetition - status: in progress
+- docs-compression-refactor - compress documentation policy repetition - status: completed (2026-06-19; archived to `completed/`)
 
 ## Dependencies
 
@@ -250,8 +250,8 @@ Blocking dependencies:
 
 ## Surprises & Discoveries
 
-- The repository is configured as `harness-only` / `documentation` in `.harness/stack.env`.
-- No `package.json` is present, so bash harness scripts are authoritative for this repo today.
+- Repository was harness-only before task-01 (2026-06-17); NestJS stack activated via `.harness/stack.env` nestjs profile.
+- Prior active ExecPlan archived to `docs/exec-plans/completed/` when V1 ExecPlan became active.
 - `docs/exec-plans/active/` and `docs/exec-plans/completed/` were missing before this run.
 - Shared agent policy docs now centralize validation commands, risk policy, Linear source-of-truth policy, runtime evidence, and shared review gates.
 - The Architect Mode readiness ladder remains more detailed than the abbreviated ladder in ExecPlan standards/templates; it was not changed in this maintenance run to avoid changing gate semantics.

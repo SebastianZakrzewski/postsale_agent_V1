@@ -14,8 +14,8 @@ import {
   BITRIX_PROVIDER,
   BitrixProvider,
 } from '../../../integrations/bitrix/bitrix.provider';
-import { AuditService } from '../../audit/services/audit.service';
-import { IdempotencyService } from '../../idempotency/services/idempotency.service';
+import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
+import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -29,8 +29,8 @@ export class LoadDealContextUseCase {
   private readonly logger = new Logger(LoadDealContextUseCase.name);
 
   constructor(
-    private readonly idempotencyService: IdempotencyService,
-    private readonly auditService: AuditService,
+    private readonly checkIdempotencyUseCase: CheckIdempotencyUseCase,
+    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
     @Inject(BITRIX_PROVIDER)
@@ -86,7 +86,7 @@ export class LoadDealContextUseCase {
     }
 
     const idempotencyKey = `${command.workflowId}:load_deal_context`;
-    const idempotencyResult = await this.idempotencyService.checkAndRecord(
+    const idempotencyResult = await this.checkIdempotencyUseCase.execute(
       {
         idempotencyKey,
         scope: LOAD_DEAL_CONTEXT_SCOPE,
@@ -132,7 +132,7 @@ export class LoadDealContextUseCase {
       status: WorkflowStatus.CONTEXT_LOADED,
     });
 
-    await this.auditService.emit({
+    await this.emitWorkflowEventUseCase.execute({
       workflowId: command.workflowId,
       eventType: WorkflowEventType.DEAL_CONTEXT_LOADED,
       statusBefore: WorkflowStatus.STARTED,

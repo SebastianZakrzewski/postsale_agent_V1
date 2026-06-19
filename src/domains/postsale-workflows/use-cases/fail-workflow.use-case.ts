@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Workflow } from '../../../lib/domain';
 import { WorkflowEventType, WorkflowStatus } from '../../../lib/enums';
-import { AuditService } from '../../audit/services/audit.service';
+import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -19,7 +19,7 @@ export class FailWorkflowUseCase {
   constructor(
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
-    private readonly auditService: AuditService,
+    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
   ) {}
 
   async execute(command: FailWorkflowCommand): Promise<Workflow> {
@@ -33,7 +33,7 @@ export class FailWorkflowUseCase {
       WorkflowStatus.FAILED,
     );
 
-    await this.auditService.emit({
+    await this.emitWorkflowEventUseCase.execute({
       workflowId: command.workflowId,
       eventType: WorkflowEventType.WORKFLOW_FAILED,
       statusBefore: existing.status,

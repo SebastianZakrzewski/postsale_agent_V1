@@ -26,7 +26,9 @@ async function main(): Promise<void> {
   const filePath = parseFileArg(process.argv.slice(2));
 
   if (!filePath) {
-    console.error('Usage: npx ts-node scripts/import-evamats.ts --file=./path/to/evamats.xlsx');
+    console.error(
+      'Usage: npx ts-node scripts/import-evamats.ts --file=./path/to/evamats.xlsx',
+    );
     process.exit(1);
   }
 

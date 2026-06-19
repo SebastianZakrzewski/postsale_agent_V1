@@ -23,7 +23,9 @@ const BATCH_ENSURE_INTERVAL = 25;
 
 function buildTemplateAliases(
   row: ImportRowDto,
-  normalized: ReturnType<TemplateNormalizationService['normalizeVehicleFields']>,
+  normalized: ReturnType<
+    TemplateNormalizationService['normalizeVehicleFields']
+  >,
   normalization: TemplateNormalizationService,
 ): string[] {
   const aliasSet = new Set<string>(normalization.normalizeAliases(row.aliases));
@@ -63,13 +65,15 @@ async function ensureBatchExists(client: any, batch: BatchRow): Promise<void> {
     return;
   }
 
-  const { error: insertError } = await client.from('template_import_batches').insert({
-    id: batch.id,
-    source_filename: batch.source_filename,
-    row_count: batch.row_count,
-    error_count: batch.error_count,
-    status: batch.status,
-  } as Record<string, unknown>);
+  const { error: insertError } = await client
+    .from('template_import_batches')
+    .insert({
+      id: batch.id,
+      source_filename: batch.source_filename,
+      row_count: batch.row_count,
+      error_count: batch.error_count,
+      status: batch.status,
+    } as Record<string, unknown>);
 
   if (insertError) {
     throw new Error(`Batch recreate failed: ${insertError.message}`);
@@ -125,65 +129,65 @@ async function main(): Promise<void> {
     const templateIdByRowIndex: string[] = [];
 
     for (const row of rows) {
-    const normalized = normalization.normalizeVehicleFields({
-      brand: row.brand,
-      model: row.model,
-      bodyType: row.bodyType,
-      generation: row.generation,
-    });
+      const normalized = normalization.normalizeVehicleFields({
+        brand: row.brand,
+        model: row.model,
+        bodyType: row.bodyType,
+        generation: row.generation,
+      });
 
-    if (!normalization.hasRequiredVehicleFields(normalized)) {
-      continue;
-    }
+      if (!normalization.hasRequiredVehicleFields(normalized)) {
+        continue;
+      }
 
-    if (importedCount > 0 && importedCount % BATCH_ENSURE_INTERVAL === 0) {
-      await ensureBatchExists(client, batchRow);
-    }
+      if (importedCount > 0 && importedCount % BATCH_ENSURE_INTERVAL === 0) {
+        await ensureBatchExists(client, batchRow);
+      }
 
-    const { data: template, error: templateError } = await client
-      .from('car_templates')
-      .insert({
-        import_batch_id: batchRow.id,
-        brand: normalized.brand,
-        model: normalized.model,
-        body_type: normalized.bodyType,
-        generation: normalized.generation,
-        aliases: buildTemplateAliases(row, normalized, normalization),
-        raw_row_json: row.rawRowJson,
-      })
-      .select('id')
-      .single();
+      const { data: template, error: templateError } = await client
+        .from('car_templates')
+        .insert({
+          import_batch_id: batchRow.id,
+          brand: normalized.brand,
+          model: normalized.model,
+          body_type: normalized.bodyType,
+          generation: normalized.generation,
+          aliases: buildTemplateAliases(row, normalized, normalization),
+          raw_row_json: row.rawRowJson,
+        })
+        .select('id')
+        .single();
 
-    if (templateError || !template) {
-      throw new Error(`Template insert failed: ${templateError?.message}`);
-    }
+      if (templateError || !template) {
+        throw new Error(`Template insert failed: ${templateError?.message}`);
+      }
 
-    templateIdByRowIndex.push(template.id);
-    importedCount += 1;
+      templateIdByRowIndex.push(template.id);
+      importedCount += 1;
 
-    if (row.notes.length > 0) {
-      const noteRows = row.notes.map((note) => ({
-        car_template_id: template.id,
-        product: normalization.normalizeProduct(note.product),
-        body_type: normalization.normalizeBodyType(note.bodyType),
-        note_text: note.noteText.trim(),
-        source_field: normalization.normalizeSourceField(note.sourceField),
-      }));
+      if (row.notes.length > 0) {
+        const noteRows = row.notes.map((note) => ({
+          car_template_id: template.id,
+          product: normalization.normalizeProduct(note.product),
+          body_type: normalization.normalizeBodyType(note.bodyType),
+          note_text: note.noteText.trim(),
+          source_field: normalization.normalizeSourceField(note.sourceField),
+        }));
 
-      for (let i = 0; i < noteRows.length; i += NOTE_BATCH) {
-        const chunk = noteRows.slice(i, i + NOTE_BATCH);
-        const { error: noteError } = await client
-          .from('car_template_notes')
-          .insert(chunk);
-        if (noteError) {
-          throw new Error(`Note insert failed: ${noteError.message}`);
+        for (let i = 0; i < noteRows.length; i += NOTE_BATCH) {
+          const chunk = noteRows.slice(i, i + NOTE_BATCH);
+          const { error: noteError } = await client
+            .from('car_template_notes')
+            .insert(chunk);
+          if (noteError) {
+            throw new Error(`Note insert failed: ${noteError.message}`);
+          }
         }
       }
-    }
 
-    if (importedCount % TEMPLATE_BATCH === 0) {
-      console.log(`Imported templates: ${importedCount}`);
-    }
+      if (importedCount % TEMPLATE_BATCH === 0) {
+        console.log(`Imported templates: ${importedCount}`);
+      }
     }
 
     const totalRejected = rejectedCount + (rows.length - importedCount);

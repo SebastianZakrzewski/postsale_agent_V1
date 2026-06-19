@@ -6,8 +6,8 @@ import {
   WorkflowEventType,
   WorkflowStatus,
 } from '../../../lib/enums';
-import { AuditService } from '../../audit/services/audit.service';
-import { IdempotencyService } from '../../idempotency/services/idempotency.service';
+import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
+import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
 import { MatchTemplateUseCase } from '../../template-matching/use-cases/match-template.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
@@ -20,8 +20,8 @@ const MATCH_WORKFLOW_TEMPLATE_SCOPE = 'match_workflow_template';
 @Injectable()
 export class MatchWorkflowTemplateUseCase {
   constructor(
-    private readonly idempotencyService: IdempotencyService,
-    private readonly auditService: AuditService,
+    private readonly checkIdempotencyUseCase: CheckIdempotencyUseCase,
+    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
     private readonly matchTemplateUseCase: MatchTemplateUseCase,
@@ -51,7 +51,7 @@ export class MatchWorkflowTemplateUseCase {
     }
 
     const idempotencyKey = `${command.workflowId}:match_workflow_template`;
-    const idempotencyResult = await this.idempotencyService.checkAndRecord(
+    const idempotencyResult = await this.checkIdempotencyUseCase.execute(
       {
         idempotencyKey,
         scope: MATCH_WORKFLOW_TEMPLATE_SCOPE,
@@ -102,7 +102,7 @@ export class MatchWorkflowTemplateUseCase {
         status: WorkflowStatus.TEMPLATE_MATCHED,
       });
 
-      await this.auditService.emit({
+      await this.emitWorkflowEventUseCase.execute({
         workflowId: command.workflowId,
         eventType: WorkflowEventType.TEMPLATE_MATCH_SUCCEEDED,
         statusBefore: WorkflowStatus.CONTEXT_LOADED,
@@ -132,6 +132,8 @@ export class MatchWorkflowTemplateUseCase {
 
     return {
       type: 'no_match',
+      capability: buildCapabilityResult(existing),
+      workflow: existing,
       matchResult,
     };
   }

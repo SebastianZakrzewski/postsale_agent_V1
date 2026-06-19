@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from '../../domains/audit/services/audit.service';
+import { EmitWorkflowEventUseCase } from '../../domains/audit/use-cases/emit-workflow-event.use-case';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
+import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
 import { DEFAULT_BITRIX_FIELD_MAPPING } from '../../domains/bitrix/config/bitrix-field-mapping';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
@@ -37,6 +39,8 @@ describe('LoadDealContextUseCase', () => {
       providers: [
         LoadDealContextUseCase,
         IdempotencyService,
+        CheckIdempotencyUseCase,
+        EmitWorkflowEventUseCase,
         {
           provide: IDEMPOTENCY_REPOSITORY,
           useValue: new InMemoryIdempotencyRepository(),

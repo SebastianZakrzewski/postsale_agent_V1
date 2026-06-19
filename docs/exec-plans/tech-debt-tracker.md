@@ -84,8 +84,8 @@ Impact: Layer ceremony inconsistency
 Recommended fix: Route through use cases or collapse thin wrappers (behavior-preserving)
 Risk: Low
 Owner: Cleanup
-Status: Open
-Source: Cleanup scan 2026-06-19
+Status: Resolved (2026-06-19 — B1a: workflow orchestrators use CheckIdempotencyUseCase + EmitWorkflowEventUseCase)
+Source: Cleanup scan 2026-06-19; resolved architect decision B1a 2026-06-19
 ```
 
 ## Resolved Items

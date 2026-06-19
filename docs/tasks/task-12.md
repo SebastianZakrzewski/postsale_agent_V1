@@ -266,7 +266,7 @@ Non-blocking:
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85/task-12-workflow-capability-foundation-schema-start-decomposition)  
-Linear status: In Review (implementation complete; Codex Audit pending)
+Linear status: Done (repo; sync Linear SEL-85 after Codex re-audit)
 
 ## Trace
 
@@ -282,6 +282,7 @@ Blocks: task-05
 2026-06-19 - Updated - Linear issue linked (SEL-85); blocks SEL-79
 2026-06-19 - Implemented - Capability foundation; 83/83 tests PASS; awaiting Codex Audit
 2026-06-19 - Merged - Human merge to master; 84/84 tests PASS; review fixes included
+2026-06-19 - Updated - Docs Fala A: Linear mapping Done (repo); Codex re-audit pending after fix commit
 
 ## Final Report Template
 

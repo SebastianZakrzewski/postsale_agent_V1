@@ -93,10 +93,12 @@ async function main(): Promise<void> {
   }
 
   const trackedFields = [
-    ...Object.entries(DEFAULT_BITRIX_FIELD_MAPPING).map(([dealContextKey, fieldName]) => ({
-      dealContextKey,
-      fieldName,
-    })),
+    ...Object.entries(DEFAULT_BITRIX_FIELD_MAPPING).map(
+      ([dealContextKey, fieldName]) => ({
+        dealContextKey,
+        fieldName,
+      }),
+    ),
     { dealContextKey: 'product_enum', fieldName: PRODUCT_ENUM_FIELD },
     { dealContextKey: 'legacy_combined', fieldName: LEGACY_COMBINED_FIELD },
   ];
@@ -134,31 +136,35 @@ async function main(): Promise<void> {
     ),
   );
 
-  const mappedInspection = trackedFields.map(({ dealContextKey, fieldName }) => {
-    const definition = userFieldByName.get(fieldName);
-    const rawValue = deal[fieldName];
-    const userType = definition?.USER_TYPE_ID ?? 'unknown';
-    const isEnum = userType === 'enumeration';
-    const rawText =
-      rawValue === null || rawValue === undefined ? null : String(rawValue).trim();
-    const enumText = isEnum ? enumLabel(definition, rawText) : null;
+  const mappedInspection = trackedFields.map(
+    ({ dealContextKey, fieldName }) => {
+      const definition = userFieldByName.get(fieldName);
+      const rawValue = deal[fieldName];
+      const userType = definition?.USER_TYPE_ID ?? 'unknown';
+      const isEnum = userType === 'enumeration';
+      const rawText =
+        rawValue === null || rawValue === undefined
+          ? null
+          : String(rawValue).trim();
+      const enumText = isEnum ? enumLabel(definition, rawText) : null;
 
-    return {
-      dealContextKey,
-      fieldName,
-      bitrixLabel: definition ? labelOf(definition) : null,
-      userTypeId: userType,
-      isEnum,
-      rawValue: rawValue ?? null,
-      resolvedText: enumText ?? (rawText === '' ? null : rawText),
-      enumOptions: isEnum
-        ? (definition?.LIST ?? []).map((item) => ({
-            id: String(item.ID ?? ''),
-            value: item.VALUE ?? '',
-          }))
-        : undefined,
-    };
-  });
+      return {
+        dealContextKey,
+        fieldName,
+        bitrixLabel: definition ? labelOf(definition) : null,
+        userTypeId: userType,
+        isEnum,
+        rawValue: rawValue ?? null,
+        resolvedText: enumText ?? (rawText === '' ? null : rawText),
+        enumOptions: isEnum
+          ? (definition?.LIST ?? []).map((item) => ({
+              id: String(item.ID ?? ''),
+              value: item.VALUE ?? '',
+            }))
+          : undefined,
+      };
+    },
+  );
 
   console.log(
     JSON.stringify(
