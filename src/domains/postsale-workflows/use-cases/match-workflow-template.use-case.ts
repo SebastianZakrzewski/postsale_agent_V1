@@ -1,14 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MatchWorkflowTemplateCommand } from '../../../lib/commands/workflow.commands';
 import { buildCapabilityResult } from '../../../lib/domain';
-import {
-  TemplateMatchStatus,
-  WorkflowEventType,
-  WorkflowStatus,
-} from '../../../lib/enums';
-import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
+import { TemplateMatchStatus, WorkflowStatus } from '../../../lib/enums';
 import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
-import { MatchTemplateUseCase } from '../../template-matching/use-cases/match-template.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -16,15 +10,14 @@ import {
 import { MatchWorkflowTemplateOutcome } from './match-workflow-template.outcome';
 
 const MATCH_WORKFLOW_TEMPLATE_SCOPE = 'match_workflow_template';
+const TEMPLATE_MAPPING_NOT_IMPLEMENTED = 'template_mapping_not_implemented';
 
 @Injectable()
 export class MatchWorkflowTemplateUseCase {
   constructor(
     private readonly checkIdempotencyUseCase: CheckIdempotencyUseCase,
-    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
-    private readonly matchTemplateUseCase: MatchTemplateUseCase,
   ) {}
 
   async execute(
@@ -40,7 +33,6 @@ export class MatchWorkflowTemplateUseCase {
         type: 'already_matched',
         capability: buildCapabilityResult(existing),
         workflow: existing,
-        carTemplateId: existing.carTemplateId,
       };
     }
 
@@ -73,7 +65,6 @@ export class MatchWorkflowTemplateUseCase {
           type: 'already_matched',
           capability: buildCapabilityResult(workflow),
           workflow,
-          carTemplateId: workflow.carTemplateId,
         };
       }
 
@@ -82,59 +73,14 @@ export class MatchWorkflowTemplateUseCase {
       );
     }
 
-    const matchResult = await this.matchTemplateUseCase.execute({
-      brand: existing.dealContext.brand,
-      model: existing.dealContext.model,
-      bodyType: existing.dealContext.bodyType,
-      generation: existing.dealContext.generation,
-    });
-
-    if (matchResult.status === TemplateMatchStatus.MATCHED) {
-      if (!matchResult.carTemplateId) {
-        throw new Error(
-          `Matched template missing carTemplateId for workflow: ${command.workflowId}`,
-        );
-      }
-
-      await this.workflowRepository.updateCarTemplateMatch(command.workflowId, {
-        carTemplateId: matchResult.carTemplateId,
-        templateMatchStatus: TemplateMatchStatus.MATCHED,
-        status: WorkflowStatus.TEMPLATE_MATCHED,
-      });
-
-      await this.emitWorkflowEventUseCase.execute({
-        workflowId: command.workflowId,
-        eventType: WorkflowEventType.TEMPLATE_MATCH_SUCCEEDED,
-        statusBefore: WorkflowStatus.CONTEXT_LOADED,
-        statusAfter: WorkflowStatus.TEMPLATE_MATCHED,
-        payload: {
-          carTemplateId: matchResult.carTemplateId,
-        },
-        requestId: command.requestId,
-      });
-
-      const updated = await this.workflowRepository.findById(
-        command.workflowId,
-      );
-      if (!updated) {
-        throw new Error(
-          `Workflow not found after template match: ${command.workflowId}`,
-        );
-      }
-
-      return {
-        type: 'success',
-        capability: buildCapabilityResult(updated),
-        workflow: updated,
-        carTemplateId: matchResult.carTemplateId,
-      };
-    }
-
     return {
       type: 'no_match',
       capability: buildCapabilityResult(existing),
       workflow: existing,
-      matchResult,
+      matchResult: {
+        status: TemplateMatchStatus.NOT_FOUND,
+        escalationReason: TEMPLATE_MAPPING_NOT_IMPLEMENTED,
+      },
     };
   }
 }

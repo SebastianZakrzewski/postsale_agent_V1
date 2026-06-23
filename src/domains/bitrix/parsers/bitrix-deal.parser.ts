@@ -1,4 +1,8 @@
 import { BitrixFieldMapping } from '../config/bitrix-field-mapping';
+import {
+  BITRIX_SET_VARIANT_LABELS,
+  resolveBitrixProductLabelFromFields,
+} from '../config/bitrix-deal-labels';
 import { BitrixDealPayload } from '../../../integrations/bitrix/bitrix.types';
 import { DealContext } from '../../../lib/domain';
 
@@ -37,8 +41,10 @@ export function parseBitrixDeal(
   const brand = readField(fields, mapping.brand);
   const model = readField(fields, mapping.model);
   const bodyType = readField(fields, mapping.bodyType);
-  const product = readField(fields, mapping.product);
   const generation = readField(fields, mapping.generation);
+  const productString = readField(fields, mapping.product);
+  const productEnumId = readField(fields, mapping.productEnum);
+  const setVariantId = readField(fields, mapping.setVariant);
 
   const missingFields: string[] = [];
   if (!brand) {
@@ -50,7 +56,12 @@ export function parseBitrixDeal(
   if (!bodyType) {
     missingFields.push('bodyType');
   }
-  if (!product) {
+
+  const productLabelResult = resolveBitrixProductLabelFromFields({
+    productString,
+    productEnumId,
+  });
+  if (!productLabelResult) {
     missingFields.push('product');
   }
 
@@ -70,7 +81,12 @@ export function parseBitrixDeal(
       model: model!,
       bodyType: bodyType!,
       generation,
-      product: product!,
+      product: productLabelResult!.label,
+      productSource: productLabelResult!.source,
+      setVariantId,
+      setVariantLabel: setVariantId
+        ? (BITRIX_SET_VARIANT_LABELS[setVariantId] ?? null)
+        : null,
     },
   };
 }

@@ -1,8 +1,8 @@
 import {
   CreateWorkflowInput,
   PostsaleWorkflowRepository,
-  UpdateCarTemplateMatchInput,
   UpdateDealContextInput,
+  UpdateTemplateMatchInput,
 } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { Workflow } from '../../lib/domain';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
@@ -34,7 +34,6 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
       status: input.status,
       template_match_status: null,
       deal_context_json: null,
-      car_template_id: null,
       product: null,
       created_at: now,
       updated_at: now,
@@ -81,15 +80,14 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
     row.updated_at = new Date().toISOString();
   }
 
-  async updateCarTemplateMatch(
+  async updateTemplateMatch(
     workflowId: string,
-    input: UpdateCarTemplateMatchInput,
+    input: UpdateTemplateMatchInput,
   ): Promise<void> {
     const row = this.workflows.get(workflowId);
     if (!row) {
       throw new Error(`Workflow not found: ${workflowId}`);
     }
-    row.car_template_id = input.carTemplateId;
     row.template_match_status = input.templateMatchStatus;
     row.status = input.status;
     row.updated_at = new Date().toISOString();

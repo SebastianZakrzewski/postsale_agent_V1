@@ -1,13 +1,13 @@
 # Task: Template Import + Car Template Matching
 
-Status: Done  
+Status: Done (historical — application code removed 2026-06-23; see `docs/decision-log.md`)  
 Stage: Domain | Use Case | Persistence | Integration  
 Mode: Implementation  
 Owner: Implementation agent  
 Codex Role: Audit Required  
 Risk Level: Medium  
 Created: 2026-06-17  
-Last updated: 2026-06-18
+Last updated: 2026-06-23
 
 ## Sources
 
@@ -334,7 +334,18 @@ ExecPlan update: task-03 marked done in Progress
 
 PR/Diff: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 — squash-merged to `postsale-agent-v1/task-01-foundation`
 
-Next recommended mode: Implementation — task-04
+Next recommended mode: Human Architect — resolve OD-015; then task-05
+
+## Code retirement (2026-06-23)
+
+Human Architect **fully removed** in-app import + matching (not stubbed). Historical acceptance (PR #4) documents original schema design only. **Superseded:**
+
+- Modules `template-import`, `template-matching`, Supabase car-template repos — **deleted**
+- Tables `car_templates`, `car_template_notes`, `template_import_batches` — migration `20260623120000_drop_car_templates.sql` (PROD DROP manual)
+- `MatchWorkflowTemplateUseCase` → `template_mapping_not_implemented` only
+- task-14, task-15 **Cancelled**
+
+See `docs/decision-log.md` (2026-06-23).
 
 ## Final Report Template
 

@@ -4,7 +4,7 @@ Status: Active
 Owner: Human Architect
 Risk level: High
 Created: 2026-06-17
-Last updated: 2026-06-19
+Last updated: 2026-06-23
 
 ## Purpose
 
@@ -133,7 +133,7 @@ Linked product spec:
 
 Implementation status:
 
-- READY FOR IMPLEMENTATION
+- READY FOR IMPLEMENTATION — **task-05 blocked on OD-015** (requirements/notes source after template removal)
 
 Risk classification:
 
@@ -156,10 +156,8 @@ This ExecPlan is the planning source of truth for Postsale Agent V1. Product beh
 
 V1 includes:
 
-* one-time EVAMATS template import into Supabase
-* car template matching (exact + alias)
-* template note selection by product + body type
-* Langflow classification into requirement labels
+* Bitrix deal context load (`deal_context_json`)
+* Langflow classification into requirement labels (pending OD-015 notes source)
 * requirements persistence
 * initial customer email + reply ingestion
 * attachments and links as evidence
@@ -169,6 +167,8 @@ V1 includes:
 * Telegram operator notification
 * audit events, side effect records, idempotency
 * runtime validation and 15-case test baseline
+
+**Removed from V1 implementation (2026-06-23):** in-app EVAMATS import, `car_templates` / `car_template_notes` persistence, template matching, template note selection. See `docs/decision-log.md`.
 
 V1 excludes:
 
@@ -201,7 +201,7 @@ V3 candidates:
 
 Domains:
 
-- postsale-workflows, template-import, template-matching, requirements, langflow, email, bitrix, telegram, audit, idempotency, side-effects
+- postsale-workflows, requirements, langflow, email, bitrix, telegram, audit, idempotency, side-effects
 
 Default domain layers:
 
@@ -251,24 +251,29 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-03 | Template import + car template matching | task-01 | Done |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
 | task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Done |
-| task-05 | Requirements + Langflow classification + initial email | task-02, task-12 | Ready |
+| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, **OD-015** | **Blocked** |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
 | task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
 | task-09 | Policy test baseline (15 cases) + runtime validation | task-01–08 | Ready |
 | task-10 | Supabase dedicated schema migration (`postsale_agent_evapremium`) | task-01 | Done |
 | task-11 | EVAMATS production data migration (one-time DML) | task-03, task-10 | Done |
+| task-13 | Template match accuracy — 90% stage arithmetic mean (PROD persistence) | task-03, task-04, task-11 | Done (historical; app matcher retired 2026-06-23) |
+| task-14 | Bitrix product + set-variant → template note selection | — | **Cancelled** (2026-06-23) |
+| task-15 | Template matching + normalization rebuild | — | **Cancelled** (2026-06-23) |
 
 Dependency graph:
 
 ```text
 task-01
   ├── task-02 ─────────────────────────────┐
-  └── task-03 ── task-04 ── task-12 ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
+  └── task-03 ── task-04 ── task-12 ── [OD-015] ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
                 └ (task-02 used from 04 onward)
+        └── task-11 (EVAMATS DML — Done; import scripts retired 2026-06-23)
+        └── task-13 (PROD match accuracy — Done historical; app matcher retired 2026-06-23)
 ```
 
-task-12 (capability foundation) refactors start into discrete use cases + persists DealContext; required before task-05. See `docs/tasks/task-12.md` and `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
+task-12 (capability foundation) refactors start into discrete use cases + persists DealContext; required before task-05. **OD-015** (notes/requirements source) required before task-05 after 2026-06-23 template removal. See `docs/tasks/task-12.md` and `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
 
 Parallel opportunity: task-02 and task-03 may run in parallel after task-01.
 
@@ -304,7 +309,7 @@ External dependencies:
 
 Blocking dependencies:
 
-* None for task-01 start
+* **OD-015** — requirements/notes source after template persistence removal (blocks task-05)
 
 ## Progress
 
@@ -316,17 +321,19 @@ Blocking dependencies:
 - [done] exec-plan - this plan active
 - [done] task-01 - NestJS foundation
 - [done] task-02 - idempotency, audit, side-effects
-- [done] task-03 - template import + matching
+- [done] task-03 - template import + matching (historical PR #4; app code retired 2026-06-23)
 - [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
 - [done] task-04 - workflow start + Bitrix read (Human Architect merge 2026-06-19)
 - [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
-- [pending] task-05 - requirements + Langflow + initial email
+- [blocked] task-05 - requirements + Langflow + initial email (OD-015)
 - [pending] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
 - [pending] task-08 - Bitrix write + Telegram + n8n webhooks
 - [pending] task-09 - policy test baseline (15 cases)
 - [done] task-10 - Supabase dedicated schema migration (postsale_agent_evapremium)
-- [done] task-list - all repo tasks task-01..task-12 defined (Task Designer 2026-06-17; task-10..12 added 2026-06-19)
+- [done] task-13 - PROD template match accuracy 93.3% (historical; app matcher retired 2026-06-23)
+- [cancelled] task-14 - Bitrix product/set-variant → template note selection (2026-06-23 removal)
+- [cancelled] task-15 - template matching rebuild (2026-06-23 removal)
 
 ## Surprises & Discoveries
 
@@ -335,7 +342,8 @@ Blocking dependencies:
 - task-01 (2026-06-17): NestJS scaffold landed; stack.env switched to nestjs profile; 14-table migration in `supabase/migrations/`.
 - task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
 - task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
-- task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` + `car_template_id` on workflow row; CapabilityResult internal contract.
+- task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` on workflow row; CapabilityResult internal contract.
+- **2026-06-23:** Human Architect removed template-import, template-matching, and Supabase template tables. `MatchWorkflowTemplateUseCase` → `template_mapping_not_implemented`. Migration `20260623120000_drop_car_templates.sql`.
 
 ## Decision Log
 
@@ -343,9 +351,11 @@ See `docs/decision-log.md` for accepted decisions, including OD-008 stack.env ac
 
 ## OPEN_DECISIONs
 
-Blocking: None.
+Blocking: **OD-015** (requirements/notes source — blocks task-05). See `docs/open-decisions.md`.
 
-Non-blocking: OD-001 through OD-007 in `docs/open-decisions.md`.
+Non-blocking: OD-001 through OD-007, OD-009 through OD-014 in `docs/open-decisions.md`.
+
+Resolved (task-13): OD-011 (duplicate resolution — Option 3), OD-012 (cross-variant alias policy) — Human Architect 2026-06-19; see `docs/decision-log.md`.
 
 ## Validation
 
@@ -395,10 +405,10 @@ Collected evidence (repo):
 | Flow | Evidence | Status |
 |------|----------|--------|
 | Workflow start (happy path) | `src/tests/unit/start-workflow.use-case.spec.ts`; `src/tests/integration/postsale-workflows.module.spec.ts`; `src/tests/integration/webhooks.controller.spec.ts` | PASS (Jest) |
-| Template match baseline | `src/tests/unit/template-matching.service.spec.ts` (cases 1–3) | PASS |
+| Template match | Removed — `template_mapping_not_implemented` | N/A — tables dropped |
 | Idempotency / audit | `src/tests/unit/idempotency.service.spec.ts`; `src/tests/unit/idempotency-concurrent.spec.ts`; `src/tests/unit/audit.service.spec.ts` | PASS |
 | EVAMATS PROD load | task-11 History — 2719/2169 verified | Done |
-| Bitrix sandbox read | `npm run sandbox:bitrix-read` | Script available; live run not linked |
+| Bitrix sandbox read | removed with 2026-06-23 script retirement | N/A |
 | task-12 schema migration | `supabase/migrations/20260619100000_task12_workflow_context_columns.sql` | File in repo; PROD apply not verified from harness |
 | n8n production webhooks | — | Pending task-08 |
 

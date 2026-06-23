@@ -1,6 +1,7 @@
 import { DEFAULT_BITRIX_FIELD_MAPPING } from '../../domains/bitrix/config/bitrix-field-mapping';
 import { parseBitrixDeal } from '../../domains/bitrix/parsers/bitrix-deal.parser';
 import { BitrixDealPayload } from '../../integrations/bitrix/bitrix.types';
+import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 
 function buildPayload(fields: Record<string, unknown>): BitrixDealPayload {
   return {
@@ -13,25 +14,22 @@ function buildPayload(fields: Record<string, unknown>): BitrixDealPayload {
 describe('parseBitrixDeal', () => {
   it('returns DealContext when required fields are present', () => {
     const result = parseBitrixDeal(
-      buildPayload({
-        [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-        [DEFAULT_BITRIX_FIELD_MAPPING.model]: 'X5',
-        [DEFAULT_BITRIX_FIELD_MAPPING.bodyType]: 'SUV',
-        [DEFAULT_BITRIX_FIELD_MAPPING.product]: 'EVA Mat',
-        [DEFAULT_BITRIX_FIELD_MAPPING.generation]: 'G05',
-      }),
+      buildPayload(buildBitrixDealFields()),
       DEFAULT_BITRIX_FIELD_MAPPING,
     );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.dealContext).toEqual({
+      expect(result.dealContext).toMatchObject({
         bitrixDealId: 'deal-100',
         brand: 'BMW',
         model: 'X5',
         bodyType: 'SUV',
         generation: 'G05',
-        product: 'EVA Mat',
+        product: '3D EVAPREMIUM Z RANTAMI',
+        productSource: 'string',
+        setVariantId: '274',
+        setVariantLabel: 'Przód + Tył',
       });
     }
   });
@@ -55,12 +53,11 @@ describe('parseBitrixDeal', () => {
 
   it('allows null generation when other required fields are present', () => {
     const result = parseBitrixDeal(
-      buildPayload({
-        [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-        [DEFAULT_BITRIX_FIELD_MAPPING.model]: 'X5',
-        [DEFAULT_BITRIX_FIELD_MAPPING.bodyType]: 'SUV',
-        [DEFAULT_BITRIX_FIELD_MAPPING.product]: 'EVA Mat',
-      }),
+      buildPayload(
+        buildBitrixDealFields({
+          [DEFAULT_BITRIX_FIELD_MAPPING.generation]: '',
+        }),
+      ),
       DEFAULT_BITRIX_FIELD_MAPPING,
     );
 

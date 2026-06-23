@@ -5,4 +5,7 @@ export interface DealContext {
   bodyType: string;
   generation: string | null;
   product: string;
+  productSource?: 'string' | 'enum_fallback';
+  setVariantId?: string | null;
+  setVariantLabel?: string | null;
 }

@@ -24,7 +24,7 @@ describe('GetWorkflowContextUseCase', () => {
     useCase = moduleFixture.get(GetWorkflowContextUseCase);
   });
 
-  it('returns persisted deal context and car template id', async () => {
+  it('returns persisted deal context', async () => {
     const workflow = await workflowRepository.create({
       bitrixDealId: 'deal-ctx-1',
       status: WorkflowStatus.STARTED,
@@ -43,8 +43,7 @@ describe('GetWorkflowContextUseCase', () => {
       status: WorkflowStatus.CONTEXT_LOADED,
     });
 
-    await workflowRepository.updateCarTemplateMatch(workflow.id, {
-      carTemplateId: 'template-1',
+    await workflowRepository.updateTemplateMatch(workflow.id, {
       templateMatchStatus: TemplateMatchStatus.MATCHED,
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
@@ -52,7 +51,6 @@ describe('GetWorkflowContextUseCase', () => {
     const view = await useCase.execute({ workflowId: workflow.id });
 
     expect(view.dealContext).toMatchObject({ brand: 'BMW', model: 'X5' });
-    expect(view.carTemplateId).toBe('template-1');
     expect(view.workflow.status).toBe(WorkflowStatus.TEMPLATE_MATCHED);
   });
 

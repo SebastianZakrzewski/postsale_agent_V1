@@ -1,6 +1,10 @@
 import { DealContext, Workflow } from '../../domain';
 import { PostsaleWorkflowRow } from '../rows';
 
+function readOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
 function parseDealContextJson(
   value: Record<string, unknown> | null,
 ): DealContext | null {
@@ -20,6 +24,12 @@ function parseDealContextJson(
     return null;
   }
 
+  const productSource = readOptionalString(value.productSource);
+  const parsedProductSource =
+    productSource === 'string' || productSource === 'enum_fallback'
+      ? productSource
+      : undefined;
+
   return {
     bitrixDealId,
     brand,
@@ -28,6 +38,12 @@ function parseDealContextJson(
     generation:
       generation === null || typeof generation === 'string' ? generation : null,
     product,
+    productSource: parsedProductSource,
+    setVariantId:
+      value.setVariantId === null || typeof value.setVariantId === 'string'
+        ? value.setVariantId
+        : undefined,
+    setVariantLabel: readOptionalString(value.setVariantLabel),
   };
 }
 
@@ -38,7 +54,6 @@ export function toPostsaleWorkflow(row: PostsaleWorkflowRow): Workflow {
     status: row.status,
     templateMatchStatus: row.template_match_status,
     dealContext: parseDealContextJson(row.deal_context_json),
-    carTemplateId: row.car_template_id,
     product: row.product,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),

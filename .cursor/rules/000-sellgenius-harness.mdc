@@ -29,6 +29,32 @@ Do not invent business rules, architecture, statuses, contracts, integrations, A
 
 Unknowns become `OPEN_DECISION` entries in `docs/open-decisions.md`.
 
+## Context Budget Rules
+
+Use the smallest sufficient context.
+
+Before reading files, state which files are required and why.
+
+Do not read unrelated files.
+
+Do not re-read unchanged documentation if already summarized in this session.
+
+Prefer targeted file inspection over full repository scanning.
+
+Use grep/search first, then open only relevant files.
+
+Keep summaries short.
+
+After each iteration, preserve only:
+
+- changed files
+- hypothesis
+- test result
+- metric delta
+- next decision
+
+Canonical policy: `docs/agents/runtime-strategy.md`.
+
 ## Read Before Work
 
 1. `AGENTS.md`

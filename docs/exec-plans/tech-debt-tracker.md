@@ -88,6 +88,18 @@ Status: Resolved (2026-06-19 — B1a: workflow orchestrators use CheckIdempotenc
 Source: Cleanup scan 2026-06-19; resolved architect decision B1a 2026-06-19
 ```
 
+```text
+ID: TD-MATCH-001
+Domain: postsale-workflows
+Issue: Template matching and notes persistence removed (2026-06-23); MatchWorkflowTemplateUseCase returns template_mapping_not_implemented
+Impact: All workflow starts escalate on match step; task-05 blocked (OD-015)
+Recommended fix: Human Architect defines requirements/notes source; new repo task
+Risk: High until OD-015 resolved
+Owner: Human Architect / Implementation
+Status: Open
+Source: Docs sync 2026-06-23 (full removal)
+```
+
 ## Resolved Items
 
 ```text
@@ -134,6 +146,6 @@ Impact: Dev tooling friction
 Recommended fix: package.json scripts + track scripts
 Risk: Low
 Owner: Cleanup
-Status: Resolved (2026-06-19)
+Status: Superseded (2026-06-23 — template tables and modules removed; see decision log)
 Source: Cleanup Fala 4
 ```

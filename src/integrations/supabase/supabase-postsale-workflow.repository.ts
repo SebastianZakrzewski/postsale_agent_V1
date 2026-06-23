@@ -3,7 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import {
   CreateWorkflowInput,
   PostsaleWorkflowRepository,
-  UpdateCarTemplateMatchInput,
+  UpdateTemplateMatchInput,
   UpdateDealContextInput,
 } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { Workflow } from '../../lib/domain';
@@ -106,21 +106,20 @@ export class SupabasePostsaleWorkflowRepository extends PostsaleWorkflowReposito
     }
   }
 
-  async updateCarTemplateMatch(
+  async updateTemplateMatch(
     workflowId: string,
-    input: UpdateCarTemplateMatchInput,
+    input: UpdateTemplateMatchInput,
   ): Promise<void> {
     const { error } = await this.client
       .from('postsale_workflows')
       .update({
-        car_template_id: input.carTemplateId,
         template_match_status: input.templateMatchStatus,
         status: input.status,
       })
       .eq('id', workflowId);
 
     if (error) {
-      throw new Error(`Failed to update car template match: ${error.message}`);
+      throw new Error(`Failed to update template match: ${error.message}`);
     }
   }
 

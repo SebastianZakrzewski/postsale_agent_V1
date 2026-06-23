@@ -18,6 +18,10 @@ Use only explicit human instruction, the active execution plan, `ARCHITECTURE.md
 
 Implementation-ready tasks live in `docs/tasks/` and follow `docs/tasks/_template.md`.
 
+## Context Budget
+
+Follow Context Budget Rules in `docs/agents/runtime-strategy.md`: use the smallest sufficient context; state required files before reading; grep/search first; keep summaries short; after each iteration preserve only changed files, hypothesis, test result, metric delta, and next decision.
+
 ## Read Before Work
 
 Always read:

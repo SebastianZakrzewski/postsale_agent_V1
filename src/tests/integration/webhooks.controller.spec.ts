@@ -7,14 +7,12 @@ import { AuditModule } from '../../domains/audit/audit.module';
 import { IdempotencyModule } from '../../domains/idempotency/idempotency.module';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
-import { CAR_TEMPLATE_REPOSITORY } from '../../domains/template-matching/repository/car-template.repository';
-import { DEFAULT_BITRIX_FIELD_MAPPING } from '../../domains/bitrix/config/bitrix-field-mapping';
+import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
-import { InMemoryCarTemplateRepository } from '../helpers/in-memory-template.repositories';
 import {
   AppendWorkflowEventInput,
   WorkflowEventRepository,
@@ -47,26 +45,10 @@ describe('WebhooksController (integration)', () => {
 
   beforeEach(async () => {
     bitrixProvider = new MockBitrixProvider();
-    const carTemplateRepository = new InMemoryCarTemplateRepository();
-    await carTemplateRepository.insertTemplate({
-      importBatchId: 'batch-1',
-      brand: 'bmw',
-      model: 'x5',
-      bodyType: 'suv',
-      generation: 'g05',
-      aliases: [],
-      rawRowJson: {},
-    });
 
     bitrixProvider.setDeal('deal-api-1', {
       id: 'deal-api-1',
-      fields: {
-        [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-        [DEFAULT_BITRIX_FIELD_MAPPING.model]: 'X5',
-        [DEFAULT_BITRIX_FIELD_MAPPING.bodyType]: 'SUV',
-        [DEFAULT_BITRIX_FIELD_MAPPING.product]: 'EVA Mat',
-        [DEFAULT_BITRIX_FIELD_MAPPING.generation]: 'G05',
-      },
+      fields: buildBitrixDealFields(),
     });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -78,8 +60,6 @@ describe('WebhooksController (integration)', () => {
       .useValue(new InMemoryIdempotencyRepository())
       .overrideProvider(WORKFLOW_EVENT_REPOSITORY)
       .useValue(new InMemoryWorkflowEventRepository())
-      .overrideProvider(CAR_TEMPLATE_REPOSITORY)
-      .useValue(carTemplateRepository)
       .overrideProvider(BITRIX_PROVIDER)
       .useValue(bitrixProvider)
       .compile();
@@ -104,8 +84,8 @@ describe('WebhooksController (integration)', () => {
 
     expect(response.body).toEqual({
       workflow_id: expect.any(String),
-      status: WorkflowStatus.TEMPLATE_MATCHED,
-      template_match_status: TemplateMatchStatus.MATCHED,
+      status: WorkflowStatus.ESCALATED,
+      template_match_status: TemplateMatchStatus.NOT_FOUND,
       is_duplicate: false,
     });
   });

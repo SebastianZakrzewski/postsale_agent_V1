@@ -9,7 +9,6 @@ import {
 export interface WorkflowContextView {
   workflow: Workflow;
   dealContext: DealContext | null;
-  carTemplateId: string | null;
 }
 
 @Injectable()
@@ -28,7 +27,6 @@ export class GetWorkflowContextUseCase {
     return {
       workflow,
       dealContext: workflow.dealContext,
-      carTemplateId: workflow.carTemplateId,
     };
   }
 }

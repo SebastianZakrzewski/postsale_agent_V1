@@ -10,47 +10,12 @@ import {
   MessageDirection,
 } from '../../lib/enums';
 
-export interface TemplateImportBatchRow {
-  id: string;
-  source_filename: string | null;
-  row_count: number;
-  error_count: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CarTemplateRow {
-  id: string;
-  import_batch_id: string | null;
-  brand: string;
-  model: string;
-  body_type: string;
-  generation: string | null;
-  aliases: string[] | null;
-  raw_row_json: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CarTemplateNoteRow {
-  id: string;
-  car_template_id: string;
-  product: string;
-  body_type: string;
-  note_text: string;
-  source_field: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface PostsaleWorkflowRow {
   id: string;
   bitrix_deal_id: string;
   status: WorkflowStatus;
   template_match_status: TemplateMatchStatus | null;
   deal_context_json: Record<string, unknown> | null;
-  car_template_id: string | null;
   product: string | null;
   created_at: string;
   updated_at: string;

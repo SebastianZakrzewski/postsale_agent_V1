@@ -60,6 +60,8 @@ docs/
   references/
 ```
 
+**2026-06-23 module state:** `template-import` and `template-matching` domains **removed** from the application (Human Architect). `MatchWorkflowTemplateUseCase` returns `template_mapping_not_implemented` — all workflows escalate after deal context load. Supabase migration `20260623120000_drop_car_templates.sql` drops `car_templates`, `car_template_notes`, `template_import_batches`, and `postsale_workflows.car_template_id`. **task-05 blocked** until Human Architect defines post-removal notes/requirements source (OD-015).
+
 ## Default Domain Architecture
 
 Each business domain should follow a predictable layered structure unless Human Architect approves another model.

@@ -12,17 +12,7 @@ import { WorkflowEventType, WorkflowStatus } from '../../lib/enums';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
-
-function buildBitrixFields(overrides: Record<string, string> = {}) {
-  return {
-    [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-    [DEFAULT_BITRIX_FIELD_MAPPING.model]: 'X5',
-    [DEFAULT_BITRIX_FIELD_MAPPING.bodyType]: 'SUV',
-    [DEFAULT_BITRIX_FIELD_MAPPING.product]: 'EVA Mat',
-    [DEFAULT_BITRIX_FIELD_MAPPING.generation]: 'G05',
-    ...overrides,
-  };
-}
+import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 
 describe('LoadDealContextUseCase', () => {
   let useCase: LoadDealContextUseCase;
@@ -71,7 +61,7 @@ describe('LoadDealContextUseCase', () => {
 
     bitrixProvider.setDeal('deal-load-1', {
       id: 'deal-load-1',
-      fields: buildBitrixFields(),
+      fields: buildBitrixDealFields(),
     });
 
     const outcome = await useCase.execute({
@@ -90,7 +80,7 @@ describe('LoadDealContextUseCase', () => {
       brand: 'BMW',
       model: 'X5',
     });
-    expect(outcome.workflow.product).toBe('EVA Mat');
+    expect(outcome.workflow.product).toBe('3D EVAPREMIUM Z RANTAMI');
     expect(auditService.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         eventType: WorkflowEventType.DEAL_CONTEXT_LOADED,
@@ -107,7 +97,7 @@ describe('LoadDealContextUseCase', () => {
 
     bitrixProvider.setDeal('deal-load-2', {
       id: 'deal-load-2',
-      fields: buildBitrixFields(),
+      fields: buildBitrixDealFields(),
     });
 
     const readSpy = jest.spyOn(bitrixProvider, 'readDeal');
@@ -175,7 +165,7 @@ describe('LoadDealContextUseCase', () => {
 
     bitrixProvider.setDeal('deal-load-retry', {
       id: 'deal-load-retry',
-      fields: buildBitrixFields(),
+      fields: buildBitrixDealFields(),
     });
 
     const retry = await useCase.execute({

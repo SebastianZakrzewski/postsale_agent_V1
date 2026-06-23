@@ -13,8 +13,7 @@ export interface UpdateDealContextInput {
   status: WorkflowStatus;
 }
 
-export interface UpdateCarTemplateMatchInput {
-  carTemplateId: string;
+export interface UpdateTemplateMatchInput {
   templateMatchStatus: TemplateMatchStatus;
   status: WorkflowStatus;
 }
@@ -35,9 +34,9 @@ export abstract class PostsaleWorkflowRepository {
     workflowId: string,
     input: UpdateDealContextInput,
   ): Promise<void>;
-  abstract updateCarTemplateMatch(
+  abstract updateTemplateMatch(
     workflowId: string,
-    input: UpdateCarTemplateMatchInput,
+    input: UpdateTemplateMatchInput,
   ): Promise<void>;
   abstract findRowById(id: string): Promise<PostsaleWorkflowRow | null>;
 }

@@ -6,16 +6,9 @@ import {
 
 export type MatchWorkflowTemplateOutcome =
   | {
-      type: 'success';
-      capability: CapabilityResult;
-      workflow: Workflow;
-      carTemplateId: string;
-    }
-  | {
       type: 'already_matched';
       capability: CapabilityResult;
       workflow: Workflow;
-      carTemplateId: string | null;
     }
   | {
       type: 'no_match';

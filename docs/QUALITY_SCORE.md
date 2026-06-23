@@ -9,29 +9,30 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-73/100
+60/100
 ```
 
 Last updated:
 
 ```text
-2026-06-19
+2026-06-23
 ```
 
 Updated by:
 
 ```text
-Docs Maintenance Fala A (2026-06-19)
+Docs Maintenance — full template persistence removal (2026-06-23)
 ```
 
 Evidence basis:
 
 ```text
-Fala A docs sync: task statuses 7 Done / 5 Ready; task-04 and task-12 merged; SEL-79 unblocked
-Code (pending commit): Codex task-12 fix (CapabilityResult no_match, LF policy); B1a (TD-SLOP-001 Resolved)
-Checks: npm test 85/85 PASSED; lint PASSED; build PASSED; docs/architecture/plans/tasks-check PASS
-Gaps: task-10 Linear TBD; Supabase task-12 migration PROD apply unverified; Runtime Evidence links partial
-Verdict: docs aligned; ready for commit + Codex re-audit task-12
+Human Architect removed template-import, template-matching, car_templates schema (decision log 2026-06-23)
+npm test 53/53 PASS (18 suites); npm run build PASS
+Match step: template_mapping_not_implemented — all starts escalate
+Migration: supabase/migrations/20260623120000_drop_car_templates.sql
+task-05 blocked on OD-015 (requirements/notes source)
+Verdict: stable workflow shell; task-05 blocked until OD-015 resolved
 ```
 
 ## Score Categories
@@ -39,16 +40,16 @@ Verdict: docs aligned; ready for commit + Codex re-audit task-12
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 8 |
-| Architecture consistency | 10 | 8 |
-| Product clarity | 10 | 8 |
-| Task quality | 10 | 8 |
-| Test coverage | 10 | 8 |
+| Architecture consistency | 10 | 7 |
+| Product clarity | 10 | 7 |
+| Task quality | 10 | 7 |
+| Test coverage | 10 | 6 |
 | Runtime validation | 10 | 5 |
 | Security | 10 | 6 |
 | Reliability | 10 | 7 |
 | Observability | 10 | 6 |
-| AI slop / maintainability | 10 | 8 |
-| **Total** | **100** | **73** |
+| AI slop / maintainability | 10 | 6 |
+| **Total** | **100** | **60** |
 
 ## Category Checks
 
@@ -56,174 +57,154 @@ Verdict: docs aligned; ready for commit + Codex re-audit task-12
 
 Score: 8/10
 
-Check: `AGENTS.md`, `docs/agents/runtime-strategy.md`, `docs/agents/_shared/`, `docs/decision-log.md`, `docs/open-decisions.md`, active ExecPlans, repo tasks, and Linear links follow the source-of-truth rules in `AGENTS.md`, `docs/exec-plans/PLANS.md`, and `docs/agents/_shared/linear-policy.md`.
+Check: `AGENTS.md`, active ExecPlans, repo tasks, `docs/decision-log.md`, `docs/open-decisions.md`.
 
 Problems found:
 
-- **Fixed (2026-06-19):** ExecPlan Progress/Linear mapping synced; `docs-compression-refactor.md` archived; OD-004 resolved in `open-decisions.md`.
-- **Remaining:** `task-10` Linear issue TBD (TD-DOCS-001); PR links `TBD` on several Done tasks (traceability only).
+- **Fixed (2026-06-23):** Full template removal logged; OD-015 reframed; task-14/15 cancelled; migration added.
+- **Remaining:** task-10 Linear TBD; product spec still references template match (historical).
 
 Recommended fixes:
 
-- Link Linear issue for `task-10` when available.
-- Record PR URLs in Done task Sources when merges are traced.
+- Close OD-015 in open-decisions when Human Architect approves notes source.
 
 ### 2. Architecture Consistency
 
-Score: 8/10
+Score: 7/10
 
-Check: architecture follows `ARCHITECTURE.md`, especially Technology Context, Providers, Boundary Parsing, Model Separation, Side Effects, Runtime Validation, and Forbidden Dependency Edges.
+Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
 Problems found:
 
-- **Fixed (task-12):** TD-ARCH-002 resolved — `parseBitrixDeal` only in `LoadDealContextUseCase`; `StartWorkflowUseCase` is thin orchestrator.
-- **Fixed (task-12):** TD-ARCH-005 resolved — load/match/get-context use cases + `CapabilityResult` on all match outcomes including `no_match`.
-- **Fixed (2026-06-19):** TD-SLOP-001 resolved — B1a: workflow orchestrators use `CheckIdempotencyUseCase` + `EmitWorkflowEventUseCase`.
-- **Pass:** API → use case; no SDK in use cases; match rules unchanged (task-03).
-- **Open:** TD-ARCH-001 (rows through ports); TD-ARCH-003 (domain modules bind Supabase).
+- **Pass:** Workflow orchestration (task-12), Bitrix parse boundary, idempotency/audit patterns intact.
+- **Open:** No automated template match — intentional removal (TD-MATCH-001).
+- **Open:** TD-ARCH-001/003 unchanged.
 
 Recommended fixes:
 
-- Complete TD-ARCH-001/003 before scaling tasks 05–09.
+- Resolve OD-015 before task-05.
 
 ### 3. Product Clarity
 
-Score: 8/10
+Score: 7/10
 
-Check: product specs follow `docs/product-specs/PRODUCT_SPECS.md`; product judgment follows `docs/PRODUCT_SENSE.md`; V1/V2/V3 and customer-facing behavior are explicit.
+Check: product spec vs implemented behavior.
 
 Problems found:
 
-- `docs/product-specs/postsale-agent-v1.md` is **Approved** (2026-06-17) and linked from active ExecPlan.
-- Design docs exist under `docs/design-docs/` (process map, architecture, Langflow tools, AI security/observability).
-- V1 exclusions and sellable MVP documented in decision log and product spec.
-- Tasks 05–09 (email, reply ingestion, completion, Bitrix write, policy baseline) not yet implemented — product scope for remaining V1 is clear but not yet validated in code.
+- Product spec still describes automated template match — **not implemented**; removal documented in decision log.
 
 Recommended fixes:
 
-- Keep product spec current when tasks 05–09 start; no product doc changes required before that.
+- No product spec change required until matcher policy changes.
 
 ### 4. Task Quality
 
-Score: 8/10
+Score: 7/10
 
-Check: repo tasks follow `docs/tasks/_template.md` and link back to active ExecPlans and Linear only as tracking metadata.
+Check: repo tasks vs `_template.md`.
 
 Problems found:
 
-- All **12** task files pass `tasks-check` required sections.
-- Done: `task-01`–`task-04`, `task-10`–`task-12`. Ready: `task-05`–`task-09`.
-- `task-09` references `npm run test:policies` (not yet in `package.json` — expected until task-09 starts).
+- task-03/11/13 Done historically; task-14/15 **Cancelled** (2026-06-23).
+- task-05 correctly **Blocked** on OD-015.
 
 Recommended fixes:
 
-- Add Linear link for `task-10` (TD-DOCS-001).
+- Resolve OD-015 before unblocking task-05.
 
 ### 5. Test Coverage
 
-Score: 8/10
+Score: 6/10
 
-Check: tests and validation commands are defined by the active repo task or ExecPlan; stack-specific checks are governed by `.harness/stack.env` and `docs/agents/_shared/validation-commands.md`.
+Check: Jest suites vs V1 acceptance baseline.
 
 Problems found:
 
-- `npm test` — PASSED: 25 suites, **85 tests** (2026-06-19, task-12 fix).
-- `npm run build` — PASSED (2026-06-19).
-- `npm run lint` — PASSED (2026-06-19; LF enforced via `.gitattributes`, `.editorconfig`, prettier `endOfLine: lf`).
-- New unit tests: load-deal-context, match-workflow-template, get-workflow-context, workflow-capability helpers; start-workflow regression extended.
-- **Gap:** task-09 policy baseline not implemented.
+- `npm test` — **53 tests PASS** (18 suites, 2026-06-23); template module tests removed with persistence removal.
+- Integration tests assert stub behavior (`template_mapping_not_implemented`).
+- Policy baseline (task-09) not implemented.
 
 Recommended fixes:
 
-- Implement task-09 policy test harness when tasks 05–08 land.
-- Maintain failing-first tests for each remaining V1 task.
+- Re-add requirements/matching tests when OD-015 defines new notes source.
 
 ### 6. Runtime Validation
 
 Score: 5/10
 
-Check: Runtime Validation is marked in tasks and evidence follows `docs/agents/_shared/runtime-evidence.md` and `docs/OBSERVABILITY.md`.
+Check: runtime evidence per ExecPlan.
 
 Problems found:
 
-- Integration tests exist for health, webhooks, postsale-workflows module, and key domains.
-- Done tasks include validation commands in task files; **ExecPlan Runtime Evidence section still lacks collected links** for most Done tasks.
-- End-to-end production runtime evidence (Bitrix sandbox live, Supabase PROD migration apply, n8n webhooks) not systematically linked.
-- Dev scripts tracked: `sandbox:bitrix-read`, `inspect:bitrix-deal`, `inspect:bitrix-variant` (TD-SCRIPTS-001 resolved).
+- No live template match path in app post-retirement.
+- task-13 PROD benchmark historical only; scripts removed.
+- Webhook integration tests pass with stub matcher (escalation path only).
 
 Recommended fixes:
 
-- Attach runtime evidence links in ExecPlan as tasks close (webhook integration spec, migration apply record).
-- Document sandbox validation paths before task-08 production webhooks.
+- Re-link runtime evidence after OD-015 and task-05 resume.
 
 ### 7. Security
 
 Score: 6/10
 
-Check: security-sensitive work follows `docs/SECURITY.md`, `docs/agents/_shared/risk-policy.md`, and the Codex Audit requirements for risky changes.
+Check: `docs/SECURITY.md`, webhook auth, npm audit.
 
 Problems found:
 
-- `docs/SECURITY.md` populated and aligned with observability/reliability docs.
-- **Codex Audit (2026-06-19):** task-04 merged Done; WebhookAuthGuard stub documented TD-SEC-002 / OD-007 — must not expose webhooks publicly before task-08.
-- `N8N_WEBHOOK_SECRET` in `.env.example` but webhook auth guard not enforcing secret (task-08 scope).
-- npm audit reports 41 vulnerabilities (7 high) — not remediated in this score pass.
+- WebhookAuthGuard stub (task-08 scope).
+- npm audit vulnerabilities unchanged.
 
 Recommended fixes:
 
-- Wire webhook auth in task-08; schedule dependency audit remediation.
+- Wire webhook auth in task-08.
 
 ### 8. Reliability
 
 Score: 7/10
 
-Check: reliability requirements follow `docs/RELIABILITY.md`, especially Idempotency, Retry Rules, failure modes, recovery, and duplicate side-effect prevention.
+Check: idempotency, side effects, failure modes.
 
 Problems found:
 
-- Idempotency service + concurrent race tests implemented and passing.
-- Side-effect records with duplicate prevention tested.
-- Audit events emitted with structured payloads; tests pass.
-- Retry policy accepted in decision log; full retry behavior for email/Bitrix side effects not yet implemented (tasks 05–08).
-- Reliability patterns strong for implemented cross-cutting layer; incomplete for not-yet-built customer messaging flows.
+- Cross-cutting reliability patterns intact for implemented layers.
+- Match step always escalates — operational noise until OD-015 resolved.
 
 Recommended fixes:
 
-- Extend idempotency/side-effect patterns to email and Bitrix write tasks without regression.
+- Resolve OD-015; then implement task-05 notes path.
 
 ### 9. Observability
 
 Score: 6/10
 
-Check: observability requirements follow `docs/OBSERVABILITY.md`, especially Runtime Evidence, Audit Events, trace/request IDs, redaction, and operator-visible recovery context.
+Check: audit events, structured logs.
 
 Problems found:
 
-- Audit event emission implemented with `event_name` structured logs in idempotency, side effects, template import, audit services.
-- Request ID propagation tested in audit service specs.
-- Runtime evidence links not uniformly attached across all Done tasks in ExecPlan Runtime Evidence section.
-- Full trace/request-id propagation through webhook → workflow → side effects not verified end-to-end in production-like environment.
+- Audit/idempotency logging intact.
+- Match failure reason `template_mapping_not_implemented` visible in escalation payload.
 
 Recommended fixes:
 
-- Link runtime evidence in ExecPlan when closing task-05+.
+- Add structured log on matcher stub if operators need visibility.
 
 ### 10. AI Slop / Maintainability
 
-Score: 8/10
+Score: 6/10
 
-Check: Cleanup, Review, and Codex Audit use `docs/agents/_shared/review-gates.md` plus mode-specific AI slop checks for duplication, naming drift, YOLO parsing, stale docs, missing links, and unnecessary abstractions.
+Check: dead code, doc drift, intentional stubs.
 
 Problems found:
 
-- **Fixed (2026-06-19):** removed no-op mapper; empty domain modules removed from `AppModule` imports; Bitrix dev scripts documented in `package.json`.
-- **Fixed (2026-06-19):** QUALITY_SCORE and ExecPlan narrative synced (Fala A); LF line-ending policy; TD-SLOP-001 B1a routing.
-- **Positive:** no `any` in `src/`; no `console.log` in production `src/`.
-- **Open:** dead exports (`IngestReplyCommand` reserved for task-06); duplicate Bitrix stub/mock providers; V1 scaffold modules unwired.
+- **Positive:** Full removal decision logged; `MatchWorkflowTemplateUseCase` stub explicit.
+- **Risk:** Product spec / design docs still describe historical template steps (amended 2026-06-23).
+- Removed template-import/matching modules, Supabase repos, import scripts; test count 85→53.
 
 Recommended fixes:
 
-- See `docs/exec-plans/tech-debt-tracker.md` (TD-ARCH-001, TD-ARCH-003, TD-DOCS-001).
+- Keep future notes source scope minimal per OD-015 decision.
 
 ## Score Interpretation
 
@@ -237,43 +218,25 @@ Recommended fixes:
 
 Current band: **60–74 — usable, but needs cleanup/review**.
 
-## Update Rules
-
-Update after major architecture changes, large PRs, Codex Audit, Cleanup Mode, Docs Maintenance Mode, before important production releases, or when repeated AI slop is detected.
-
-**Review and merge flow (mandatory):**
-
-- Review Mode must update this file before issuing `APPROVED_FOR_HUMAN_REVIEW` or `APPROVED_FOR_CODEX_AUDIT` for a repo task or PR.
-- After Human Architect merge, confirm this file still matches merged task status, ExecPlan progress, checks, and runtime evidence; use Review follow-up or Docs Maintenance if not.
-- See `AGENTS.md` → Quality Score At Review And Merge and `docs/agents/modes/review.md` → QUALITY_SCORE Update.
-
-Do not inflate the score. If evidence is missing, score conservatively. Block approval rather than updating optimistically when review evidence is incomplete.
-
 ## Current Top Risks
 
-* Supabase migration `20260619100000_task12_workflow_context_columns.sql` remote apply not independently verified from this shell.
-* MatchWorkflowTemplateUseCase idempotency duplicate returns `already_matched` without status guard (recovery edge case; V2).
-* LoadDealContext idempotency key consumed on `parse_failed` — blocks safe retry (V2 recovery).
-* Webhook auth stub until task-08; npm audit 41 vulns (7 high).
+* Matcher stub — all deals escalate; task-05 blocked (OD-015).
+* Reduced test coverage vs pre-removal baseline (53 vs 85+ tests).
+* task-13 PROD accuracy historical only; no in-app template persistence.
+* Webhook auth stub until task-08.
 
 ## Current Top Improvements
 
-* Commit pending code fixes (Codex task-12 + B1a + LF policy files) and run Codex re-audit.
-* Apply migration `20260619100000_task12_workflow_context_columns.sql` on Supabase PROD.
-* Start task-05 after task-12 Codex approval; update Linear SEL-79 → Ready.
+* Human Architect resolves **OD-015** (requirements/notes source).
+* Unblock and implement **task-05** after OD-015.
+* Re-add matching/requirements tests with approved notes path.
 
 ## History
 
 ```text
 2026-06-09 - Created - Initial short Docs Maintenance status.
-2026-06-09 - Updated - Expanded into compressed Quality Score rubric without scoring unsupported categories.
-2026-06-09 - Updated - Compressed category checks by linking to canonical guardrail docs and reflected the active docs compression ExecPlan.
-2026-06-19 - Updated - Full evidence-based score after V1 implementation progress (tasks 01–04 partial, 10–11 Done; 73 tests passing). Documented source-of-truth drift, architecture gaps, and review/merge update rule activation.
-2026-06-19 - Updated - Cleanup Fala 1–4: docs drift fixed, parser relocated, tech-debt-tracker created, score 63→70.
-2026-06-19 - Updated - Review task-04: APPROVED_FOR_CODEX_AUDIT; acceptance criteria met; minor doc/PR hygiene notes recorded.
-2026-06-19 - Updated - Codex Audit task-04: APPROVED_FOR_HUMAN_REVIEW; security 5→6; overall 70→71.
-2026-06-19 - Updated - Human Architect merge task-04 Done.
-2026-06-19 - Updated - Review task-12: REQUEST_CHANGES; architecture 7→8; test 7→8; slop 7→8; overall 71→72.
-2026-06-19 - Updated - Fix task-12 Codex follow-up: CapabilityResult on no_match; LF line endings; lint PASS; test 85; overall 72→73.
-2026-06-19 - Updated - Docs Maintenance Fala A: QUALITY_SCORE/ExecPlan/Linear narrative synced; B1a TD-SLOP-001 noted.
+2026-06-19 - Updated - Full evidence-based score after V1 implementation progress; score 63→70.
+2026-06-19 - Updated - Review task-13: REQUEST_CHANGES; score 73→70.
+2026-06-23 - Updated - Docs sync after module retirement; OD-015 blocking; score 70→65.
+2026-06-23 - Updated - Full template persistence removal; task-14/15 cancelled; score 65→60.
 ```

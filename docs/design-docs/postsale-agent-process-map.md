@@ -102,7 +102,9 @@ Bitrix (Oczekiwanie na Zdjęcia)
 | Owner | NestJS bitrix + postsale-workflows |
 | Given / When / Then | Given insufficient vehicle data, When context load runs, Then escalation is initiated |
 
-### Step 4 — Template matching
+### Step 4 — Template matching (superseded 2026-06-23)
+
+> **Current runtime:** Not implemented. `MatchWorkflowTemplateUseCase` returns `template_mapping_not_implemented` → escalation. Historical design below.
 
 | Field | Value |
 | --- | --- |
@@ -119,7 +121,9 @@ Bitrix (Oczekiwanie na Zdjęcia)
 | Owner | NestJS template-matching |
 | Given / When / Then | Given ambiguous templates, When match runs, Then Bitrix moves to Do ręcznej weryfikacji |
 
-### Step 5 — Note selection
+### Step 5 — Note selection (superseded 2026-06-23)
+
+> **Current runtime:** Not implemented. No `car_template_id` or `car_template_notes`. OD-015 blocks task-05. Historical design below.
 
 | Field | Value |
 | --- | --- |

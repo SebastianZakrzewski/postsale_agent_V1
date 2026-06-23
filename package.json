@@ -13,10 +13,7 @@
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "sandbox:bitrix-read": "ts-node scripts/sandbox-bitrix-read.ts",
-    "inspect:bitrix-deal": "ts-node scripts/inspect-bitrix-deal-fields.ts",
-    "inspect:bitrix-variant": "ts-node scripts/inspect-bitrix-variant-fields.ts"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

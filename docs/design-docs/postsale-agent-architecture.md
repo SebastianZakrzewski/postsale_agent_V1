@@ -55,8 +55,6 @@ src/
       services/
       use-cases/
       policies/
-    template-import/
-    template-matching/
     requirements/
     langflow/
     email/
@@ -111,9 +109,7 @@ No business logic in controllers, repositories, integration clients, n8n workflo
 
 | Module | Responsibility |
 | --- | --- |
-| postsale-workflows | Workflow lifecycle, completion policy, orchestration |
-| template-import | One-time EVAMATS import batches |
-| template-matching | Normalize + exact/alias match |
+| postsale-workflows | Workflow lifecycle, completion policy, orchestration; match step stub (`template_mapping_not_implemented`) |
 | requirements | Requirement CRUD, evidence linkage, status rules |
 | langflow | Flow invocation, output parsing, validation |
 | email | Draft validation gate, outbound send, inbound normalization |
@@ -137,11 +133,10 @@ No business logic in controllers, repositories, integration clients, n8n workflo
 
 ## Database Tables (V1)
 
+**2026-06-23:** `template_import_batches`, `car_templates`, `car_template_notes` **removed** from schema (`20260623120000_drop_car_templates.sql`). `postsale_workflows.car_template_id` dropped.
+
 | Table | Purpose |
 | --- | --- |
-| template_import_batches | Import metadata |
-| car_templates | Normalized template rows + raw_row_json |
-| car_template_notes | Notes/questions per template |
 | postsale_workflows | Workflow aggregate root |
 | workflow_requirements | Classified requirements per workflow |
 | customer_messages | Inbound/outbound message records |

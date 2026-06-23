@@ -14,9 +14,21 @@ Agents must not resolve blocking OPEN_DECISIONs themselves.
 
 ### Blocking
 
-None.
+#### OD-015 — Requirements input after template persistence removal
 
-V1 architecture, business rules, lifecycle, integrations, and acceptance criteria are accepted via Architecture Context Pack and approved product spec.
+**Unknown:** After 2026-06-23 removal of `car_templates` / `car_template_notes` and in-app matching, what is the **V1 source of note text** for Langflow classification and `workflow_requirements` (task-05)? Options include: Bitrix deal fields only, external static config, out-of-app EVAMATS reload, manual operator path, or a new approved persistence design.
+
+**Why it matters:** `MatchWorkflowTemplateUseCase` always returns `template_mapping_not_implemented`. Every workflow escalates after context load. **Blocks task-05** automated path.
+
+**Recommended default:** Human Architect approves one notes source and a new repo task before task-05 implementation resumes.
+
+**Impact:** Blocking for task-05 until resolved.
+
+**Design reference:** `docs/decision-log.md` (2026-06-23 template removal), `supabase/migrations/20260623120000_drop_car_templates.sql`
+
+---
+
+V1 architecture, business rules, lifecycle, integrations, and acceptance criteria are accepted via Architecture Context Pack and approved product spec. Template match accuracy uplift (task-13) was completed on PROD data historically; **application template persistence removed 2026-06-23** — OD-015 blocks task-05.
 
 ### Non-blocking
 
@@ -148,6 +160,32 @@ V1 architecture, business rules, lifecycle, integrations, and acceptance criteri
 **Impact:** Non-blocking for V1. Guides refactor hygiene during task-05–08. See capability map in design doc.
 
 **Design reference:** `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
+
+---
+
+#### OD-013 — Missing EVAMATS row supplementation
+
+**Unknown:** Who adds `car_templates` rows for true NOT_FOUND models (e.g. Captur 2 gen, Audi Q3 FJ 3 gen, Golf MK7, C-HR) and whether partial re-import is in V1 scope.
+
+**Why it matters:** Code and aliases cannot fix absent templates; FINAL_INVOICE needs ~15+ rows to reach 90% if duplicate fixes alone are insufficient.
+
+**Recommended default:** Human Architect provides updated EVAMATS export; one-time controlled DML via task-11-style script (task-13 Iteration 5 optional).
+
+**Impact:** Non-blocking for starting task-13 Iterations 1–4; blocking for guaranteed 90% if NOT_FOUND count remains high after dedup + aliases.
+
+---
+
+#### OD-014 — Template notes hit-rate acceptance floor (task-14)
+
+**Status:** Superseded — task-14 **Cancelled** 2026-06-19 (Human Architect: no Bitrix product/set-variant notes mapping). Legacy single-product `TemplateNotesService` retained; notes hit-rate floor no longer gates delivery.
+
+**Unknown (if notes mapping revived):** Minimum five-stage **notes** arithmetic mean for task-14 acceptance after Bitrix product/set-variant mapping (baseline **16.0%** on 2026-06-19 full audit; template mean **94.5%** same run).
+
+**Why it matters:** Remaining gaps may be mapping bugs or missing `car_template_notes` rows (OD-013).
+
+**Recommended default:** **≥ 60%** notes arithmetic mean on live `batch-stage-full-audit.ts`; template mean must stay **≥ 90%** (task-13 regression).
+
+**Impact:** Non-blocking while task-14 cancelled.
 
 ---
 
