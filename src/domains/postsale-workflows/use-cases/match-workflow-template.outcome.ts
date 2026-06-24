@@ -11,6 +11,12 @@ export type MatchWorkflowTemplateOutcome =
       workflow: Workflow;
     }
   | {
+      type: 'matched';
+      capability: CapabilityResult;
+      workflow: Workflow;
+      matchResult: TemplateMatchResult;
+    }
+  | {
       type: 'no_match';
       capability: CapabilityResult;
       workflow: Workflow;

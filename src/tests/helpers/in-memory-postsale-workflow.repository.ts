@@ -35,6 +35,7 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
       template_match_status: null,
       deal_context_json: null,
       product: null,
+      car_template_id: null,
       created_at: now,
       updated_at: now,
     };
@@ -90,6 +91,9 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
     }
     row.template_match_status = input.templateMatchStatus;
     row.status = input.status;
+    if (input.carTemplateId !== undefined) {
+      row.car_template_id = input.carTemplateId;
+    }
     row.updated_at = new Date().toISOString();
   }
 

@@ -10,6 +10,8 @@ import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { WORKFLOW_EVENT_REPOSITORY } from '../../domains/audit/repository/workflow-event.repository';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
+import { SupabaseCarTemplateRepository } from '../../integrations/supabase/supabase-car-template.repository';
+import { InMemoryCarTemplateRepository } from '../helpers/in-memory-car-template.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 
@@ -55,6 +57,8 @@ describe('PostsaleWorkflowsModule (integration)', () => {
       .useValue(new InMemoryWorkflowEventRepository())
       .overrideProvider(BITRIX_PROVIDER)
       .useValue(bitrixProvider)
+      .overrideProvider(SupabaseCarTemplateRepository)
+      .useValue(new InMemoryCarTemplateRepository())
       .compile();
 
     useCase = moduleFixture.get(StartWorkflowUseCase);

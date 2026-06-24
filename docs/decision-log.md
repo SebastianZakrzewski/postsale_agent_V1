@@ -175,3 +175,47 @@ This file records accepted architecture, product, security, reliability, integra
 **Impact:** All workflow starts escalate on match step. **task-05 blocked (OD-015).** task-14 and task-15 cancelled. Historical task-11 PROD load superseded by manual DROP (migration `supabase/migrations/20260623120000_drop_car_templates.sql`).
 
 **Owner:** Human Architect
+
+### 2026-06-24 — OD-015 Wide car_templates as V1 notes source
+
+**Decision:** Restore wide `car_templates` (migration `supabase/migrations/20260624100000_recreate_car_templates_wide.sql`) as the V1 source of template note text. Implement two-stage matching: (1) `TemplateMatchingService` — cascade `brand → model → generation → body_type_1/2/3` with SUV/minivan compatibility rules; (2) `TemplateNoteSelectionService` — map Bitrix Rodzaj kompletu + Wariant kompletu to `notes_*` columns. `MatchWorkflowTemplateUseCase` persists `car_template_id`, sets `TEMPLATE_MATCHED`, emits `TEMPLATE_MATCH_SUCCEEDED`. Stage 1 escalates on missing generation, ambiguous match, body mismatch, custom product, or unknown variant (see 2026-06-24 empty-notes rule for Stage 2).
+
+**Rationale:** Human Architect approved ExecPlan for Deal → car_templates → uwagi mapping; replaces 2026-06-23 stub-only state.
+
+**Impact:** Unblocks task-05 notes input path (Langflow classification still task-05). PROD holds 2655 wide templates from EVAMATS import.
+
+**Owner:** Human Architect
+
+### 2026-06-24 — Empty notes_* columns are not an error (Stage 2)
+
+**Decision:** Stage 2 note selection does **not** escalate when mapped `notes_*` columns are empty. Not every body type requires product notes for every set part (front/rear/trunk/third row). Return all non-empty note texts found for the variant; zero notes after selection is still a successful match (no `missing_required_note` / `no_notes_selected` escalation).
+
+**Rationale:** Human Architect — sparse EVAMATS wide data and vehicle-specific note applicability; template match (Stage 1) remains the gate for workflow progression.
+
+**Impact:** E2E benchmark hit rate aligns with template match rate when product line and set variant are known; task-05 must tolerate zero or partial notes.
+
+**Owner:** Human Architect
+
+### 2026-06-24 — Trunk note fallback (SUV 5-seat)
+
+**Decision:** When Stage 2 resolves trunk to `notes_trunk_suv_5_seater` and that column is empty, read `notes_trunk_general` as fallback. No fallback for SUV 7-seat or other trunk columns.
+
+**Impact:** ~343 PROD templates benefit; see `src/domains/template-matching/config/note-column-resolver.ts`.
+
+**Owner:** Implementation (PROD audit 2026-06-24)
+
+### 2026-06-24 — Van body type normalization
+
+**Decision:** Normalize Bitrix/EVAMATS labels `Van`, `Van dostawczy`, `Van dostawczak` to slug `van`; match legacy import slug `van_dseaterawczak`.
+
+**Impact:** Commercial van template match (e.g. Toyota ProAce). See `src/lib/normalization/evamats-slug-mappings.ts`, `body-type-compatibility.ts`.
+
+**Owner:** Implementation (PROD audit 2026-06-24)
+
+### 2026-06-24 — Template matching PROD validation accepted
+
+**Decision:** Wide-layout two-stage matcher accepted for V1 workflow progression. Evidence: 2655 PROD templates; Stage 1 self-match 99.4%; Stage 2 note logic 100% (3 products × 15 variants); edge-case audit 8/8.
+
+**Reference:** `docs/references/template-matching-validation.md`
+
+**Owner:** Implementation

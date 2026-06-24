@@ -115,6 +115,9 @@ export class SupabasePostsaleWorkflowRepository extends PostsaleWorkflowReposito
       .update({
         template_match_status: input.templateMatchStatus,
         status: input.status,
+        ...(input.carTemplateId !== undefined
+          ? { car_template_id: input.carTemplateId }
+          : {}),
       })
       .eq('id', workflowId);
 

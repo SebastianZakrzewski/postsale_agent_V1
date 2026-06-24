@@ -13,5 +13,10 @@ scripts/.chunk-*
 scripts/.query-*
 scripts/.tmp-*
 scripts/.evamats-*
+scripts/.car-templates-audit.json
+scripts/.raw-template-notes-audit.json
+scripts/.stage-benchmark-*.json
+scripts/.template-edge-cases-prod.json
+scripts/.template-mapping-effectiveness.json
 *.log
 .DS_Store

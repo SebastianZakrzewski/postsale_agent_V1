@@ -17,8 +17,34 @@ export interface PostsaleWorkflowRow {
   template_match_status: TemplateMatchStatus | null;
   deal_context_json: Record<string, unknown> | null;
   product: string | null;
+  car_template_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CarTemplateRow {
+  id: string;
+  brand: string;
+  model: string;
+  generation: string | null;
+  body_type_1: string;
+  body_type_2: string | null;
+  body_type_3: string | null;
+  notes_general: string | null;
+  notes_front_classic: string | null;
+  notes_front_3d: string | null;
+  notes_rear_classic: string | null;
+  notes_rear_3d: string | null;
+  notes_third_row: string | null;
+  notes_trunk_general: string | null;
+  notes_trunk_estate: string | null;
+  notes_trunk_hatchback: string | null;
+  notes_trunk_sedan: string | null;
+  notes_trunk_liftback: string | null;
+  notes_trunk_suv_5_seater: string | null;
+  notes_trunk_suv_7_seater: string | null;
+  notes_trunk_minivan_5_seater: string | null;
+  notes_trunk_minivan_7_seater: string | null;
 }
 
 export interface WorkflowRequirementRow {

@@ -16,6 +16,7 @@ export interface UpdateDealContextInput {
 export interface UpdateTemplateMatchInput {
   templateMatchStatus: TemplateMatchStatus;
   status: WorkflowStatus;
+  carTemplateId?: string | null;
 }
 
 export abstract class PostsaleWorkflowRepository {

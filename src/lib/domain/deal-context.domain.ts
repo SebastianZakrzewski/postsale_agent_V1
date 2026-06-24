@@ -6,6 +6,7 @@ export interface DealContext {
   generation: string | null;
   product: string;
   productSource?: 'string' | 'enum_fallback';
+  productEnumId?: string | null;
   setVariantId?: string | null;
   setVariantLabel?: string | null;
 }

@@ -117,7 +117,10 @@ export class StartWorkflowUseCase {
       requestId: command.requestId,
     });
 
-    if (matchOutcome.type === 'already_matched') {
+    if (
+      matchOutcome.type === 'already_matched' ||
+      matchOutcome.type === 'matched'
+    ) {
       const updated = await this.workflowRepository.findById(workflow.id);
       if (!updated) {
         throw new Error(

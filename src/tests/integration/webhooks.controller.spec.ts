@@ -11,6 +11,8 @@ import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
+import { SupabaseCarTemplateRepository } from '../../integrations/supabase/supabase-car-template.repository';
+import { InMemoryCarTemplateRepository } from '../helpers/in-memory-car-template.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 import {
@@ -62,6 +64,8 @@ describe('WebhooksController (integration)', () => {
       .useValue(new InMemoryWorkflowEventRepository())
       .overrideProvider(BITRIX_PROVIDER)
       .useValue(bitrixProvider)
+      .overrideProvider(SupabaseCarTemplateRepository)
+      .useValue(new InMemoryCarTemplateRepository())
       .compile();
 
     app = moduleFixture.createNestApplication();

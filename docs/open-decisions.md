@@ -12,23 +12,15 @@ Agents must not resolve blocking OPEN_DECISIONs themselves.
 
 ## Open Decisions
 
-### Blocking
+_No blocking open decisions._ Resolved OD-015 (2026-06-24) — see `docs/decision-log.md` and `docs/references/template-matching-validation.md`.
+
+### Non-blocking (resolved archive)
 
 #### OD-015 — Requirements input after template persistence removal
 
-**Unknown:** After 2026-06-23 removal of `car_templates` / `car_template_notes` and in-app matching, what is the **V1 source of note text** for Langflow classification and `workflow_requirements` (task-05)? Options include: Bitrix deal fields only, external static config, out-of-app EVAMATS reload, manual operator path, or a new approved persistence design.
-
-**Why it matters:** `MatchWorkflowTemplateUseCase` always returns `template_mapping_not_implemented`. Every workflow escalates after context load. **Blocks task-05** automated path.
-
-**Recommended default:** Human Architect approves one notes source and a new repo task before task-05 implementation resumes.
-
-**Impact:** Blocking for task-05 until resolved.
-
-**Design reference:** `docs/decision-log.md` (2026-06-23 template removal), `supabase/migrations/20260623120000_drop_car_templates.sql`
+**Status:** Resolved (2026-06-24). Moved to `docs/decision-log.md`. Evidence: `src/domains/template-matching/`, `docs/references/template-matching-validation.md`.
 
 ---
-
-V1 architecture, business rules, lifecycle, integrations, and acceptance criteria are accepted via Architecture Context Pack and approved product spec. Template match accuracy uplift (task-13) was completed on PROD data historically; **application template persistence removed 2026-06-23** — OD-015 blocks task-05.
 
 ### Non-blocking
 

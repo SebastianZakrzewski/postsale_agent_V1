@@ -39,6 +39,10 @@ function parseDealContextJson(
       generation === null || typeof generation === 'string' ? generation : null,
     product,
     productSource: parsedProductSource,
+    productEnumId:
+      value.productEnumId === null || typeof value.productEnumId === 'string'
+        ? value.productEnumId
+        : undefined,
     setVariantId:
       value.setVariantId === null || typeof value.setVariantId === 'string'
         ? value.setVariantId
@@ -55,6 +59,7 @@ export function toPostsaleWorkflow(row: PostsaleWorkflowRow): Workflow {
     templateMatchStatus: row.template_match_status,
     dealContext: parseDealContextJson(row.deal_context_json),
     product: row.product,
+    carTemplateId: row.car_template_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

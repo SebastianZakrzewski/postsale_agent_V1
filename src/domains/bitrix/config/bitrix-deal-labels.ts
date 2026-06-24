@@ -1,7 +1,7 @@
 /** Bitrix enum UF_CRM_1757024835301 */
 export const BITRIX_PRODUCT_ENUM_LABELS: Readonly<Record<string, string>> = {
   '264': '3D EVAPREMIUM Z RANTAMI',
-  '266': 'Klasyczne EVAPREMIUM BEZ RANTOW',
+  '266': 'Klasyczne EVAPREMIUM BEZ RANTÓW',
   '268': 'Niestandardowy',
 };
 

@@ -4,7 +4,7 @@ Status: Active
 Owner: Human Architect
 Risk level: High
 Created: 2026-06-17
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 ## Purpose
 
@@ -133,7 +133,7 @@ Linked product spec:
 
 Implementation status:
 
-- READY FOR IMPLEMENTATION — **task-05 blocked on OD-015** (requirements/notes source after template removal)
+- READY FOR IMPLEMENTATION — **task-05** unblocked (OD-015 resolved 2026-06-24; wide `car_templates` + two-stage matcher live)
 
 Risk classification:
 
@@ -168,7 +168,9 @@ V1 includes:
 * audit events, side effect records, idempotency
 * runtime validation and 15-case test baseline
 
-**Removed from V1 implementation (2026-06-23):** in-app EVAMATS import, `car_templates` / `car_template_notes` persistence, template matching, template note selection. See `docs/decision-log.md`.
+**Restored 2026-06-24 (OD-015):** wide `car_templates`, two-stage template matching + note selection. See `docs/decision-log.md` and `docs/references/template-matching-validation.md`.
+
+**Removed from V1 implementation (2026-06-23, superseded for match):** in-app EVAMATS import retired; narrow `car_template_notes` layout dropped in favour of wide `notes_*` columns.
 
 V1 excludes:
 
@@ -251,7 +253,7 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-03 | Template import + car template matching | task-01 | Done |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
 | task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Done |
-| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, **OD-015** | **Blocked** |
+| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, OD-015 | **Ready** |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
 | task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
@@ -267,13 +269,13 @@ Dependency graph:
 ```text
 task-01
   ├── task-02 ─────────────────────────────┐
-  └── task-03 ── task-04 ── task-12 ── [OD-015] ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
+  └── task-03 ── task-04 ── task-12 ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
                 └ (task-02 used from 04 onward)
         └── task-11 (EVAMATS DML — Done; import scripts retired 2026-06-23)
         └── task-13 (PROD match accuracy — Done historical; app matcher retired 2026-06-23)
 ```
 
-task-12 (capability foundation) refactors start into discrete use cases + persists DealContext; required before task-05. **OD-015** (notes/requirements source) required before task-05 after 2026-06-23 template removal. See `docs/tasks/task-12.md` and `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
+task-12 (capability foundation) refactors start into discrete use cases + persists DealContext; required before task-05. **OD-015** resolved 2026-06-24 — wide `car_templates` + matcher. See `docs/tasks/task-12.md` and `docs/design-docs/postsale-agent-capabilities-agent-loop.md`.
 
 Parallel opportunity: task-02 and task-03 may run in parallel after task-01.
 
@@ -309,7 +311,7 @@ External dependencies:
 
 Blocking dependencies:
 
-* **OD-015** — requirements/notes source after template persistence removal (blocks task-05)
+* **OD-015** — resolved 2026-06-24 (wide `car_templates` notes source)
 
 ## Progress
 
@@ -325,7 +327,7 @@ Blocking dependencies:
 - [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
 - [done] task-04 - workflow start + Bitrix read (Human Architect merge 2026-06-19)
 - [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
-- [blocked] task-05 - requirements + Langflow + initial email (OD-015)
+- [ready] task-05 - requirements + Langflow + initial email (OD-015 resolved)
 - [pending] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
 - [pending] task-08 - Bitrix write + Telegram + n8n webhooks
@@ -343,6 +345,7 @@ Blocking dependencies:
 - task-02 (2026-06-17): IdempotencyService, AuditService, SideEffectService + Supabase repositories; record-before-execute guard; unit/integration tests.
 - task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
 - task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` on workflow row; CapabilityResult internal contract.
+- **2026-06-24:** OD-015 — wide `car_templates`, `template-matching` domain, `MatchWorkflowTemplateUseCase` wired; PROD validation 99.4% Stage 1, 100% Stage 2 logic. See `docs/references/template-matching-validation.md`.
 - **2026-06-23:** Human Architect removed template-import, template-matching, and Supabase template tables. `MatchWorkflowTemplateUseCase` → `template_mapping_not_implemented`. Migration `20260623120000_drop_car_templates.sql`.
 
 ## Decision Log
@@ -351,7 +354,7 @@ See `docs/decision-log.md` for accepted decisions, including OD-008 stack.env ac
 
 ## OPEN_DECISIONs
 
-Blocking: **OD-015** (requirements/notes source — blocks task-05). See `docs/open-decisions.md`.
+Blocking: _None_ (OD-015 resolved 2026-06-24). See `docs/open-decisions.md`.
 
 Non-blocking: OD-001 through OD-007, OD-009 through OD-014 in `docs/open-decisions.md`.
 
@@ -405,7 +408,7 @@ Collected evidence (repo):
 | Flow | Evidence | Status |
 |------|----------|--------|
 | Workflow start (happy path) | `src/tests/unit/start-workflow.use-case.spec.ts`; `src/tests/integration/postsale-workflows.module.spec.ts`; `src/tests/integration/webhooks.controller.spec.ts` | PASS (Jest) |
-| Template match | Removed — `template_mapping_not_implemented` | N/A — tables dropped |
+| Template match | `TemplateMatchingService` + `TemplateNoteSelectionService` | PROD 99.4% self-match; 100% note logic accuracy (see validation ref) |
 | Idempotency / audit | `src/tests/unit/idempotency.service.spec.ts`; `src/tests/unit/idempotency-concurrent.spec.ts`; `src/tests/unit/audit.service.spec.ts` | PASS |
 | EVAMATS PROD load | task-11 History — 2719/2169 verified | Done |
 | Bitrix sandbox read | removed with 2026-06-23 script retirement | N/A |

@@ -1,20 +1,20 @@
 # Task: Requirements + Langflow Classification + Initial Email
 
-Status: Blocked (OD-015 — no template/notes source after 2026-06-23 removal)  
+Status: Ready (OD-015 resolved 2026-06-24)  
 Stage: Domain | Use Case | Integration  
 Mode: Implementation  
 Owner: Implementation agent  
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 ## Sources
 
 ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79)  
 PR: TBD  
-Depends on: task-02, task-12, **Human Architect resolution of OD-015** (requirements/notes source)
+Depends on: task-02, task-12, OD-015 (resolved 2026-06-24)
 
 ## Required Docs
 
@@ -27,7 +27,7 @@ Why this task exists:
 
 - Business: After template match, selected notes must become classified workflow_requirements before any customer email is sent.
 - Technical: Langflow classify + draft flows invoked via LangflowProvider; NestJS validates all LLM output; SideEffectService sends initial email. **Capability hygiene:** standalone use cases only — do not extend `StartWorkflowUseCase` monolith (see task-12, OD-009).
-- Current behavior: Workflow reaches `CONTEXT_LOADED` then `MatchWorkflowTemplateUseCase` returns `template_mapping_not_implemented` — all deals escalate on match (2026-06-23 template removal).
+- Current behavior: `MatchWorkflowTemplateUseCase` runs two-stage match; persists `car_template_id`; selected notes from `notes_*` columns available for classification (2026-06-24).
 - Target behavior: Langflow classify → validate → persist requirements → Langflow draft initial email → validate → SEND_INITIAL_EMAIL side effect → WAITING_FOR_CUSTOMER_REPLY. Each step is a **separate invokable use case** returning `CapabilityResult` (internal; OD-010).
 
 ## Technology Context
@@ -65,8 +65,8 @@ Technology assumptions:
 
 - task-02 SideEffectService available
 - task-12 complete: `deal_context_json` on workflow; `GetWorkflowContextUseCase` available for Langflow read tools
-- **No** `car_template_id` — column removed 2026-06-23
-- Workflow does not reach `TEMPLATE_MATCHED` until OD-015 + new notes path approved
+- `car_template_id` restored on `postsale_workflows` (migration `20260624100000_recreate_car_templates_wide.sql`)
+- Workflow reaches `TEMPLATE_MATCHED` when Stage 1+2 succeed; zero notes is valid per decision-log 2026-06-24
 
 Technology OPEN_DECISIONs:
 

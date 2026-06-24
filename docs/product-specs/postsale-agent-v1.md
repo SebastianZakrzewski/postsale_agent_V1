@@ -8,9 +8,13 @@ Last updated: 2026-06-17
 Approved by: Human Architect (Architecture Context Pack)
 Approved on: 2026-06-17
 
+## Amendment (2026-06-24)
+
+**Restored in V1 implementation (OD-015):** wide `car_templates` table, `template-matching` domain, two-stage deal → template → `notes_*` selection, `MatchWorkflowTemplateUseCase` with `car_template_id` persistence. Empty `notes_*` cells are not an error. Validation: `docs/references/template-matching-validation.md`.
+
 ## Amendment (2026-06-23)
 
-**Not in current V1 implementation:** one-time EVAMATS import, `car_templates` / `car_template_notes` persistence, automated template matching, and note selection by product/body type. Human Architect removed these from application and schema. `MatchWorkflowTemplateUseCase` returns `template_mapping_not_implemented`; all workflows escalate after deal context load until **OD-015** defines a new requirements/notes source. Historical scope below remains the approved product vision; runtime behavior follows `ARCHITECTURE.md` and `docs/decision-log.md` (2026-06-23).
+**Superseded by 2026-06-24 for match step:** one-time EVAMATS import, automated template matching, and note selection were temporarily removed; `MatchWorkflowTemplateUseCase` returned `template_mapping_not_implemented`. Historical scope below remains the approved product vision where not contradicted by `docs/decision-log.md` (2026-06-24).
 
 Linked ExecPlan:
 

@@ -83,6 +83,7 @@ export function parseBitrixDeal(
       generation,
       product: productLabelResult!.label,
       productSource: productLabelResult!.source,
+      productEnumId,
       setVariantId,
       setVariantLabel: setVariantId
         ? (BITRIX_SET_VARIANT_LABELS[setVariantId] ?? null)

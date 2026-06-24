@@ -10,6 +10,9 @@ import { MatchWorkflowTemplateUseCase } from '../../domains/postsale-workflows/u
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
 import { DuplicateStartWorkflowInProgressError } from '../../domains/postsale-workflows/errors/start-workflow.errors';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
+import { CarTemplateRepository } from '../../domains/template-matching/repository/car-template.repository.port';
+import { TemplateMatchingService } from '../../domains/template-matching/services/template-matching.service';
+import { TemplateNoteSelectionService } from '../../domains/template-matching/services/template-note-selection.service';
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
 import { DEFAULT_BITRIX_FIELD_MAPPING } from '../../domains/bitrix/config/bitrix-field-mapping';
@@ -19,6 +22,7 @@ import {
   WorkflowStatus,
 } from '../../lib/enums';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
+import { InMemoryCarTemplateRepository } from '../helpers/in-memory-car-template.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
@@ -28,11 +32,13 @@ describe('StartWorkflowUseCase', () => {
   let workflowRepository: InMemoryPostsaleWorkflowRepository;
   let bitrixProvider: MockBitrixProvider;
   let auditService: { emit: jest.Mock };
+  let carTemplateRepository: InMemoryCarTemplateRepository;
 
   beforeEach(async () => {
     workflowRepository = new InMemoryPostsaleWorkflowRepository();
     bitrixProvider = new MockBitrixProvider();
     auditService = { emit: jest.fn().mockResolvedValue({}) };
+    carTemplateRepository = new InMemoryCarTemplateRepository();
 
     const idempotencyRepository = new InMemoryIdempotencyRepository();
 
@@ -41,6 +47,8 @@ describe('StartWorkflowUseCase', () => {
         StartWorkflowUseCase,
         LoadDealContextUseCase,
         MatchWorkflowTemplateUseCase,
+        TemplateMatchingService,
+        TemplateNoteSelectionService,
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
@@ -61,6 +69,10 @@ describe('StartWorkflowUseCase', () => {
         {
           provide: AuditService,
           useValue: auditService,
+        },
+        {
+          provide: CarTemplateRepository,
+          useValue: carTemplateRepository,
         },
       ],
     }).compile();
@@ -101,6 +113,8 @@ describe('StartWorkflowUseCase', () => {
         StartWorkflowUseCase,
         LoadDealContextUseCase,
         MatchWorkflowTemplateUseCase,
+        TemplateMatchingService,
+        TemplateNoteSelectionService,
         EscalateWorkflowUseCase,
         FailWorkflowUseCase,
         IdempotencyService,
@@ -121,6 +135,10 @@ describe('StartWorkflowUseCase', () => {
         {
           provide: AuditService,
           useValue: auditService,
+        },
+        {
+          provide: CarTemplateRepository,
+          useValue: carTemplateRepository,
         },
       ],
     }).compile();
@@ -157,7 +175,7 @@ describe('StartWorkflowUseCase', () => {
     );
   });
 
-  it('escalates with template_mapping_not_implemented when deal context loads', async () => {
+  it('escalates with template_not_found when no car template matches', async () => {
     seedDeal('deal-4', buildBitrixDealFields());
 
     const result = await useCase.execute({

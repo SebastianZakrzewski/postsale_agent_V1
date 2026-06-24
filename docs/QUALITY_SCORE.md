@@ -9,30 +9,29 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-60/100
+68/100
 ```
 
 Last updated:
 
 ```text
-2026-06-23
+2026-06-24
 ```
 
 Updated by:
 
 ```text
-Docs Maintenance — full template persistence removal (2026-06-23)
+Implementation — OD-015 wide template matching + PROD validation
 ```
 
 Evidence basis:
 
 ```text
-Human Architect removed template-import, template-matching, car_templates schema (decision log 2026-06-23)
-npm test 53/53 PASS (18 suites); npm run build PASS
-Match step: template_mapping_not_implemented — all starts escalate
-Migration: supabase/migrations/20260623120000_drop_car_templates.sql
-task-05 blocked on OD-015 (requirements/notes source)
-Verdict: stable workflow shell; task-05 blocked until OD-015 resolved
+template-matching domain restored; MatchWorkflowTemplateUseCase wired with car_template_id
+npm test 106/106 PASS (25 suites); npm run build PASS
+PROD audit: 99.4% Stage 1 self-match, 100% Stage 2 note logic (118755 scenario runs)
+docs/references/template-matching-validation.md; task-05 unblocked
+Verdict: match step production-ready for task-05; Codex audit recommended before risky deploy
 ```
 
 ## Score Categories
@@ -40,11 +39,11 @@ Verdict: stable workflow shell; task-05 blocked until OD-015 resolved
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 8 |
-| Architecture consistency | 10 | 7 |
+| Architecture consistency | 10 | 8 |
 | Product clarity | 10 | 7 |
 | Task quality | 10 | 7 |
-| Test coverage | 10 | 6 |
-| Runtime validation | 10 | 5 |
+| Test coverage | 10 | 8 |
+| Runtime validation | 10 | 7 |
 | Security | 10 | 6 |
 | Reliability | 10 | 7 |
 | Observability | 10 | 6 |

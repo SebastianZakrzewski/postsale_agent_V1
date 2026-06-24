@@ -8,6 +8,7 @@ export interface Workflow {
   templateMatchStatus: TemplateMatchStatus | null;
   dealContext: DealContext | null;
   product: string | null;
+  carTemplateId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
