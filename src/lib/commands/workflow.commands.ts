@@ -33,3 +33,14 @@ export interface MatchWorkflowTemplateCommand {
 export interface GetWorkflowContextQuery {
   workflowId: string;
 }
+
+export interface CreateRequirementsCommand {
+  workflowId: string;
+  requestId?: string;
+}
+
+export interface SendInitialEmailCommand {
+  workflowId: string;
+  recipientEmail: string;
+  requestId?: string;
+}

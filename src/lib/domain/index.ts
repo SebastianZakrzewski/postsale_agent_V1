@@ -7,3 +7,5 @@ export * from './deal-context.domain';
 export * from './start-workflow-result.domain';
 export * from './capability-result.domain';
 export * from './workflow-capability.helpers';
+export * from './classified-requirement-draft.domain';
+export * from './email-draft.domain';

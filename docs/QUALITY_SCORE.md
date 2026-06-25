@@ -9,79 +9,82 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-68/100
+79/100
 ```
 
 Last updated:
 
 ```text
-2026-06-24
+2026-06-25
 ```
 
 Updated by:
 
 ```text
-Implementation — OD-015 wide template matching + PROD validation
+Codex Audit 2026-06-25 — task-05 APPROVED_FOR_HUMAN_REVIEW after Fix + Review pass
 ```
 
 Evidence basis:
 
 ```text
-template-matching domain restored; MatchWorkflowTemplateUseCase wired with car_template_id
-npm test 106/106 PASS (25 suites); npm run build PASS
-PROD audit: 99.4% Stage 1 self-match, 100% Stage 2 note logic (118755 scenario runs)
-docs/references/template-matching-validation.md; task-05 unblocked
-Verdict: match step production-ready for task-05; Codex audit recommended before risky deploy
+CreateRequirementsUseCase + SendInitialEmailUseCase standalone; Langflow parsers + validation
+langflow_runs: parsed_success + validation_errors only; raw_output always NULL; stable error codes
+Supabase repos: workflow_requirements, langflow_runs, outgoing_messages
+npm test 124/124 PASS (31 suites); npm run lint/typecheck/build PASS; bash ./scripts/harness-check PASS (2026-06-25)
+Baseline cases 4, 5, 15 + OD-015 zero-notes + side_effect before send in unit tests
+Review APPROVED_FOR_CODEX_AUDIT 2026-06-25; Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-25 (re-audit after Fix)
+Production email still blocked on OD-001 adapter; Langflow prod on OD-003
 ```
 
 ## Score Categories
 
 | Category | Max | Score |
 | --- | ---: | ---: |
-| Source of truth hygiene | 10 | 8 |
+| Source of truth hygiene | 10 | 9 |
 | Architecture consistency | 10 | 8 |
 | Product clarity | 10 | 7 |
-| Task quality | 10 | 7 |
+| Task quality | 10 | 9 |
 | Test coverage | 10 | 8 |
-| Runtime validation | 10 | 7 |
-| Security | 10 | 6 |
-| Reliability | 10 | 7 |
-| Observability | 10 | 6 |
-| AI slop / maintainability | 10 | 6 |
-| **Total** | **100** | **60** |
+| Runtime validation | 10 | 6 |
+| Security | 10 | 8 |
+| Reliability | 10 | 8 |
+| Observability | 10 | 8 |
+| AI slop / maintainability | 10 | 8 |
+| **Total** | **100** | **79** |
 
 ## Category Checks
 
 ### 1. Source Of Truth Hygiene
 
-Score: 8/10
+Score: 9/10
 
 Check: `AGENTS.md`, active ExecPlans, repo tasks, `docs/decision-log.md`, `docs/open-decisions.md`.
 
 Problems found:
 
-- **Fixed (2026-06-23):** Full template removal logged; OD-015 reframed; task-14/15 cancelled; migration added.
-- **Remaining:** task-10 Linear TBD; product spec still references template match (historical).
+- task-10 Linear TBD.
+- **Pass:** ExecPlan, process-map, architecture doc synced post-OD-015 (Cleanup 2026-06-24).
+- TD-MATCH-001 resolved in tech-debt-tracker.
 
 Recommended fixes:
 
-- Close OD-015 in open-decisions when Human Architect approves notes source.
+- Close OD-015 formally in open-decisions when Human Architect approves notes source.
 
 ### 2. Architecture Consistency
 
-Score: 7/10
+Score: 8/10
 
 Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
 Problems found:
 
-- **Pass:** Workflow orchestration (task-12), Bitrix parse boundary, idempotency/audit patterns intact.
-- **Open:** No automated template match — intentional removal (TD-MATCH-001).
-- **Open:** TD-ARCH-001/003 unchanged.
+- **Pass:** Standalone use cases (task-05); Langflow/Email via Provider interfaces; record-before-send side effects.
+- **Pass:** Template matching restored (OD-015); `StartWorkflowUseCase` unchanged.
+- **Pass:** task-05 Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-25 — parse-before-persist; no raw LLM in `langflow_runs`.
 
 Recommended fixes:
 
-- Resolve OD-015 before task-05.
+- None blocking for task-05 architecture boundary.
 
 ### 3. Product Clarity
 
@@ -91,119 +94,118 @@ Check: product spec vs implemented behavior.
 
 Problems found:
 
-- Product spec still describes automated template match — **not implemented**; removal documented in decision log.
+- Product spec `car_template_notes` wording predates wide-table model (OD-015).
 
 Recommended fixes:
 
-- No product spec change required until matcher policy changes.
+- Docs Maintenance pass on product spec when Human Architect approves.
 
 ### 4. Task Quality
 
-Score: 7/10
+Score: 9/10
 
 Check: repo tasks vs `_template.md`.
 
 Problems found:
 
-- task-03/11/13 Done historically; task-14/15 **Cancelled** (2026-06-23).
-- task-05 correctly **Blocked** on OD-015.
+- **Pass:** task-05 Implementation Final Report + Fix report present (2026-06-25).
+- **Pass:** Review 2026-06-25 APPROVED_FOR_CODEX_AUDIT; harness-check green.
+- task-06–09 remain Ready; PR TBD for task-05.
 
 Recommended fixes:
 
-- Resolve OD-015 before unblocking task-05.
+- Sync Linear SEL-79 to In Review / Done after Codex re-audit and Human Architect merge.
 
 ### 5. Test Coverage
 
-Score: 6/10
+Score: 8/10
 
 Check: Jest suites vs V1 acceptance baseline.
 
 Problems found:
 
-- `npm test` — **53 tests PASS** (18 suites, 2026-06-23); template module tests removed with persistence removal.
-- Integration tests assert stub behavior (`template_mapping_not_implemented`).
-- Policy baseline (task-09) not implemented.
+- Baseline cases 4, 5, 15 covered; full 15-case policy suite (task-09) not implemented.
 
 Recommended fixes:
 
-- Re-add requirements/matching tests when OD-015 defines new notes source.
+- task-09 after task-06–08.
 
 ### 6. Runtime Validation
 
-Score: 5/10
+Score: 6/10
 
 Check: runtime evidence per ExecPlan.
 
 Problems found:
 
-- No live template match path in app post-retirement.
-- task-13 PROD benchmark historical only; scripts removed.
-- Webhook integration tests pass with stub matcher (escalation path only).
+- Langflow and email providers use stubs in app module; live E2E pending task-08 credentials.
+- PROD template match evidence documented; requirements/email path mock-only in tests.
 
 Recommended fixes:
 
-- Re-link runtime evidence after OD-015 and task-05 resume.
+- Runtime evidence for INITIAL_EMAIL_SENT with sandbox email provider.
 
 ### 7. Security
 
-Score: 6/10
+Score: 8/10
 
-Check: `docs/SECURITY.md`, webhook auth, npm audit.
+Check: `docs/SECURITY.md`, webhook auth, npm audit, LLM boundary parsing.
 
 Problems found:
 
 - WebhookAuthGuard stub (task-08 scope).
 - npm audit vulnerabilities unchanged.
+- **Pass:** task-05 Codex audit 2026-06-25 — no raw LLM persistence; stable `validation_errors` codes only.
 
 Recommended fixes:
 
 - Wire webhook auth in task-08.
+- Production email adapter after OD-001 (non-blocking for audited code path).
 
 ### 8. Reliability
 
-Score: 7/10
+Score: 8/10
 
 Check: idempotency, side effects, failure modes.
 
 Problems found:
 
-- Cross-cutting reliability patterns intact for implemented layers.
-- Match step always escalates — operational noise until OD-015 resolved.
+- CreateRequirements and SendInitialEmail use idempotency / side_effect_record patterns.
+- Email send failure marks side_effect FAILED with retry_allowed.
+- **Pass:** Codex audit 2026-06-25 confirmed idempotent SEND_INITIAL_EMAIL path.
 
 Recommended fixes:
 
-- Resolve OD-015; then implement task-05 notes path.
+- Integration test for email retry path in task-08.
 
 ### 9. Observability
 
-Score: 6/10
+Score: 8/10
 
 Check: audit events, structured logs.
 
 Problems found:
 
-- Audit/idempotency logging intact.
-- Match failure reason `template_mapping_not_implemented` visible in escalation payload.
+- REQUIREMENTS_CLASSIFIED, WORKFLOW_REQUIREMENTS_CREATED, INITIAL_EMAIL_SENT events wired.
+- langflow_runs: `parsed_success`, `validation_errors` (stable codes); `raw_output` deprecated NULL.
 
 Recommended fixes:
 
-- Add structured log on matcher stub if operators need visibility.
+- Optional: link `langflow_run_id` in workflow_events payload for 1:1 correlation.
 
 ### 10. AI Slop / Maintainability
 
-Score: 6/10
+Score: 8/10
 
 Check: dead code, doc drift, intentional stubs.
 
 Problems found:
 
-- **Positive:** Full removal decision logged; `MatchWorkflowTemplateUseCase` stub explicit.
-- **Risk:** Product spec / design docs still describe historical template steps (amended 2026-06-23).
-- Removed template-import/matching modules, Supabase repos, import scripts; test count 85→53.
+- CRLF lint fixed 2026-06-25 (7 Langflow integration files); stable Langflow validation error codes.
 
 Recommended fixes:
 
-- Keep future notes source scope minimal per OD-015 decision.
+- Keep task-06 scope separate from task-05; avoid monolith growth in StartWorkflowUseCase.
 
 ## Score Interpretation
 
@@ -215,20 +217,21 @@ Recommended fixes:
 0-39   = unstable; stop and repair source of truth
 ```
 
-Current band: **60–74 — usable, but needs cleanup/review**.
+Current band: **75–89 — good, with manageable debt** (task-05 Codex APPROVED_FOR_HUMAN_REVIEW 2026-06-25).
 
 ## Current Top Risks
 
-* Matcher stub — all deals escalate; task-05 blocked (OD-015).
-* Reduced test coverage vs pre-removal baseline (53 vs 85+ tests).
-* task-13 PROD accuracy historical only; no in-app template persistence.
+* Langflow/Email production adapters still stubs (OD-001, OD-003).
+* Policy baseline 15 cases not complete (task-09).
 * Webhook auth stub until task-08.
+* Supabase migration `20260624200000_langflow_runs_parse_audit` must be applied before prod deploy.
 
 ## Current Top Improvements
 
-* Human Architect resolves **OD-015** (requirements/notes source).
-* Unblock and implement **task-05** after OD-015.
-* Re-add matching/requirements tests with approved notes path.
+* Implement **task-06** (reply ingestion + evidence).
+* Apply langflow_runs migration on Supabase PROD.
+* Human Architect merge approval for task-05.
+* Sync Linear SEL-79 to Done.
 
 ## History
 
@@ -238,4 +241,10 @@ Current band: **60–74 — usable, but needs cleanup/review**.
 2026-06-19 - Updated - Review task-13: REQUEST_CHANGES; score 73→70.
 2026-06-23 - Updated - Docs sync after module retirement; OD-015 blocking; score 70→65.
 2026-06-23 - Updated - Full template persistence removal; task-14/15 cancelled; score 65→60.
+2026-06-24 - Updated - OD-015 restoration; template matching PROD validation; score 60→68 (header).
+2026-06-24 - Updated - task-05 implementation + lint fix; score 72/100; 116 tests PASS.
+2026-06-24 - Updated - task-05 Codex audit APPROVED; boundary fix; score 76/100; 120 tests PASS.
+2026-06-24 - Updated - Cleanup Fala 2026-06-24; OD-015 doc drift fixed; TD-MATCH-001 resolved; score 77/100.
+2026-06-25 - Updated - Review task-05 after Fix; harness-check PASS; 124 tests; APPROVED_FOR_CODEX_AUDIT; score 78/100.
+2026-06-25 - Updated - Codex audit task-05 APPROVED_FOR_HUMAN_REVIEW; reliability +1; score 79/100.
 ```

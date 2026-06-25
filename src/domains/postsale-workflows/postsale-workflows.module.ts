@@ -34,6 +34,7 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     FailWorkflowUseCase,
   ],
   exports: [
+    POSTSALE_WORKFLOW_REPOSITORY,
     LoadDealContextUseCase,
     MatchWorkflowTemplateUseCase,
     GetWorkflowContextUseCase,

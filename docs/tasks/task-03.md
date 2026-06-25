@@ -338,14 +338,14 @@ Next recommended mode: Human Architect — resolve OD-015; then task-05
 
 ## Code retirement (2026-06-23)
 
-Human Architect **fully removed** in-app import + matching (not stubbed). Historical acceptance (PR #4) documents original schema design only. **Superseded:**
+Human Architect **fully removed** in-app import + matching (not stubbed). **Superseded 2026-06-24** — wide `car_templates` and `template-matching` domain restored (OD-015). Historical notes:
 
-- Modules `template-import`, `template-matching`, Supabase car-template repos — **deleted**
-- Tables `car_templates`, `car_template_notes`, `template_import_batches` — migration `20260623120000_drop_car_templates.sql` (PROD DROP manual)
-- `MatchWorkflowTemplateUseCase` → `template_mapping_not_implemented` only
-- task-14, task-15 **Cancelled**
+- Modules `template-import`, `template-matching` — **deleted 2026-06-23**, **restored 2026-06-24** (wide model, no `car_template_notes` table)
+- Tables `car_templates`, `car_template_notes`, `template_import_batches` — drop migration `20260623120000_drop_car_templates.sql`; wide recreate `20260624100000_recreate_car_templates_wide.sql`
+- `MatchWorkflowTemplateUseCase` — stub `template_mapping_not_implemented` (2026-06-23 only); full match path restored 2026-06-24
+- task-14, task-15 **Cancelled** (lean matcher superseded by wide-table OD-015 path)
 
-See `docs/decision-log.md` (2026-06-23).
+See `docs/decision-log.md` (2026-06-23 removal; 2026-06-24 OD-015 restoration).
 
 ## Final Report Template
 

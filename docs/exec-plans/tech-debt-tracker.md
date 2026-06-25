@@ -88,6 +88,8 @@ Status: Resolved (2026-06-19 — B1a: workflow orchestrators use CheckIdempotenc
 Source: Cleanup scan 2026-06-19; resolved architect decision B1a 2026-06-19
 ```
 
+## Resolved Items
+
 ```text
 ID: TD-MATCH-001
 Domain: postsale-workflows
@@ -96,11 +98,9 @@ Impact: All workflow starts escalate on match step; task-05 blocked (OD-015)
 Recommended fix: Human Architect defines requirements/notes source; new repo task
 Risk: High until OD-015 resolved
 Owner: Human Architect / Implementation
-Status: Open
-Source: Docs sync 2026-06-23 (full removal)
+Status: Resolved (2026-06-24 — OD-015 wide car_templates + template-matching domain restored; see decision-log)
+Source: Docs sync 2026-06-23 (full removal); resolved Cleanup 2026-06-24
 ```
-
-## Resolved Items
 
 ```text
 ID: TD-ARCH-005

@@ -1,13 +1,13 @@
 # Task: Requirements + Langflow Classification + Initial Email
 
-Status: Ready (OD-015 resolved 2026-06-24)  
+Status: Done — Human Architect approved 2026-06-25  
 Stage: Domain | Use Case | Integration  
-Mode: Implementation  
-Owner: Implementation agent  
+Mode: Codex Audit  
+Owner: Human Architect  
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-24
+Last updated: 2026-06-25
 
 ## Sources
 
@@ -322,8 +322,8 @@ Linear tracks only status, owner, priority, PR link, review/audit state, and pro
 
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Related PR: TBD  
-Related reviews: TBD  
-Related QA evidence: TBD  
+Related reviews: Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-25 (re-audit after Fix); Review APPROVED_FOR_CODEX_AUDIT 2026-06-25  
+Related QA evidence: mocked Langflow/Email in unit tests; side_effect SEND_INITIAL_EMAIL idempotency in send-initial-email.use-case.spec.ts  
 Related decisions: `docs/decision-log.md` (requirement labels, confidence 0.75, Langflow boundaries, 2026-06-17)  
 Depends on: task-02, task-12, **OD-015**  
 Blocks: task-06
@@ -336,6 +336,157 @@ Blocks: task-06
 2026-06-19 - Updated - Capability / agent-loop requirements; depends on task-12; standalone use cases (OD-009)
 2026-06-19 - Updated - Docs Fala A: Linear status Ready (SEL-79 unblocked; sync Linear)
 2026-06-23 - Updated - Blocked on OD-015 after full template persistence removal
+2026-06-24 - Updated - Implementation complete; Codex audit APPROVED after boundary fix (parse-before-persist, zero-notes, stable error codes)
+2026-06-25 - Fix - CRLF/LF normalization + Prettier on 7 Langflow integration/test files; Implementation Final Report restored; harness-check PASS (124 tests)
+2026-06-25 - Review - APPROVED_FOR_CODEX_AUDIT; harness-check PASS; acceptance criteria verified; QUALITY_SCORE 78/100
+2026-06-25 - Codex Audit - APPROVED_FOR_HUMAN_REVIEW; harness-check PASS; boundary parsing, scope, and reports verified after Fix
+2026-06-25 - Human Architect - Approved; merge authorized
+
+## Codex Audit Report (2026-06-25)
+
+Verdict: APPROVED_FOR_HUMAN_REVIEW
+
+Summary: Re-audit after Fix (CRLF/lint) and Review pass. task-05 aligns with scope, acceptance criteria, and architecture boundaries. Parse-before-persist enforced; no raw LLM in `langflow_runs`; standalone use cases; side_effect before email send.
+
+Task audited: task-05
+
+Risk category: High (LLM + customer messaging + DB)
+
+Changed files audited: task-05 implementation scope per Implementation Final Report; Fix files (7 Langflow integration/test)
+
+PR/Diff status: TBD (working tree)
+
+Checks audited: `bash ./scripts/harness-check` PASS; lint, typecheck, test (124/124), build PASS
+
+Runtime evidence audited: Mock Langflow/Email unit tests; baseline cases 4, 5, 15; side_effect idempotency; INITIAL_EMAIL_SENT audit path
+
+Boundary parsing status: PASS — parsers validate before persist/send; stable `validation_errors` codes
+
+Architecture status: PASS — Provider boundaries; StartWorkflowUseCase unchanged
+
+Security issues: None blocking; production adapters remain stubs (OD-001, OD-003)
+
+Reliability issues: None blocking; idempotent SEND_INITIAL_EMAIL via side_effect_record
+
+Observability issues: None blocking; langflow_runs parse-only audit metadata
+
+ExecPlan status: Aligned — task-05 done
+
+Linear status: SEL-79 — sync to Done after merge
+
+AI slop / golden-rule issues: None blocking
+
+OPEN_DECISIONs: None blocking (OD-001, OD-003 non-blocking)
+
+Required fixes: None
+
+Tech debt: Apply migration `20260624200000_langflow_runs_parse_audit` before prod deploy
+
+Next recommended mode: Human Architect — merge approval
+
+## Review Report (2026-06-25)
+
+Verdict: APPROVED_FOR_CODEX_AUDIT
+
+Summary: task-05 implementation reviewed after Fix pass. Standalone use cases, parse-before-persist, side_effect before email, and baseline tests 4/5/15 verified. All harness checks green. High-risk path (LLM + customer email + DB) requires Codex re-audit.
+
+Task reviewed: task-05
+
+Changed files reviewed: task-05 scope per Implementation Final Report; Fix touched 7 Langflow integration/test files + task doc
+
+PR/Diff status: TBD (working tree)
+
+Checks reviewed: `bash ./scripts/harness-check` PASS; `npm run lint` PASS; `npm run typecheck` PASS; `npm test` 124/124 PASS (31 suites); `npm run build` PASS
+
+Acceptance criteria status:
+
+- Requirements persisted only after validation — PASS (`create-requirements.use-case.spec.ts`)
+- Standalone use cases; StartWorkflowUseCase unchanged — PASS (no imports of CreateRequirements/SendInitialEmail in start-workflow)
+- Initial email only after requirements — PASS (case 5)
+- langflow_runs audit — PASS (`LangflowRunRecorderService` writes `parsed_success`, `validation_errors`; `raw_output` null)
+- Confidence ≥ 0.75 — PASS (case 15)
+- Tests 4, 5, 15 — PASS
+- harness-check — PASS
+
+Runtime validation status: PASS (mock Langflow/Email per task Technology Context; side_effect idempotency and INITIAL_EMAIL_SENT path covered in unit tests; live E2E deferred task-08/OD-001)
+
+Boundary parsing status: PASS — classify-notes.parser, email-draft.parser, classification-validation; parse failure escalates without persist/send
+
+Architecture status: PASS — use-case → LangflowProvider/EmailProvider; no Langflow SDK in use cases; forbidden scope respected
+
+Model separation status: PASS — DTO/Command/Domain/Persistence separation per task
+
+Security/reliability/observability issues: No new blocking issues. Production email/Langflow still on stubs (OD-001, OD-003). Migration `20260624200000_langflow_runs_parse_audit` must be applied before prod deploy.
+
+ExecPlan status: task-05 marked done in Progress — aligned
+
+Linear status: SEL-79 Ready in repo; sync after Human Architect merge
+
+Golden-rule / AI slop issues: None blocking; CRLF regression fixed
+
+OPEN_DECISIONs: None blocking (OD-001, OD-003 non-blocking)
+
+Codex Audit required: YES
+
+QUALITY_SCORE update: 78/100 (Review 2026-06-25)
+
+Required fixes: None — proceed to Codex re-audit
+
+Next recommended mode: Codex Audit
+
+## Implementation Final Report
+
+Summary: Standalone `CreateRequirementsUseCase` and `SendInitialEmailUseCase` deliver Langflow classify → validate → persist requirements → Langflow draft → validate → `SEND_INITIAL_EMAIL` side effect. Parse-before-persist on all LLM output; `langflow_runs` stores `parsed_success` and stable `validation_errors` only (`raw_output` NULL). OD-015 zero-notes path escalates without Langflow invoke.
+
+Changed files: `src/domains/requirements/use-cases/create-requirements.use-case.ts`, `src/domains/email/use-cases/send-initial-email.use-case.ts`, `src/domains/langflow/parsers/` (classify-notes, email-draft, classification-validation), `src/integrations/langflow/` (adapter, parsers, flow-ids, specs), `src/integrations/supabase/` (langflow-run, outgoing-message, workflow-requirement repos), `supabase/migrations/20260624200000_langflow_runs_parse_audit.sql`, domain types in `src/lib/domain/`, unit tests (`create-requirements`, `send-initial-email`, `classify-notes`, `classification-validation`, `langflow.adapter`, `langflow-response.parser`), test helpers (mock Langflow/Email, in-memory repos)
+
+Checks run: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `bash ./scripts/harness-check`
+
+Result: Implementation complete — acceptance criteria 4, 5, 15 covered in unit tests; `StartWorkflowUseCase` unchanged
+
+Risks: First customer email path (high); production send blocked on OD-001 real EmailProvider adapter; Langflow production config OD-003
+
+OPEN_DECISIONs: OD-001 (email provider, non-blocking mock in tests), OD-003 (Langflow URL/auth, non-blocking env)
+
+Codex Audit required: YES — LLM output validation + customer messaging
+
+Linear update: SEL-79 remains Ready in repo until Human Architect merge
+
+ExecPlan update: task-05 marked done in Progress (implementation)
+
+PR/Diff: TBD
+
+Next recommended mode: Review (then Codex re-audit)
+
+## Fix Final Report (2026-06-25)
+
+Summary: Codex re-audit blocked on 348 Prettier errors (CRLF in 7 `src/integrations/langflow` files) and missing Implementation Final Report. Fixed line endings and `langflow.module.ts` providers formatting; restored Implementation Final Report in this task doc.
+
+Fixed issues:
+
+- Prettier `Delete ␍` (CRLF) on `langflow-flow-ids.ts`, `langflow-response.parser.ts`, `langflow.adapter.error.ts`, `langflow.adapter.ts`, `langflow-response.parser.spec.ts`, `langflow.adapter.spec.ts`
+- Prettier providers-array formatting on `langflow.module.ts`
+- Missing Implementation Final Report in `docs/tasks/task-05.md`
+
+Changed files: 7 TypeScript files under `src/integrations/langflow/` and `src/tests/unit/`; `docs/tasks/task-05.md`
+
+Checks run: `npm run lint` (0 errors), `npm run typecheck`, `npm test` (31 suites, 124/124 PASS), `npm run build`, `bash ./scripts/harness-check` (PASS)
+
+Result: Fix complete, pending Review
+
+Risks: None from formatting fix; task-05 remains high-risk for Codex (LLM + email + DB)
+
+OPEN_DECISIONs: None blocking (OD-001, OD-003 non-blocking)
+
+Codex Audit required: YES (re-audit after Review)
+
+Linear update: none
+
+ExecPlan update: none (implementation scope unchanged)
+
+PR/Diff: working tree
+
+Next recommended mode: Review
 
 ## Final Report Template
 

@@ -253,7 +253,7 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-03 | Template import + car template matching | task-01 | Done |
 | task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
 | task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Done |
-| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, OD-015 | **Ready** |
+| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, OD-015 | Done |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Ready |
 | task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
 | task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
@@ -327,8 +327,8 @@ Blocking dependencies:
 - [done] task-11 - EVAMATS production data migration (one-time DML; PROD 2719/2169 verified)
 - [done] task-04 - workflow start + Bitrix read (Human Architect merge 2026-06-19)
 - [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
-- [ready] task-05 - requirements + Langflow + initial email (OD-015 resolved)
-- [pending] task-06 - reply + evidence
+- [done] task-05 - requirements + Langflow + initial email (2026-06-24)
+- [ready] task-06 - reply + evidence
 - [pending] task-07 - completion / follow-up / escalation policies
 - [pending] task-08 - Bitrix write + Telegram + n8n webhooks
 - [pending] task-09 - policy test baseline (15 cases)
@@ -346,7 +346,9 @@ Blocking dependencies:
 - task-10 (2026-06-17): V1 DDL migrated to dedicated `postsale_agent_evapremium` schema on Supabase PROD; NestJS client uses `SUPABASE_DB_SCHEMA`.
 - task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` on workflow row; CapabilityResult internal contract.
 - **2026-06-24:** OD-015 — wide `car_templates`, `template-matching` domain, `MatchWorkflowTemplateUseCase` wired; PROD validation 99.4% Stage 1, 100% Stage 2 logic. See `docs/references/template-matching-validation.md`.
-- **2026-06-23:** Human Architect removed template-import, template-matching, and Supabase template tables. `MatchWorkflowTemplateUseCase` → `template_mapping_not_implemented`. Migration `20260623120000_drop_car_templates.sql`.
+- **2026-06-24:** task-05 Codex audit **APPROVED** — `langflow_runs` parse-only audit (`parsed_success`, stable `validation_errors`), zero-notes OD-015 path, no raw LLM persistence.
+- **2026-06-25:** task-05 Codex **re-audit APPROVED_FOR_HUMAN_REVIEW** after Fix (CRLF/lint) + Review pass; harness-check green; pending Human Architect merge.
+- **2026-06-23:** Human Architect temporarily removed template-import, template-matching, and Supabase template tables (`template_mapping_not_implemented`). **Superseded 2026-06-24** by OD-015 restoration (see above). Migration `20260623120000_drop_car_templates.sql`.
 
 ## Decision Log
 

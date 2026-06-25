@@ -109,7 +109,8 @@ No business logic in controllers, repositories, integration clients, n8n workflo
 
 | Module | Responsibility |
 | --- | --- |
-| postsale-workflows | Workflow lifecycle, completion policy, orchestration; match step stub (`template_mapping_not_implemented`) |
+| postsale-workflows | Workflow lifecycle, completion policy, orchestration; delegates match to `MatchWorkflowTemplateUseCase` |
+| template-matching | Two-stage deal → wide `car_templates` match + `notes_*` selection (OD-015, 2026-06-24) |
 | requirements | Requirement CRUD, evidence linkage, status rules |
 | langflow | Flow invocation, output parsing, validation |
 | email | Draft validation gate, outbound send, inbound normalization |

@@ -107,7 +107,10 @@ export interface LangflowRunRow {
   workflow_id: string;
   flow_name: string;
   request_id: string | null;
+  /** @deprecated Application must always persist NULL. */
   raw_output: Record<string, unknown> | null;
+  parsed_success: boolean;
+  validation_errors: string | null;
   created_at: string;
 }
 

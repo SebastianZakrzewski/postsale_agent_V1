@@ -212,6 +212,26 @@ This file records accepted architecture, product, security, reliability, integra
 
 **Owner:** Implementation (PROD audit 2026-06-24)
 
+### 2026-06-24 — task-05 zero-notes requirements path (Human Architect)
+
+**Decision:** When Stage 2 returns zero `notes_*` texts, `CreateRequirementsUseCase` skips Langflow classify, sets `REQUIREMENTS_CREATED` with zero `workflow_requirements` rows (no escalation). `SendInitialEmailUseCase` remains blocked until at least one requirement exists (baseline case 5).
+
+**Rationale:** Aligns task-05 with OD-015 empty-notes Stage 2 rule; no LLM invoke without input notes.
+
+**Impact:** Workflows may reach `REQUIREMENTS_CREATED` with zero requirements; initial email not sent automatically.
+
+**Owner:** Human Architect
+
+### 2026-06-24 — langflow_runs parse-only audit (Human Architect)
+
+**Decision:** Persist `langflow_runs` only after Langflow invoke parse/validate attempt. Columns: `parsed_success`, `validation_errors` (stable reason codes). `raw_output` must always be NULL (column deprecated). No row when Langflow was not invoked (e.g. zero-notes skip). Failed parse/validation still inserts a row with `parsed_success=false`.
+
+**Rationale:** Closes Codex task-05 P1 — no raw LLM JSON in Supabase; observability without PII retention.
+
+**Impact:** Migration `20260624200000_langflow_runs_parse_audit.sql`; `LangflowRunRecorderService` API change.
+
+**Owner:** Human Architect
+
 ### 2026-06-24 — Template matching PROD validation accepted
 
 **Decision:** Wide-layout two-stage matcher accepted for V1 workflow progression. Evidence: 2655 PROD templates; Stage 1 self-match 99.4%; Stage 2 note logic 100% (3 products × 15 variants); edge-case audit 8/8.

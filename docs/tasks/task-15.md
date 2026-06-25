@@ -8,7 +8,7 @@ Codex Role: Audit Required
 Risk Level: Medium  
 Created: 2026-06-23  
 Last updated: 2026-06-23  
-Cancelled: 2026-06-23 — Superseded by Human Architect decision to remove all template persistence and matching from V1 (see `docs/decision-log.md`).
+Cancelled: 2026-06-23 — Superseded by Human Architect decision to remove all template persistence and matching from V1 (see `docs/decision-log.md`). **OD-015 (2026-06-24)** restored wide-table matching; this lean-matcher task remains cancelled.
 
 ## Sources
 
@@ -28,7 +28,7 @@ Why this task existed:
 
 - Business: Restore automated template match after 2026-06-23 module retirement.
 - Technical: Rebuild matcher + notes selection against Supabase `car_templates`.
-- Current behavior: **Cancelled** — Human Architect removed template persistence entirely; `MatchWorkflowTemplateUseCase` returns `template_mapping_not_implemented`.
+- Current behavior: **Cancelled** — lean matcher not pursued; wide-table OD-015 path implemented in `template-matching` domain (2026-06-24).
 - Target behavior: N/A — out of V1 scope until OD-015 defines a new requirements/notes source.
 
 ## Technology Context
