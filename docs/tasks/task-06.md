@@ -1,13 +1,13 @@
 # Task: Customer Reply Ingestion, Langflow Analysis, Evidence Storage
 
-Status: Ready  
+Status: Done — Codex APPROVED_FOR_HUMAN_REVIEW 2026-06-26  
 Stage: Use Case | Integration | API  
 Mode: Implementation  
 Owner: Implementation agent  
 Codex Role: Audit Required  
 Risk Level: High  
 Created: 2026-06-17  
-Last updated: 2026-06-19
+Last updated: 2026-06-26
 
 ## Sources
 
@@ -67,7 +67,7 @@ Technology assumptions:
 
 Technology OPEN_DECISIONs:
 
-- OD-001 email provider inbound DTO shape
+- OD-001 inbound DTO — **resolved 2026-06-25** (Gmail via n8n; canonical shape in `docs/decision-log.md`)
 
 ## Goal
 
@@ -308,7 +308,7 @@ If none: None blocking.
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
 Linear issue: [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81/task-06-reply-ingestion-langflow-analysis-evidence-storage)  
-Linear status: Backlog
+Linear status: Ready for PR — sync SEL-81 to In Review after merge opened
 
 Linear tracks only status, owner, priority, PR link, review/audit state, and progress. Repository task remains implementation source of truth.
 
@@ -328,6 +328,57 @@ Blocks: task-07
 2026-06-18 - Updated - Aligned to full `docs/tasks/_template.md`  
 2026-06-17 - Updated - Linear issue linked (SEL-81)
 2026-06-19 - Updated - Standalone reply capabilities; Langflow level-A agent loop; CapabilityResult (OD-009)
+2026-06-25 - Updated - Implementation complete; Gmail/n8n inbound DTO; cases 6–7; harness-check PASS
+2026-06-26 - Updated - Fix (Codex re-audit): duplicate idempotency retry rematches instead of false unmatched
+2026-06-26 - Updated - Codex Audit APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR
+
+## Fix Report (2026-06-26)
+
+Summary: Unmatched reply escalation (`escalated_unmatched` + idempotency + structured log with `from_email_hash`); UNIQUE `external_message_id`; duplicate ingest → `already_ingested`; retry after partial failure rematches and completes ingest.
+
+Changed files: `ingest-reply.use-case.ts`, `escalate-unmatched-reply.use-case.ts`, `supabase-customer-message.repository.ts`, migration `20260626100000_task06_customer_message_idempotency.sql`, tests, `docs/decision-log.md`
+
+Checks run: `npm test` 146/146 PASS; `npm run lint/build` PASS; `bash ./scripts/harness-check` PASS
+
+Result: Codex re-audit blockers resolved
+
+Next recommended mode: Human Approval → PR
+
+## Codex Audit Report (2026-06-26)
+
+Verdict: APPROVED_FOR_HUMAN_REVIEW
+
+Summary: Standalone ingest/analyze use cases; evidence guard; Case 6/7; idempotency + retry path; no raw LLM persistence; forbidden scope respected.
+
+Checks: harness-check PASS; 146/146 tests PASS
+
+Tech debt: optional `langflow_run_id` in analysis audit payloads; unmatched escalation is log-only until task-08 Telegram
+
+Next recommended mode: Human Approval → PR
+
+## Implementation Final Report
+
+Summary: Standalone `IngestReplyUseCase` and `AnalyzeReplyUseCase` — inbound n8n/Gmail DTO parsing, thread matching via `outgoing_messages.provider_message_id`, customer_messages/attachments/links persistence, Langflow analyze-reply with evidence guard (no VALID without evidence), workflow → REQUIREMENTS_UPDATED.
+
+Changed files: `src/domains/email/`, `src/domains/requirements/`, `src/integrations/supabase/`, tests, `docs/decision-log.md`
+
+Checks run: `bash ./scripts/harness-check`; `npm test` 146/146 PASS
+
+Result: Implementation complete — cases 6, 7; partial reply; attachments/links separate tables
+
+Risks: High (LLM reply analysis + evidence rules); webhook wire deferred task-08; attachment bytes via n8n contentRef not fetched in V1
+
+OPEN_DECISIONs: None blocking (OD-001 partially resolved — inbound DTO in decision-log)
+
+Codex Audit required: YES — APPROVED_FOR_HUMAN_REVIEW 2026-06-26
+
+Linear update: SEL-81 → sync In Review when PR opened
+
+ExecPlan update: task-06 Done (synced 2026-06-26)
+
+PR/Diff: working tree — ready after Cleanup
+
+Next recommended mode: Human Approval → PR
 
 ## Final Report Template
 

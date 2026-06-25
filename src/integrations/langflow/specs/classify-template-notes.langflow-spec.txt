@@ -41,7 +41,7 @@ config:
     5. If the note requires descriptive confirmation or explanation, use TEXT_CONFIRMATION.
 
     YES_NO_INFO vs OPTION_SELECTION rules:
-    - Use OPTION_SELECTION when the note mentions 2 or more variants, templates, rodzaje, warianty, wersje, or explicit choices such as "automat czy manual", "z organizerem / bez organizera", or numeric alternatives like "76,5 cm oraz 84,5 cm".
+    - Use OPTION_SELECTION when the note mentions 2 or more variants, templates, rodzaje, warianty, wersje, or explicit choices such as "automat czy manual", "górny czy dolny", "z organizerem / bez organizera", or numeric alternatives like "76,5 cm oraz 84,5 cm".
     - Use YES_NO_INFO when the note asks "czy ..." and expects only confirmation or denial, without selecting between named alternatives.
     - Use YES_NO_INFO for notes like "możemy wykonać jednolite" or "czy potwierdzasz ..." when the customer only confirms yes/no.
     - Do not use YES_NO_INFO when the note clearly requires picking one of multiple named options.
@@ -88,6 +88,13 @@ config:
     Output classification:
     - requirement_label: YES_NO_INFO
     - question_text: "Prosimy o potwierdzenie: Dywaniki na 2 rząd możemy wykonać jednolite"
+
+    Example 3b — OPTION_SELECTION for trunk level choice (not YES_NO_INFO)
+    Input note: column=notes_trunk_general, text="Proszę o sprawdzenie jaki poziom bagażnika robimy: górny czy dolny? (zalecamy górny)"
+    Output classification:
+    - requirement_label: OPTION_SELECTION
+    - question_text: "Prosimy o potwierdzenie: Proszę o sprawdzenie jaki poziom bagażnika robimy: górny czy dolny? (zalecamy górny)"
+    - classification_reason: Customer must choose between named trunk level options.
 
     Example 4 — unsafe internal note (missing template only)
     Input note: column=notes_general, text="nie mamy szablonu bagażnika sedan"

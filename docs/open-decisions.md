@@ -26,13 +26,13 @@ _No blocking open decisions._ Resolved OD-015 (2026-06-24) — see `docs/decisio
 
 #### OD-001 — Email provider
 
-**Unknown:** Which transactional email provider and sending domain for V1 (SMTP, SendGrid, Resend, other).
+**Status:** Partially resolved (2026-06-25). Provider: **Gmail**. Integration: **n8n** owns send + receive; NestJS does not call Gmail API. See `docs/decision-log.md` (2026-06-25 — Email channel: Gmail via n8n).
 
-**Why it matters:** Affects adapter implementation, webhook format for inbound replies, and DNS configuration.
+**Still open (non-blocking):** Gmail sending address/domain; n8n workflow URLs/IDs for send and inbound forward; attachment `contentRef` fetch/storage; inbound DTO contract is defined in decision-log — n8n workflows must emit that shape.
 
-**Recommended default:** Provider already used by EVAPREMIUM for operational email, wired through n8n inbound + NestJS outbound adapter.
+**Why it mattered:** Adapter implementation, inbound webhook format, DNS/OAuth (in n8n).
 
-**Impact:** email module adapter only; does not change completion policy.
+**Impact:** `EmailProvider` → n8n HTTP for outbound; `inbound-email.parser.ts` → canonical n8n DTO for inbound (task-06).
 
 ---
 

@@ -9,31 +9,29 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-79/100
+82/100
 ```
 
 Last updated:
 
 ```text
-2026-06-25
+2026-06-26
 ```
 
 Updated by:
 
 ```text
-Codex Audit 2026-06-25 — task-05 APPROVED_FOR_HUMAN_REVIEW after Fix + Review pass
+Codex Audit 2026-06-26 — task-06 APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR
 ```
 
 Evidence basis:
 
 ```text
-CreateRequirementsUseCase + SendInitialEmailUseCase standalone; Langflow parsers + validation
-langflow_runs: parsed_success + validation_errors only; raw_output always NULL; stable error codes
-Supabase repos: workflow_requirements, langflow_runs, outgoing_messages
-npm test 124/124 PASS (31 suites); npm run lint/typecheck/build PASS; bash ./scripts/harness-check PASS (2026-06-25)
-Baseline cases 4, 5, 15 + OD-015 zero-notes + side_effect before send in unit tests
-Review APPROVED_FOR_CODEX_AUDIT 2026-06-25; Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-25 (re-audit after Fix)
-Production email still blocked on OD-001 adapter; Langflow prod on OD-003
+task-06: IngestReplyUseCase + AnalyzeReplyUseCase; evidence guard; escalated_unmatched + ingest idempotency + UNIQUE external_message_id
+Retry after partial failure rematches and completes ingest (Codex re-audit fix)
+npm test 146/146 PASS (38 suites); npm run lint/build PASS; bash ./scripts/harness-check PASS (2026-06-26)
+Codex Audit APPROVED_FOR_HUMAN_REVIEW 2026-06-26; ExecPlan task-06 Done
+Production email/webhook still blocked on task-08; attachment contentRef fetch deferred (OD-001)
 ```
 
 ## Score Categories
@@ -41,16 +39,16 @@ Production email still blocked on OD-001 adapter; Langflow prod on OD-003
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 9 |
-| Architecture consistency | 10 | 8 |
+| Architecture consistency | 10 | 9 |
 | Product clarity | 10 | 7 |
 | Task quality | 10 | 9 |
 | Test coverage | 10 | 8 |
 | Runtime validation | 10 | 6 |
-| Security | 10 | 8 |
-| Reliability | 10 | 8 |
+| Security | 10 | 9 |
+| Reliability | 10 | 9 |
 | Observability | 10 | 8 |
-| AI slop / maintainability | 10 | 8 |
-| **Total** | **100** | **79** |
+| AI slop / maintainability | 10 | 9 |
+| **Total** | **100** | **82** |
 
 ## Category Checks
 
@@ -63,28 +61,27 @@ Check: `AGENTS.md`, active ExecPlans, repo tasks, `docs/decision-log.md`, `docs/
 Problems found:
 
 - task-10 Linear TBD.
-- **Pass:** ExecPlan, process-map, architecture doc synced post-OD-015 (Cleanup 2026-06-24).
-- TD-MATCH-001 resolved in tech-debt-tracker.
+- **Pass:** ExecPlan task-06 Done synced 2026-06-26 post-Fix.
+- Linear SEL-81 still manual sync pending.
 
 Recommended fixes:
 
-- Close OD-015 formally in open-decisions when Human Architect approves notes source.
+- Sync Linear SEL-81 to In Review after Codex re-audit.
 
 ### 2. Architecture Consistency
 
-Score: 8/10
+Score: 9/10
 
 Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
 Problems found:
 
-- **Pass:** Standalone use cases (task-05); Langflow/Email via Provider interfaces; record-before-send side effects.
-- **Pass:** Template matching restored (OD-015); `StartWorkflowUseCase` unchanged.
-- **Pass:** task-05 Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-25 — parse-before-persist; no raw LLM in `langflow_runs`.
+- **Pass:** Standalone ingest/analyze use cases; parse-before-persist; evidence guard; no COMPLETED in task-06.
+- **Pass:** Case 6 `escalated_unmatched` + idempotency; operator Telegram wire remains task-08.
 
 Recommended fixes:
 
-- None blocking for task-05 architecture boundary.
+- None blocking for task-06.
 
 ### 3. Product Clarity
 
@@ -108,13 +105,12 @@ Check: repo tasks vs `_template.md`.
 
 Problems found:
 
-- **Pass:** task-05 Implementation Final Report + Fix report present (2026-06-25).
-- **Pass:** Review 2026-06-25 APPROVED_FOR_CODEX_AUDIT; harness-check green.
-- task-06–09 remain Ready; PR TBD for task-05.
+- **Pass:** task-06 Implementation + Fix reports present; post-Fix Review 2026-06-26.
+- PR TBD (working tree).
 
 Recommended fixes:
 
-- Sync Linear SEL-79 to In Review / Done after Codex re-audit and Human Architect merge.
+- PR after Codex re-audit.
 
 ### 5. Test Coverage
 
@@ -124,11 +120,11 @@ Check: Jest suites vs V1 acceptance baseline.
 
 Problems found:
 
-- Baseline cases 4, 5, 15 covered; full 15-case policy suite (task-09) not implemented.
+- Baseline cases 4, 5, 6, 7, 15 covered in unit tests; full 15-case suite (task-09) not implemented.
 
 Recommended fixes:
 
-- task-09 after task-06–08.
+- task-09 after task-07–08.
 
 ### 6. Runtime Validation
 
@@ -138,45 +134,41 @@ Check: runtime evidence per ExecPlan.
 
 Problems found:
 
-- Langflow and email providers use stubs in app module; live E2E pending task-08 credentials.
-- PROD template match evidence documented; requirements/email path mock-only in tests.
+- Mock/Jest only for reply path; live n8n/Gmail deferred task-08 (acceptable per task Technology Context).
 
 Recommended fixes:
 
-- Runtime evidence for INITIAL_EMAIL_SENT with sandbox email provider.
+- Runtime evidence when task-08 webhooks wired.
 
 ### 7. Security
 
-Score: 8/10
+Score: 9/10
 
 Check: `docs/SECURITY.md`, webhook auth, npm audit, LLM boundary parsing.
 
 Problems found:
 
 - WebhookAuthGuard stub (task-08 scope).
-- npm audit vulnerabilities unchanged.
-- **Pass:** task-05 Codex audit 2026-06-25 — no raw LLM persistence; stable `validation_errors` codes only.
+- **Pass:** task-06 unmatched-reply log uses `from_email_hash` not raw email (Fix 2026-06-26).
+- **Pass:** No raw LLM persistence; evidence guard blocks VALID without evidence.
 
 Recommended fixes:
 
 - Wire webhook auth in task-08.
-- Production email adapter after OD-001 (non-blocking for audited code path).
 
 ### 8. Reliability
 
-Score: 8/10
+Score: 9/10
 
 Check: idempotency, side effects, failure modes.
 
 Problems found:
 
-- CreateRequirements and SendInitialEmail use idempotency / side_effect_record patterns.
-- Email send failure marks side_effect FAILED with retry_allowed.
-- **Pass:** Codex audit 2026-06-25 confirmed idempotent SEND_INITIAL_EMAIL path.
+- **Pass:** task-06 Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-26; retry path after partial ingest failure.
 
 Recommended fixes:
 
-- Integration test for email retry path in task-08.
+- Apply migration `20260626100000_task06_customer_message_idempotency.sql` on Supabase PROD before deploy.
 
 ### 9. Observability
 
@@ -186,26 +178,27 @@ Check: audit events, structured logs.
 
 Problems found:
 
-- REQUIREMENTS_CLASSIFIED, WORKFLOW_REQUIREMENTS_CREATED, INITIAL_EMAIL_SENT events wired.
-- langflow_runs: `parsed_success`, `validation_errors` (stable codes); `raw_output` deprecated NULL.
+- CUSTOMER_REPLY_RECEIVED, REPLY_ANALYSIS_ACCEPTED, `unmatched_reply.escalated` wired.
+- Optional: `langflow_run_id` in workflow event payloads.
 
 Recommended fixes:
 
-- Optional: link `langflow_run_id` in workflow_events payload for 1:1 correlation.
+- Link langflow_run_id in analysis audit payloads (tech debt).
 
 ### 10. AI Slop / Maintainability
 
-Score: 8/10
+Score: 9/10
 
 Check: dead code, doc drift, intentional stubs.
 
 Problems found:
 
-- CRLF lint fixed 2026-06-25 (7 Langflow integration files); stable Langflow validation error codes.
+- **Pass:** task-06 scope contained; ephemeral benchmark scripts removed from working tree (Cleanup 2026-06-26).
+- **Pass:** `.gitignore` extended for local analyze-reply/classify benchmark artifacts.
 
 Recommended fixes:
 
-- Keep task-06 scope separate from task-05; avoid monolith growth in StartWorkflowUseCase.
+- Keep task-07 policies separate from ingest/analyze.
 
 ## Score Interpretation
 
@@ -217,21 +210,21 @@ Recommended fixes:
 0-39   = unstable; stop and repair source of truth
 ```
 
-Current band: **75–89 — good, with manageable debt** (task-05 Codex APPROVED_FOR_HUMAN_REVIEW 2026-06-25).
+Current band: **75–89 — good, with manageable debt** (task-06 Codex APPROVED_FOR_HUMAN_REVIEW 2026-06-26).
 
 ## Current Top Risks
 
 * Langflow/Email production adapters still stubs (OD-001, OD-003).
 * Policy baseline 15 cases not complete (task-09).
 * Webhook auth stub until task-08.
-* Supabase migration `20260624200000_langflow_runs_parse_audit` must be applied before prod deploy.
+* Supabase migrations (`langflow_runs`, `customer_message_idempotency`) must be applied before prod deploy.
 
 ## Current Top Improvements
 
-* Implement **task-06** (reply ingestion + evidence).
-* Apply langflow_runs migration on Supabase PROD.
-* Human Architect merge approval for task-05.
-* Sync Linear SEL-79 to Done.
+* **Human Architect approval + PR** for task-06.
+* Implement **task-07** (completion / follow-up / escalation policies).
+* Operator Telegram for unmatched replies in task-08.
+* Sync Linear SEL-81 when PR opened.
 
 ## History
 
@@ -247,4 +240,7 @@ Current band: **75–89 — good, with manageable debt** (task-05 Codex APPROVED
 2026-06-24 - Updated - Cleanup Fala 2026-06-24; OD-015 doc drift fixed; TD-MATCH-001 resolved; score 77/100.
 2026-06-25 - Updated - Review task-05 after Fix; harness-check PASS; 124 tests; APPROVED_FOR_CODEX_AUDIT; score 78/100.
 2026-06-25 - Updated - Codex audit task-05 APPROVED_FOR_HUMAN_REVIEW; reliability +1; score 79/100.
+2026-06-26 - Updated - Review task-06 (pre-Fix); score 80/100; 144 tests PASS.
+2026-06-26 - Updated - Review task-06 post-Fix; PII redaction; ExecPlan sync; 145 tests; APPROVED_FOR_CODEX_AUDIT; score 81/100.
+2026-06-26 - Updated - Codex Audit task-06 APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR; 146 tests; score 82/100.
 ```

@@ -16,6 +16,15 @@ export class InMemoryOutgoingMessageRepository extends OutgoingMessageRepository
     return persisted;
   }
 
+  async findByProviderMessageId(
+    providerMessageId: string,
+  ): Promise<OutgoingMessageRow | null> {
+    return (
+      this.rows.find((row) => row.provider_message_id === providerMessageId) ??
+      null
+    );
+  }
+
   all(): OutgoingMessageRow[] {
     return [...this.rows];
   }

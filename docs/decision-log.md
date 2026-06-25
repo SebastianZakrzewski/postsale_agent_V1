@@ -239,3 +239,47 @@ This file records accepted architecture, product, security, reliability, integra
 **Reference:** `docs/references/template-matching-validation.md`
 
 **Owner:** Implementation
+
+### 2026-06-25 — Email channel: Gmail via n8n (Human Architect)
+
+**Decision:** Customer email **send and receive** for V1 use **Gmail** as the mailbox/provider and **n8n** as the integration layer. NestJS does **not** call Gmail API directly.
+
+**Boundaries:**
+
+- **Outbound (task-05 / task-07):** NestJS `EmailProvider` invokes an **n8n workflow** (HTTP) with validated `EmailDraft` fields; n8n sends via Gmail node(s). Credentials and OAuth live in n8n only.
+- **Inbound (task-06):** Gmail trigger in n8n receives the reply; n8n **normalizes** payload and `POST`s to NestJS `POST /webhooks/email/inbound` (wire in task-08). NestJS parses **n8n canonical DTO** → `IngestReplyCommand`.
+- **Reply matching:** Prefer `inReplyTo` / `threadId` (Gmail) correlated with `outgoing_messages` from initial send (task-05). Unmatched reply → escalate (case 6): `IngestReplyUseCase` returns `escalated_unmatched`, records `ingest_reply` idempotency, emits structured log `unmatched_reply.escalated` (no `workflow_id`; operator Telegram in task-08).
+
+**Canonical n8n → NestJS inbound DTO (contract for task-06 parser):**
+
+```json
+{
+  "messageId": "string",
+  "threadId": "string",
+  "inReplyTo": "string | null",
+  "from": { "email": "string", "name": "string | null" },
+  "to": [{ "email": "string" }],
+  "subject": "string",
+  "bodyText": "string",
+  "bodyHtml": "string | null",
+  "receivedAt": "ISO-8601 datetime",
+  "attachments": [
+    {
+      "filename": "string",
+      "mimeType": "string",
+      "sizeBytes": "number",
+      "contentRef": "string"
+    }
+  ]
+}
+```
+
+`contentRef` is an n8n-defined reference (URL or workflow-internal id) for attachment bytes — NestJS stores metadata in `message_attachments`; fetch/storage strategy in task-06 implementation.
+
+**Rationale:** Aligns with architecture (n8n = triggers/ingress; NestJS = validation and side effects). Single operational mailbox via EVAPREMIUM Gmail.
+
+**Impact:** OD-001 partially resolved. task-06 `inbound-email.parser.ts` targets this DTO. task-08 wires webhook + n8n send workflow. Production `StubEmailProvider` replaced by n8n-backed adapter when wired.
+
+**Owner:** Human Architect
+
+**Remaining (non-blocking):** Gmail sending address/domain, n8n workflow IDs/URLs, attachment `contentRef` fetch method — document in n8n when workflows are built.

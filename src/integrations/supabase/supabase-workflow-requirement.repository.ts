@@ -57,4 +57,38 @@ export class SupabaseWorkflowRequirementRepository extends WorkflowRequirementRe
 
     return (data ?? []) as WorkflowRequirementRow[];
   }
+
+  async findById(id: string): Promise<WorkflowRequirementRow | null> {
+    const { data, error } = await this.client
+      .from('workflow_requirements')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find workflow requirement: ${error.message}`);
+    }
+
+    return (data as WorkflowRequirementRow | null) ?? null;
+  }
+
+  async updateStatus(
+    id: string,
+    status: WorkflowRequirementRow['status'],
+  ): Promise<WorkflowRequirementRow> {
+    const { data, error } = await this.client
+      .from('workflow_requirements')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(
+        `Failed to update workflow requirement: ${error.message}`,
+      );
+    }
+
+    return data as WorkflowRequirementRow;
+  }
 }
