@@ -49,6 +49,24 @@ describe('validateClassifications (baseline case 15)', () => {
     expect(result.reason).toBe('question_text_drift');
   });
 
+  it('rejects YES_NO_INFO label for option-selection source notes', () => {
+    const result = validateClassifications(
+      [
+        buildDraft({
+          sourceNote:
+            'Proszę o sprawdzenie jaki poziom bagażnika robimy: górny czy dolny? (zalecamy górny)',
+          requirementLabel: RequirementLabel.YES_NO_INFO,
+          questionText:
+            'Prosimy o potwierdzenie: Proszę o sprawdzenie jaki poziom bagażnika robimy: górny czy dolny? (zalecamy górny)',
+        }),
+      ],
+      [],
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe('label_source_note_mismatch');
+  });
+
   it('accepts valid classifications', () => {
     const result = validateClassifications([buildDraft()], []);
 

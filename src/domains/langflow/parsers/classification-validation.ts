@@ -1,11 +1,13 @@
 import { ClassifiedRequirementDraft } from '../../../lib/domain';
 import { LANGFLOW_CONFIDENCE_THRESHOLD } from '../config/langflow-flow-names';
+import { isClassificationLabelCompatibleWithSourceNote } from './note-label-heuristics';
 
 export type ClassificationValidationFailureReason =
   | 'low_confidence'
   | 'unsafe_notes'
   | 'empty_classifications'
-  | 'question_text_drift';
+  | 'question_text_drift'
+  | 'label_source_note_mismatch';
 
 export interface ClassificationValidationResult {
   ok: boolean;
@@ -40,6 +42,15 @@ export function validateClassifications(
 
     if (!preservesSourceNoteMeaning(item.sourceNote, item.questionText)) {
       return { ok: false, reason: 'question_text_drift' };
+    }
+
+    if (
+      !isClassificationLabelCompatibleWithSourceNote(
+        item.sourceNote,
+        item.requirementLabel,
+      )
+    ) {
+      return { ok: false, reason: 'label_source_note_mismatch' };
     }
   }
 

@@ -35,4 +35,21 @@ export class InMemoryWorkflowRequirementRepository extends WorkflowRequirementRe
     this.rows.push(...created);
     return created;
   }
+
+  async findById(id: string): Promise<WorkflowRequirementRow | null> {
+    return this.rows.find((row) => row.id === id) ?? null;
+  }
+
+  async updateStatus(
+    id: string,
+    status: WorkflowRequirementRow['status'],
+  ): Promise<WorkflowRequirementRow> {
+    const row = this.rows.find((item) => item.id === id);
+    if (!row) {
+      throw new Error(`Requirement not found: ${id}`);
+    }
+    row.status = status;
+    row.updated_at = new Date().toISOString();
+    return row;
+  }
 }

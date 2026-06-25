@@ -9,6 +9,7 @@ import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-ca
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
+import { NoteSegmentationService } from '../../domains/requirements/services/note-segmentation.service';
 import { SelectedTemplateNotesResolver } from '../../domains/requirements/services/selected-template-notes.resolver';
 import { CreateRequirementsUseCase } from '../../domains/requirements/use-cases/create-requirements.use-case';
 import { CarTemplateRepository } from '../../domains/template-matching/repository/car-template.repository.port';
@@ -55,6 +56,7 @@ describe('CreateRequirementsUseCase', () => {
       providers: [
         CreateRequirementsUseCase,
         GetWorkflowContextUseCase,
+        NoteSegmentationService,
         SelectedTemplateNotesResolver,
         TemplateMatchingService,
         TemplateNoteSelectionService,
@@ -212,6 +214,83 @@ describe('CreateRequirementsUseCase', () => {
       validation_errors: null,
       raw_output: null,
     });
+  });
+
+  it('segments compound numbered notes before classify and persists multiple requirements', async () => {
+    const compoundNote =
+      '1) Proszę sprawdzić czy ma Pan haczyki w bagażniku i czy chciałby Pan mieć wycięcia pod haczyki? (zalecamy nie robić wycięć). 2) Proszę o informację czy przykrywamy wnękę w bagażniku?';
+
+    carTemplateRepository.seed(
+      buildAcuraMdxTemplate({
+        notes_general: null,
+        notes_front_3d: compoundNote,
+        notes_rear_3d: null,
+        notes_trunk_suv_7_seater: null,
+      }),
+    );
+
+    const workflow = await workflowRepository.create({
+      bitrixDealId: 'deal-compound-note',
+      status: WorkflowStatus.TEMPLATE_MATCHED,
+    });
+    await workflowRepository.updateDealContext(workflow.id, {
+      dealContext: {
+        bitrixDealId: 'deal-compound-note',
+        brand: 'Acura',
+        model: 'MDX 2 gen',
+        bodyType: 'SUV 7 osobowy',
+        generation: '2006-2013',
+        product: '3D EVAPREMIUM Z RANTAMI',
+        productEnumId: '264',
+        setVariantId: '274',
+      },
+      product: '3D EVAPREMIUM Z RANTAMI',
+      status: WorkflowStatus.TEMPLATE_MATCHED,
+    });
+    await workflowRepository.updateTemplateMatch(workflow.id, {
+      templateMatchStatus: TemplateMatchStatus.MATCHED,
+      status: WorkflowStatus.TEMPLATE_MATCHED,
+      carTemplateId: 'template-acura-mdx',
+    });
+
+    const invokeSpy = jest.spyOn(mockLangflow, 'invoke');
+    mockLangflow.classifyHandler = (input) => {
+      const notes = input.notes as Array<{ text: string; column: string }>;
+      return {
+        classifications: notes.map((item) => ({
+          source_field: item.column,
+          source_note: item.text,
+          requirement_label: RequirementLabel.YES_NO_INFO,
+          question_text: `Please confirm: ${item.text}`,
+          classification_reason: 'test',
+          confidence: 0.9,
+          unsafe: false,
+        })),
+        unsafe_notes: [],
+      };
+    };
+
+    const outcome = await useCase.execute({ workflowId: workflow.id });
+
+    expect(outcome.type).toBe('created');
+    expect(invokeSpy).toHaveBeenCalledTimes(1);
+    const classifyInput = invokeSpy.mock.calls[0][1] as {
+      notes: Array<{ text: string }>;
+    };
+    expect(classifyInput.notes).toHaveLength(2);
+    expect(classifyInput.notes[0].text).toContain('haczyki');
+    expect(classifyInput.notes[1].text).toContain('wnękę');
+
+    const requirements = await requirementRepository.findByWorkflowId(
+      workflow.id,
+    );
+    expect(requirements).toHaveLength(2);
+    expect(requirements.map((row) => row.source_note)).toEqual(
+      expect.arrayContaining([
+        'Proszę sprawdzić czy ma Pan haczyki w bagażniku i czy chciałby Pan mieć wycięcia pod haczyki? (zalecamy nie robić wycięć).',
+        'Proszę o informację czy przykrywamy wnękę w bagażniku?',
+      ]),
+    );
   });
 
   it('OD-015: zero selected notes skip Langflow and create zero requirements', async () => {

@@ -4,6 +4,7 @@ import { LangflowOutput } from '../../integrations/langflow/langflow.types';
 import {
   LANGFLOW_FLOW_CLASSIFY_TEMPLATE_NOTES,
   LANGFLOW_FLOW_DRAFT_INITIAL_EMAIL,
+  LANGFLOW_FLOW_ANALYZE_CUSTOMER_REPLY,
 } from '../../domains/langflow/config/langflow-flow-names';
 import { RequirementLabel } from '../../lib/enums';
 
@@ -22,6 +23,14 @@ export class MockLangflowProvider extends LangflowProvider {
       confidence: 0.9,
     });
 
+  analyzeReplyHandler: (
+    input: Record<string, unknown>,
+  ) => Record<string, unknown> = () => ({
+    requirement_updates: [],
+    unsafe: false,
+    proposed_next_action: 'MANUAL_REVIEW',
+  });
+
   async invoke(
     flowName: string,
     input: Record<string, unknown>,
@@ -37,6 +46,13 @@ export class MockLangflowProvider extends LangflowProvider {
       return {
         flowName,
         raw: this.draftHandler(input),
+      };
+    }
+
+    if (flowName === LANGFLOW_FLOW_ANALYZE_CUSTOMER_REPLY) {
+      return {
+        flowName,
+        raw: this.analyzeReplyHandler(input),
       };
     }
 

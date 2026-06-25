@@ -34,6 +34,7 @@ import {
   WORKFLOW_REQUIREMENT_REPOSITORY,
   WorkflowRequirementRepository,
 } from '../repository/workflow-requirement.repository';
+import { NoteSegmentationService } from '../services/note-segmentation.service';
 import { SelectedTemplateNotesResolver } from '../services/selected-template-notes.resolver';
 import { CreateRequirementsOutcome } from './create-requirements.outcome';
 
@@ -45,6 +46,7 @@ export class CreateRequirementsUseCase {
     private readonly checkIdempotencyUseCase: CheckIdempotencyUseCase,
     private readonly getWorkflowContextUseCase: GetWorkflowContextUseCase,
     private readonly selectedTemplateNotesResolver: SelectedTemplateNotesResolver,
+    private readonly noteSegmentationService: NoteSegmentationService,
     @Inject(LANGFLOW_PROVIDER)
     private readonly langflowProvider: LangflowProvider,
     private readonly langflowRunRecorder: LangflowRunRecorderService,
@@ -137,11 +139,15 @@ export class CreateRequirementsUseCase {
       return this.finalizeRequirements(command, workflow, []);
     }
 
+    const segmentedNotes = this.noteSegmentationService.segmentNotes(
+      notesResolution.notes,
+    );
+
     const langflowOutput = await this.langflowProvider.invoke(
       LANGFLOW_FLOW_CLASSIFY_TEMPLATE_NOTES,
       {
         workflowId: command.workflowId,
-        notes: notesResolution.notes.map((note) => ({
+        notes: segmentedNotes.map((note) => ({
           part: note.part,
           column: note.column,
           text: note.text,

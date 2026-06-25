@@ -9,3 +9,4 @@ export * from './capability-result.domain';
 export * from './workflow-capability.helpers';
 export * from './classified-requirement-draft.domain';
 export * from './email-draft.domain';
+export * from './reply-analysis.domain';

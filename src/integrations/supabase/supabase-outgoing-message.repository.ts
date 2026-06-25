@@ -27,4 +27,22 @@ export class SupabaseOutgoingMessageRepository extends OutgoingMessageRepository
 
     return data as OutgoingMessageRow;
   }
+
+  async findByProviderMessageId(
+    providerMessageId: string,
+  ): Promise<OutgoingMessageRow | null> {
+    const { data, error } = await this.client
+      .from('outgoing_messages')
+      .select('*')
+      .eq('provider_message_id', providerMessageId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        `Failed to find outgoing message by provider id: ${error.message}`,
+      );
+    }
+
+    return (data as OutgoingMessageRow | null) ?? null;
+  }
 }

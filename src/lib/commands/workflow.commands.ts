@@ -14,9 +14,29 @@ export interface EscalateWorkflowCommand {
 }
 
 export interface IngestReplyCommand {
-  workflowId: string;
   messageId: string;
-  body: string;
+  threadId: string;
+  inReplyTo: string | null;
+  fromEmail: string;
+  fromName: string | null;
+  toEmails: string[];
+  subject: string;
+  bodyText: string;
+  bodyHtml: string | null;
+  receivedAt: string;
+  attachments: Array<{
+    filename: string;
+    mimeType: string;
+    sizeBytes: number;
+    contentRef: string;
+  }>;
+  requestId?: string;
+}
+
+export interface AnalyzeReplyCommand {
+  workflowId: string;
+  customerMessageId: string;
+  requestId?: string;
 }
 
 export interface LoadDealContextCommand {

@@ -1,0 +1,44 @@
+---
+description: Short, clear replies — explain technical topics in plain language
+alwaysApply: true
+---
+
+# Concise Communication
+
+Default to **short, substantive** answers. Every sentence should earn its place.
+
+## Length
+
+- Lead with the answer or verdict — context after, only if needed.
+- Prefer bullets over long paragraphs.
+- Skip repetition, filler, and restating the question.
+- Scale length to task complexity: one-line fix → brief note; architecture review → still tighter than a tutorial.
+
+## Technical explanations
+
+When the topic is technical, **translate it** — do not assume shared jargon:
+
+- Name the concept once, then explain what it does and why it matters here.
+- Use plain language first; add identifiers (`UseCase`, `workflow_id`) only when they help action.
+- One concrete example or code cite beats three abstract paragraphs.
+- If trade-offs exist, state them in one line each.
+
+## Substance (treściwie)
+
+Being brief is not being vague:
+
+- Include what changed, what blocks progress, and the next step.
+- Prefer facts (test result, verdict, file) over hedging.
+- Omit obvious follow-up bait; ask one direct question only when blocked.
+
+## Language
+
+- Match the user's language (Polish or English).
+- Keep the same concise style in both.
+
+## Avoid
+
+- Large tables when a sentence suffices.
+- Repeating the full plan unless the user asked for it.
+- Bold/headers used only for decoration.
+- Long preambles before the actual answer.

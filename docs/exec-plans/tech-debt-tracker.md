@@ -88,6 +88,30 @@ Status: Resolved (2026-06-19 — B1a: workflow orchestrators use CheckIdempotenc
 Source: Cleanup scan 2026-06-19; resolved architect decision B1a 2026-06-19
 ```
 
+```text
+ID: TD-OBS-003
+Domain: observability
+Issue: Unmatched reply escalation is structured log only (no workflow_events row; no workflow_id)
+Impact: Operator forensics rely on log pipeline until task-08 Telegram/webhook wiring
+Recommended fix: task-08 — wire unmatched outcome to operator notification
+Risk: Low (accepted for V1 task-06)
+Owner: task-08
+Status: Open
+Source: Codex Audit task-06 2026-06-26
+```
+
+```text
+ID: TD-OBS-004
+Domain: observability
+Issue: langflow_run_id not linked in REPLY_ANALYSIS_ACCEPTED workflow_events payload
+Impact: Weaker 1:1 correlation between analysis audit event and langflow_runs row
+Recommended fix: Include langflow_run_id in audit payload when recorder returns id
+Risk: Low
+Owner: Implementation
+Status: Open
+Source: Codex Audit task-06 2026-06-26
+```
+
 ## Resolved Items
 
 ```text
