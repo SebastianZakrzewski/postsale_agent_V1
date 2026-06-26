@@ -70,11 +70,7 @@ export class MockBitrixProvider extends BitrixProvider {
 
   async updateDealStage(dealId: string, stageId: string): Promise<void> {
     if (this.stageUpdateFailureMessage) {
-      throw new BitrixReadError(
-        dealId,
-        this.stageUpdateFailureMessage,
-        true,
-      );
+      throw new BitrixReadError(dealId, this.stageUpdateFailureMessage, true);
     }
 
     this.stageUpdates.push({ dealId, stageId });

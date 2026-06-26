@@ -4,24 +4,21 @@
  */
 describe('Policy baseline index', () => {
   const cases = [
-    {
-      id: 1,
-      spec: 'start-workflow.use-case.spec.ts / webhooks.controller.spec.ts',
-    },
-    { id: 2, spec: 'match-workflow-template / start-workflow' },
-    { id: 3, spec: 'match-workflow-template' },
-    { id: 4, spec: 'classification-validation.spec.ts' },
-    { id: 5, spec: 'send-initial-email.use-case.spec.ts' },
-    { id: 6, spec: 'ingest-reply.use-case.spec.ts' },
-    { id: 7, spec: 'analyze-reply.use-case.spec.ts' },
-    { id: 8, spec: 'completion.policy.spec.ts' },
-    { id: 9, spec: 'execute-pending-side-effects.use-case.spec.ts' },
-    { id: 10, spec: 'execute-pending-side-effects.use-case.spec.ts' },
-    { id: 11, spec: 'followup.policy.spec.ts' },
-    { id: 12, spec: 'followup.policy.spec.ts' },
-    { id: 13, spec: 'execute-pending-side-effects.use-case.spec.ts' },
-    { id: 14, spec: 'langflow tools boundary (design doc)' },
-    { id: 15, spec: 'classification-validation.spec.ts / analyze-reply' },
+    { id: 1, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 2, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 3, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 4, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 5, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 6, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 7, spec: 'baseline-policy-01-07.spec.ts' },
+    { id: 8, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 9, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 10, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 11, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 12, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 13, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 14, spec: 'baseline-policy-08-15.spec.ts' },
+    { id: 15, spec: 'baseline-policy-08-15.spec.ts' },
   ];
 
   it('documents 15 baseline cases', () => {

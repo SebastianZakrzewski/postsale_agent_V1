@@ -3,9 +3,7 @@ import { TELEGRAM_PROVIDER } from './telegram.provider';
 import { StubTelegramProvider } from './stub-telegram.provider';
 import { TelegramHttpAdapter } from './telegram-http.adapter';
 
-function createTelegramProvider():
-  | StubTelegramProvider
-  | TelegramHttpAdapter {
+function createTelegramProvider(): StubTelegramProvider | TelegramHttpAdapter {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
   if (token && chatId) {
@@ -15,7 +13,9 @@ function createTelegramProvider():
 }
 
 @Module({
-  providers: [{ provide: TELEGRAM_PROVIDER, useFactory: createTelegramProvider }],
+  providers: [
+    { provide: TELEGRAM_PROVIDER, useFactory: createTelegramProvider },
+  ],
   exports: [TELEGRAM_PROVIDER],
 })
 export class TelegramIntegrationModule {}
