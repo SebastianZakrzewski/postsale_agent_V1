@@ -32,6 +32,7 @@ import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsal
 import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import { MockEmailProvider } from '../helpers/mock-email.provider';
 import { MockLangflowProvider } from '../helpers/mock-langflow.provider';
+import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
 
 class InMemorySideEffectRecordRepository extends SideEffectRecordRepository {
   private readonly records = new Map<string, SideEffectRecordRow>();
@@ -144,6 +145,19 @@ describe('SendInitialEmailUseCase', () => {
     useCase = moduleFixture.get(SendInitialEmailUseCase);
   });
 
+  async function seedWorkflowWithRequirements(bitrixDealId: string) {
+    const workflow = await workflowRepository.create({
+      bitrixDealId,
+      status: WorkflowStatus.REQUIREMENTS_CREATED,
+    });
+    await workflowRepository.updateDealContext(workflow.id, {
+      dealContext: buildPersistedDealContext(bitrixDealId),
+      product: '3D EVAPREMIUM Z RANTAMI',
+      status: WorkflowStatus.REQUIREMENTS_CREATED,
+    });
+    return workflow;
+  }
+
   it('baseline case 5: rejects send when requirements do not exist', async () => {
     const workflow = await workflowRepository.create({
       bitrixDealId: 'deal-1',
@@ -152,7 +166,6 @@ describe('SendInitialEmailUseCase', () => {
 
     const outcome = await useCase.execute({
       workflowId: workflow.id,
-      recipientEmail: 'customer@example.com',
     });
 
     expect(outcome.type).toBe('rejected');
@@ -164,10 +177,7 @@ describe('SendInitialEmailUseCase', () => {
   });
 
   it('sends initial email after requirements exist', async () => {
-    const workflow = await workflowRepository.create({
-      bitrixDealId: 'deal-2',
-      status: WorkflowStatus.REQUIREMENTS_CREATED,
-    });
+    const workflow = await seedWorkflowWithRequirements('deal-2');
     await requirementRepository.create({
       workflow_id: workflow.id,
       label: RequirementLabel.YES_NO_INFO,
@@ -180,7 +190,6 @@ describe('SendInitialEmailUseCase', () => {
 
     const outcome = await useCase.execute({
       workflowId: workflow.id,
-      recipientEmail: 'customer@example.com',
     });
 
     expect(outcome.type).toBe('sent');
@@ -195,6 +204,7 @@ describe('SendInitialEmailUseCase', () => {
       to: 'customer@example.com',
       subject: 'Test subject',
       body: 'Test body',
+      bodyHtml: null,
     });
     expect(outgoingRepository.all()).toHaveLength(1);
     expect(langflowRuns.all()).toHaveLength(1);
@@ -213,7 +223,6 @@ describe('SendInitialEmailUseCase', () => {
 
     const outcome = await useCase.execute({
       workflowId: workflow.id,
-      recipientEmail: 'customer@example.com',
     });
 
     expect(outcome.type).toBe('rejected');
@@ -224,10 +233,7 @@ describe('SendInitialEmailUseCase', () => {
   });
 
   it('records side_effect before email send', async () => {
-    const workflow = await workflowRepository.create({
-      bitrixDealId: 'deal-3',
-      status: WorkflowStatus.REQUIREMENTS_CREATED,
-    });
+    const workflow = await seedWorkflowWithRequirements('deal-3');
     await requirementRepository.create({
       workflow_id: workflow.id,
       label: RequirementLabel.TEXT_CONFIRMATION,
@@ -240,7 +246,6 @@ describe('SendInitialEmailUseCase', () => {
 
     await useCase.execute({
       workflowId: workflow.id,
-      recipientEmail: 'customer@example.com',
     });
 
     const record = await sideEffectRecords.findByIdempotencyKey(
@@ -248,5 +253,31 @@ describe('SendInitialEmailUseCase', () => {
     );
     expect(record?.side_effect_type).toBe(SideEffectType.SEND_INITIAL_EMAIL);
     expect(record?.status).toBe(SideEffectRecordStatus.SUCCEEDED);
+  });
+
+  it('rejects send when customer email is missing from deal context', async () => {
+    const workflow = await workflowRepository.create({
+      bitrixDealId: 'deal-no-email',
+      status: WorkflowStatus.REQUIREMENTS_CREATED,
+    });
+    await requirementRepository.create({
+      workflow_id: workflow.id,
+      label: RequirementLabel.YES_NO_INFO,
+      status: RequirementStatus.PENDING,
+      source_note: 'Note',
+      source_field: 'notes_front_3d',
+      classification_reason: 'test',
+      confidence: 0.9,
+    });
+
+    const outcome = await useCase.execute({
+      workflowId: workflow.id,
+    });
+
+    expect(outcome.type).toBe('rejected');
+    if (outcome.type === 'rejected') {
+      expect(outcome.reason).toBe('customer_email_missing');
+    }
+    expect(mockEmail.sent).toHaveLength(0);
   });
 });

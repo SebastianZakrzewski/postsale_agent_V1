@@ -104,6 +104,33 @@ describe('BitrixReadAdapter', () => {
       }),
     );
   });
+
+  it('reads primary email from crm.contact.get', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        result: {
+          ID: '42',
+          EMAIL: [{ VALUE_TYPE: 'WORK', VALUE: 'client@example.com' }],
+        },
+      }),
+    }) as typeof fetch;
+
+    const adapter = new BitrixReadAdapter(
+      'https://bitrix.example/rest/1/token',
+    );
+
+    const email = await adapter.readContactPrimaryEmail('42');
+
+    expect(email).toBe('client@example.com');
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('crm.contact.get?id=42'),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
 });
 
 describe('bitrix read retry helpers', () => {

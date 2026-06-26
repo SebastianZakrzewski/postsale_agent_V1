@@ -30,6 +30,7 @@ import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.
 import { InMemoryLangflowRunRepository } from '../helpers/in-memory-langflow-run.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
+import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
 import {
   buildValidClassificationRaw,
   MockLangflowProvider,
@@ -106,16 +107,14 @@ describe('CreateRequirementsUseCase', () => {
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-1',
+      dealContext: buildPersistedDealContext('deal-1', {
         brand: 'Acura',
         model: 'MDX 2 gen',
         bodyType: 'SUV 7 osobowy',
         generation: '2006-2013',
-        product: '3D EVAPREMIUM Z RANTAMI',
         productEnumId: '264',
         setVariantId: '274',
-      },
+      }),
       product: '3D EVAPREMIUM Z RANTAMI',
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
@@ -234,16 +233,14 @@ describe('CreateRequirementsUseCase', () => {
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-compound-note',
+      dealContext: buildPersistedDealContext('deal-compound-note', {
         brand: 'Acura',
         model: 'MDX 2 gen',
         bodyType: 'SUV 7 osobowy',
         generation: '2006-2013',
-        product: '3D EVAPREMIUM Z RANTAMI',
         productEnumId: '264',
         setVariantId: '274',
-      },
+      }),
       product: '3D EVAPREMIUM Z RANTAMI',
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
@@ -307,16 +304,14 @@ describe('CreateRequirementsUseCase', () => {
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-zero-notes',
+      dealContext: buildPersistedDealContext('deal-zero-notes', {
         brand: 'Acura',
         model: 'MDX 2 gen',
         bodyType: 'SUV 7 osobowy',
         generation: '2006-2013',
-        product: '3D EVAPREMIUM Z RANTAMI',
         productEnumId: '264',
         setVariantId: '274',
-      },
+      }),
       product: '3D EVAPREMIUM Z RANTAMI',
       status: WorkflowStatus.TEMPLATE_MATCHED,
     });

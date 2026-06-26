@@ -3,6 +3,7 @@ import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
+import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
 
 describe('GetWorkflowContextUseCase', () => {
   let useCase: GetWorkflowContextUseCase;
@@ -31,14 +32,9 @@ describe('GetWorkflowContextUseCase', () => {
     });
 
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-ctx-1',
-        brand: 'BMW',
-        model: 'X5',
-        bodyType: 'SUV',
-        generation: 'G05',
+      dealContext: buildPersistedDealContext('deal-ctx-1', {
         product: 'EVA Mat',
-      },
+      }),
       product: 'EVA Mat',
       status: WorkflowStatus.CONTEXT_LOADED,
     });
@@ -50,7 +46,11 @@ describe('GetWorkflowContextUseCase', () => {
 
     const view = await useCase.execute({ workflowId: workflow.id });
 
-    expect(view.dealContext).toMatchObject({ brand: 'BMW', model: 'X5' });
+    expect(view.dealContext).toMatchObject({
+      brand: 'BMW',
+      model: 'X5',
+      customerEmail: 'customer@example.com',
+    });
     expect(view.workflow.status).toBe(WorkflowStatus.TEMPLATE_MATCHED);
   });
 

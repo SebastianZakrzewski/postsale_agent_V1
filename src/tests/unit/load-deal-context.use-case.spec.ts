@@ -12,7 +12,10 @@ import { WorkflowEventType, WorkflowStatus } from '../../lib/enums';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
-import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
+import {
+  buildBitrixDealFields,
+  seedMockBitrixDeal,
+} from '../helpers/bitrix-deal-fields';
 
 describe('LoadDealContextUseCase', () => {
   let useCase: LoadDealContextUseCase;
@@ -53,16 +56,17 @@ describe('LoadDealContextUseCase', () => {
     useCase = moduleFixture.get(LoadDealContextUseCase);
   });
 
+  function seedDeal(dealId: string, fields: Record<string, string>) {
+    seedMockBitrixDeal(bitrixProvider, dealId, fields);
+  }
+
   it('persists deal context and sets CONTEXT_LOADED', async () => {
     const workflow = await workflowRepository.create({
       bitrixDealId: 'deal-load-1',
       status: WorkflowStatus.STARTED,
     });
 
-    bitrixProvider.setDeal('deal-load-1', {
-      id: 'deal-load-1',
-      fields: buildBitrixDealFields(),
-    });
+    seedDeal('deal-load-1', buildBitrixDealFields());
 
     const outcome = await useCase.execute({
       workflowId: workflow.id,
@@ -77,6 +81,7 @@ describe('LoadDealContextUseCase', () => {
     expect(outcome.workflow.status).toBe(WorkflowStatus.CONTEXT_LOADED);
     expect(outcome.workflow.dealContext).toMatchObject({
       bitrixDealId: 'deal-load-1',
+      customerEmail: 'customer@example.com',
       brand: 'BMW',
       model: 'X5',
     });
@@ -95,10 +100,7 @@ describe('LoadDealContextUseCase', () => {
       status: WorkflowStatus.STARTED,
     });
 
-    bitrixProvider.setDeal('deal-load-2', {
-      id: 'deal-load-2',
-      fields: buildBitrixDealFields(),
-    });
+    seedDeal('deal-load-2', buildBitrixDealFields());
 
     const readSpy = jest.spyOn(bitrixProvider, 'readDeal');
 
@@ -124,11 +126,8 @@ describe('LoadDealContextUseCase', () => {
       status: WorkflowStatus.STARTED,
     });
 
-    bitrixProvider.setDeal('deal-load-3', {
-      id: 'deal-load-3',
-      fields: {
-        [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-      },
+    seedDeal('deal-load-3', {
+      [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
     });
 
     const outcome = await useCase.execute({
@@ -150,11 +149,8 @@ describe('LoadDealContextUseCase', () => {
       status: WorkflowStatus.STARTED,
     });
 
-    bitrixProvider.setDeal('deal-load-retry', {
-      id: 'deal-load-retry',
-      fields: {
-        [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
-      },
+    seedDeal('deal-load-retry', {
+      [DEFAULT_BITRIX_FIELD_MAPPING.brand]: 'BMW',
     });
 
     const failed = await useCase.execute({
@@ -163,10 +159,7 @@ describe('LoadDealContextUseCase', () => {
     });
     expect(failed.type).toBe('parse_failed');
 
-    bitrixProvider.setDeal('deal-load-retry', {
-      id: 'deal-load-retry',
-      fields: buildBitrixDealFields(),
-    });
+    seedDeal('deal-load-retry', buildBitrixDealFields());
 
     const retry = await useCase.execute({
       workflowId: workflow.id,
@@ -174,5 +167,28 @@ describe('LoadDealContextUseCase', () => {
     });
 
     expect(retry.type).toBe('success');
+  });
+
+  it('returns parse_failed when linked contact has no email', async () => {
+    const workflow = await workflowRepository.create({
+      bitrixDealId: 'deal-load-no-email',
+      status: WorkflowStatus.STARTED,
+    });
+
+    bitrixProvider.setDeal('deal-load-no-email', {
+      id: 'deal-load-no-email',
+      fields: buildBitrixDealFields(),
+    });
+
+    const outcome = await useCase.execute({
+      workflowId: workflow.id,
+      bitrixDealId: 'deal-load-no-email',
+    });
+
+    expect(outcome.type).toBe('parse_failed');
+    if (outcome.type === 'parse_failed') {
+      expect(outcome.reason).toBe('missing_customer_email');
+      expect(outcome.missingFields).toEqual(['customerEmail']);
+    }
   });
 });

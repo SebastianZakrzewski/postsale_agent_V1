@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { parseBitrixDeal } from '../../bitrix/parsers/bitrix-deal.parser';
+import { readBitrixContactId } from '../../bitrix/parsers/bitrix-contact-email.parser';
 import {
   DEFAULT_BITRIX_FIELD_MAPPING,
   resolveBitrixFieldMapping,
@@ -85,6 +86,35 @@ export class LoadDealContextUseCase {
       };
     }
 
+    const contactId = readBitrixContactId(bitrixPayload.fields);
+    const customerEmail = contactId
+      ? await this.bitrixProvider.readContactPrimaryEmail(contactId)
+      : null;
+
+    if (!customerEmail) {
+      this.logger.log({
+        event_name: 'bitrix.deal_context.parse_failed',
+        workflow_id: command.workflowId,
+        request_id: command.requestId,
+        bitrix_deal_id: bitrixPayload.id,
+        stage_id: bitrixPayload.stageId ?? null,
+        reason: 'missing_customer_email',
+        missing_fields: ['customerEmail'],
+        contact_id: contactId,
+      });
+
+      return {
+        type: 'parse_failed',
+        reason: 'missing_customer_email',
+        missingFields: ['customerEmail'],
+      };
+    }
+
+    const dealContext = {
+      ...parseResult.dealContext,
+      customerEmail,
+    };
+
     const idempotencyKey = `${command.workflowId}:load_deal_context`;
     const idempotencyResult = await this.checkIdempotencyUseCase.execute(
       {
@@ -122,13 +152,13 @@ export class LoadDealContextUseCase {
       request_id: command.requestId,
       bitrix_deal_id: parseResult.dealContext.bitrixDealId,
       stage_id: bitrixPayload.stageId ?? null,
-      deal_context: parseResult.dealContext,
+      deal_context: dealContext,
       field_mapping: fieldMapping,
     });
 
     await this.workflowRepository.updateDealContext(command.workflowId, {
-      dealContext: parseResult.dealContext,
-      product: parseResult.dealContext.product,
+      dealContext,
+      product: dealContext.product,
       status: WorkflowStatus.CONTEXT_LOADED,
     });
 

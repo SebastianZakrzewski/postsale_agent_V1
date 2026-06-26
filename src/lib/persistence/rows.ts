@@ -18,6 +18,8 @@ export interface PostsaleWorkflowRow {
   deal_context_json: Record<string, unknown> | null;
   product: string | null;
   car_template_id: string | null;
+  follow_up_count: number;
+  last_follow_up_at: string | null;
   created_at: string;
   updated_at: string;
 }

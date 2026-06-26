@@ -1,5 +1,6 @@
 export interface DealContext {
   bitrixDealId: string;
+  customerEmail: string;
   brand: string;
   model: string;
   bodyType: string;
@@ -10,3 +11,5 @@ export interface DealContext {
   setVariantId?: string | null;
   setVariantLabel?: string | null;
 }
+
+export type VehicleDealContext = Omit<DealContext, 'customerEmail'>;

@@ -24,7 +24,10 @@ import {
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryCarTemplateRepository } from '../helpers/in-memory-car-template.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
-import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
+import {
+  buildBitrixDealFields,
+  seedMockBitrixDeal,
+} from '../helpers/bitrix-deal-fields';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 
 describe('StartWorkflowUseCase', () => {
@@ -81,10 +84,7 @@ describe('StartWorkflowUseCase', () => {
   });
 
   function seedDeal(dealId: string, fields: Record<string, string>) {
-    bitrixProvider.setDeal(dealId, {
-      id: dealId,
-      fields,
-    });
+    seedMockBitrixDeal(bitrixProvider, dealId, fields);
   }
 
   it('case 1: duplicate trigger does not create second workflow', async () => {

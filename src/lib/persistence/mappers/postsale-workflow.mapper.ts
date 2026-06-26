@@ -12,10 +12,19 @@ function parseDealContextJson(
     return null;
   }
 
-  const { bitrixDealId, brand, model, bodyType, generation, product } = value;
+  const {
+    bitrixDealId,
+    customerEmail,
+    brand,
+    model,
+    bodyType,
+    generation,
+    product,
+  } = value;
 
   if (
     typeof bitrixDealId !== 'string' ||
+    typeof customerEmail !== 'string' ||
     typeof brand !== 'string' ||
     typeof model !== 'string' ||
     typeof bodyType !== 'string' ||
@@ -32,6 +41,7 @@ function parseDealContextJson(
 
   return {
     bitrixDealId,
+    customerEmail,
     brand,
     model,
     bodyType,
@@ -60,6 +70,10 @@ export function toPostsaleWorkflow(row: PostsaleWorkflowRow): Workflow {
     dealContext: parseDealContextJson(row.deal_context_json),
     product: row.product,
     carTemplateId: row.car_template_id,
+    followUpCount: row.follow_up_count ?? 0,
+    lastFollowUpAt: row.last_follow_up_at
+      ? new Date(row.last_follow_up_at)
+      : null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

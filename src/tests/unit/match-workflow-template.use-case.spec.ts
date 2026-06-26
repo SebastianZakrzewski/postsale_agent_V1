@@ -20,6 +20,7 @@ import {
 } from '../helpers/in-memory-car-template.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
+import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
 
 describe('MatchWorkflowTemplateUseCase', () => {
   let useCase: MatchWorkflowTemplateUseCase;
@@ -68,16 +69,14 @@ describe('MatchWorkflowTemplateUseCase', () => {
       status: WorkflowStatus.CONTEXT_LOADED,
     });
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-acura',
+      dealContext: buildPersistedDealContext('deal-acura', {
         brand: 'Acura',
         model: 'MDX 2 gen',
         bodyType: 'SUV 7 osobowy',
         generation: '2006-2013',
-        product: '3D EVAPREMIUM Z RANTAMI',
         productEnumId: '264',
         setVariantId,
-      },
+      }),
       product: '3D EVAPREMIUM Z RANTAMI',
       status: WorkflowStatus.CONTEXT_LOADED,
     });
@@ -112,14 +111,13 @@ describe('MatchWorkflowTemplateUseCase', () => {
       status: WorkflowStatus.CONTEXT_LOADED,
     });
     await workflowRepository.updateDealContext(workflow.id, {
-      dealContext: {
-        bitrixDealId: 'deal-no-gen',
+      dealContext: buildPersistedDealContext('deal-no-gen', {
         brand: 'BMW',
         model: 'X5',
         bodyType: 'SUV',
         generation: null,
         product: '3D EVAPREMIUM Z RANTAMI',
-      },
+      }),
       product: '3D EVAPREMIUM Z RANTAMI',
       status: WorkflowStatus.CONTEXT_LOADED,
     });

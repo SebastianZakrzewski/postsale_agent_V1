@@ -4,6 +4,7 @@ import { LangflowOutput } from '../../integrations/langflow/langflow.types';
 import {
   LANGFLOW_FLOW_CLASSIFY_TEMPLATE_NOTES,
   LANGFLOW_FLOW_DRAFT_INITIAL_EMAIL,
+  LANGFLOW_FLOW_DRAFT_FOLLOWUP_EMAIL,
   LANGFLOW_FLOW_ANALYZE_CUSTOMER_REPLY,
 } from '../../domains/langflow/config/langflow-flow-names';
 import { RequirementLabel } from '../../lib/enums';
@@ -43,6 +44,13 @@ export class MockLangflowProvider extends LangflowProvider {
     }
 
     if (flowName === LANGFLOW_FLOW_DRAFT_INITIAL_EMAIL) {
+      return {
+        flowName,
+        raw: this.draftHandler(input),
+      };
+    }
+
+    if (flowName === LANGFLOW_FLOW_DRAFT_FOLLOWUP_EMAIL) {
       return {
         flowName,
         raw: this.draftHandler(input),

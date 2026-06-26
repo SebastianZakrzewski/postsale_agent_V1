@@ -9,6 +9,8 @@ export interface Workflow {
   dealContext: DealContext | null;
   product: string | null;
   carTemplateId: string | null;
+  followUpCount: number;
+  lastFollowUpAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

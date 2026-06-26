@@ -98,6 +98,14 @@ export class SendInitialEmailUseCase {
       );
     }
 
+    const customerEmail = workflow.dealContext?.customerEmail;
+    if (!customerEmail) {
+      return {
+        type: 'rejected',
+        reason: 'customer_email_missing',
+      };
+    }
+
     const langflowOutput = await this.langflowProvider.invoke(
       LANGFLOW_FLOW_DRAFT_INITIAL_EMAIL,
       {
@@ -148,9 +156,10 @@ export class SendInitialEmailUseCase {
     let providerMessageId: string;
     try {
       const sendResult = await this.emailProvider.send({
-        to: command.recipientEmail,
+        to: customerEmail,
         subject: draft.subject,
         body: draft.bodyText,
+        bodyHtml: draft.bodyHtml,
       });
       providerMessageId = sendResult.providerMessageId;
       await this.sideEffectService.markSucceeded(sideEffectRecord.id, {
@@ -168,7 +177,7 @@ export class SendInitialEmailUseCase {
     const outgoing = await this.outgoingMessageRepository.create({
       workflow_id: command.workflowId,
       customer_message_id: null,
-      to_address: command.recipientEmail,
+      to_address: customerEmail,
       subject: draft.subject,
       body: draft.bodyText,
       provider_message_id: providerMessageId,

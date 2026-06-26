@@ -1,3 +1,4 @@
+import { parseContactPrimaryEmail } from '../../domains/bitrix/parsers/bitrix-contact-email.parser';
 import { BitrixDealPayload } from './bitrix.types';
 import { BitrixReadError } from './bitrix-read.error';
 import {
@@ -8,14 +9,14 @@ import {
 } from './bitrix-read.retry';
 import { BitrixProvider } from './bitrix.provider';
 
-interface BitrixDealGetResponse {
+interface BitrixGetResponse {
   result?: Record<string, unknown>;
 }
 
 export class BitrixReadAdapter extends BitrixProvider {
   constructor(
-    private readonly webhookUrl: string,
-    private readonly retryOptions: BitrixReadRetryOptions = DEFAULT_BITRIX_READ_RETRY,
+    protected readonly webhookUrl: string,
+    protected readonly retryOptions: BitrixReadRetryOptions = DEFAULT_BITRIX_READ_RETRY,
   ) {
     super();
   }
@@ -51,8 +52,75 @@ export class BitrixReadAdapter extends BitrixProvider {
     );
   }
 
-  private async readDealOnce(dealId: string): Promise<BitrixDealPayload> {
-    const url = `${this.webhookUrl.replace(/\/$/, '')}/crm.deal.get?id=${encodeURIComponent(dealId)}`;
+  async readContactPrimaryEmail(contactId: string): Promise<string | null> {
+    let lastError: BitrixReadError | null = null;
+
+    for (
+      let attempt = 1;
+      attempt <= this.retryOptions.maxAttempts;
+      attempt += 1
+    ) {
+      try {
+        return await this.readContactPrimaryEmailOnce(contactId);
+      } catch (error) {
+        if (!(error instanceof BitrixReadError)) {
+          throw error;
+        }
+
+        lastError = error;
+        const hasRetryLeft = attempt < this.retryOptions.maxAttempts;
+        if (!error.retryable || !hasRetryLeft) {
+          throw error;
+        }
+
+        await sleep(this.retryOptions.delayMs * attempt);
+      }
+    }
+
+    throw (
+      lastError ??
+      new BitrixReadError(
+        contactId,
+        'Unknown Bitrix contact read failure',
+        false,
+      )
+    );
+  }
+
+  async updateDealStage(dealId: string, _stageId: string): Promise<void> {
+    throw new BitrixReadError(
+      dealId,
+      'Bitrix write is not available on read-only adapter',
+      false,
+    );
+  }
+
+  async addDealComment(dealId: string, _comment: string): Promise<void> {
+    throw new BitrixReadError(
+      dealId,
+      'Bitrix write is not available on read-only adapter',
+      false,
+    );
+  }
+
+  private async readContactPrimaryEmailOnce(
+    contactId: string,
+  ): Promise<string | null> {
+    const result = await this.fetchBitrixEntity(
+      'crm.contact.get',
+      contactId,
+      contactId,
+    );
+
+    return parseContactPrimaryEmail(result);
+  }
+
+  private async fetchBitrixEntity(
+    method: string,
+    entityId: string,
+    errorEntityId: string,
+  ): Promise<Record<string, unknown>> {
+    const url = `${this.webhookUrl.replace(/\/$/, '')}/${method}?id=${encodeURIComponent(entityId)}`;
 
     let response: Response;
     try {
@@ -62,14 +130,14 @@ export class BitrixReadAdapter extends BitrixProvider {
     } catch (error) {
       if (isFetchTimeoutError(error)) {
         throw new BitrixReadError(
-          dealId,
+          errorEntityId,
           `Request timed out after ${this.retryOptions.timeoutMs}ms`,
           true,
         );
       }
 
       throw new BitrixReadError(
-        dealId,
+        errorEntityId,
         error instanceof Error ? error.message : 'Network error',
         true,
       );
@@ -77,18 +145,24 @@ export class BitrixReadAdapter extends BitrixProvider {
 
     if (!response.ok) {
       throw new BitrixReadError(
-        dealId,
+        errorEntityId,
         `HTTP ${response.status}`,
         isRetryableHttpStatus(response.status),
       );
     }
 
-    const body = (await response.json()) as BitrixDealGetResponse;
+    const body = (await response.json()) as BitrixGetResponse;
     const result = body.result;
 
     if (!result) {
-      throw new BitrixReadError(dealId, 'Empty result payload', false);
+      throw new BitrixReadError(errorEntityId, 'Empty result payload', false);
     }
+
+    return result;
+  }
+
+  private async readDealOnce(dealId: string): Promise<BitrixDealPayload> {
+    const result = await this.fetchBitrixEntity('crm.deal.get', dealId, dealId);
 
     const id = String(result.ID ?? dealId);
     const stageId =

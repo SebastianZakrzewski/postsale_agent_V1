@@ -27,6 +27,8 @@ describe('workflow-capability helpers', () => {
       dealContext: null,
       product: null,
       carTemplateId: null,
+      followUpCount: 0,
+      lastFollowUpAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -42,6 +44,8 @@ describe('workflow-capability helpers', () => {
       dealContext: null,
       product: null,
       carTemplateId: null,
+      followUpCount: 0,
+      lastFollowUpAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
