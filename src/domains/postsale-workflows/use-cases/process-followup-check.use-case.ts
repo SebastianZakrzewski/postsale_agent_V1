@@ -85,7 +85,10 @@ export class ProcessFollowupCheckUseCase {
         return {
           type: 'waiting',
           workflowId: command.workflowId,
-          status: workflow.status,
+          status:
+            executed.type === 'blocked'
+              ? executed.workflow.status
+              : workflow.status,
           reason:
             executed.type === 'blocked'
               ? executed.reason

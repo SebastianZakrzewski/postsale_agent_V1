@@ -10,6 +10,7 @@ import { LangflowRunRecorderService } from '../../domains/langflow/services/lang
 import { ApplyCompletionPolicyUseCase } from '../../domains/postsale-workflows/use-cases/apply-completion-policy.use-case';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
+import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { PolicyContextBuilderService } from '../../domains/postsale-workflows/services/policy-context-builder.service';
 import {
@@ -95,6 +96,7 @@ describe('propose_completion policy integration (task-07)', () => {
         PolicyContextBuilderService,
         SideEffectService,
         EscalateWorkflowUseCase,
+        ...gatedEscalationTestProviders,
         LangflowRunRecorderService,
         {
           provide: EmitWorkflowEventUseCase,

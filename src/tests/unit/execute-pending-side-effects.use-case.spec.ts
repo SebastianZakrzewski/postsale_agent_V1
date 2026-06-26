@@ -166,4 +166,37 @@ describe('ExecutePendingSideEffectsUseCase', () => {
     }
     expect(result.workflow.status).toBe(WorkflowStatus.COMPLETED);
   });
+
+  it('retries Bitrix completion after transient failure', async () => {
+    bitrixProvider.setStageUpdateFailure('Bitrix unavailable');
+    const workflow = await workflowRepository.findByBitrixDealId('deal-1');
+    const first = await useCase.execute({ workflowId: workflow!.id });
+    expect(first.type).toBe('blocked');
+
+    bitrixProvider.clearStageUpdateFailure();
+    const second = await useCase.execute({ workflowId: workflow!.id });
+    expect(second.type).toBe('completed');
+    if (second.type === 'completed') {
+      expect(second.workflow.status).toBe(WorkflowStatus.COMPLETED);
+    }
+  });
+
+  it('blocks ESCALATED when Bitrix escalation update fails', async () => {
+    process.env.BITRIX_STAGE_ESCALATED = 'UC_ESCALATED';
+    const workflow = await workflowRepository.findByBitrixDealId('deal-1');
+    await workflowRepository.updateStatus(
+      workflow!.id,
+      WorkflowStatus.ESCALATION_PENDING_BITRIX_UPDATE,
+    );
+
+    bitrixProvider.setStageUpdateFailure('Bitrix unavailable');
+    const result = await useCase.execute({ workflowId: workflow!.id });
+
+    expect(result.type).toBe('blocked');
+    if (result.type === 'blocked') {
+      expect(result.workflow.status).toBe(
+        WorkflowStatus.ESCALATION_PENDING_BITRIX_UPDATE,
+      );
+    }
+  });
 });

@@ -87,6 +87,25 @@ describe('SideEffectService', () => {
     expect(updated?.errorCode).toBe('EMAIL_TIMEOUT');
     expect(updated?.retryAllowed).toBe(true);
   });
+
+  it('recordForExecution reopens FAILED record when retry is allowed', async () => {
+    const record = await service.record({
+      workflowId: 'wf-1',
+      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
+      idempotencyKey: 'wf-1-bitrix-retry',
+    });
+
+    await service.markFailed(record.id, 'BITRIX_UNAVAILABLE', true);
+
+    const reopened = await service.recordForExecution({
+      workflowId: 'wf-1',
+      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
+      idempotencyKey: 'wf-1-bitrix-retry',
+    });
+
+    expect(reopened.status).toBe(SideEffectRecordStatus.PENDING);
+    expect(reopened.id).toBe(record.id);
+  });
 });
 
 describe('SideEffectGuard', () => {

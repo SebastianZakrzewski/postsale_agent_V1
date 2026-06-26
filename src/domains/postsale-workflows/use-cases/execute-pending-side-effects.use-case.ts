@@ -1,11 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ExecutePendingSideEffectsCommand } from '../../../lib/commands/workflow.commands';
 import { buildCapabilityResult, CapabilityResult } from '../../../lib/domain';
-import {
-  SideEffectType,
-  WorkflowEventType,
-  WorkflowStatus,
-} from '../../../lib/enums';
+import { SideEffectRecordStatus, SideEffectType, WorkflowEventType, WorkflowStatus } from '../../../lib/enums';
 import {
   BITRIX_PROVIDER,
   BitrixProvider,
@@ -99,37 +95,17 @@ export class ExecutePendingSideEffectsUseCase {
     const stageId = resolveBitrixStageCompleted();
     const bitrixKey = `${command.workflowId}:bitrix_complete`;
 
-    const bitrixRecord = await this.sideEffectService.record({
-      workflowId: command.workflowId,
-      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
+    const bitrixResult = await this.executeBitrixStageUpdate({
+      command,
+      workflow,
       idempotencyKey: bitrixKey,
-      requestId: command.requestId,
+      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
+      stageId,
+      path: 'completion',
     });
 
-    this.sideEffectGuard.assertCanExecute(bitrixRecord);
-
-    try {
-      await this.bitrixProvider.updateDealStage(workflow.bitrixDealId, stageId);
-      await this.sideEffectService.markSucceeded(bitrixRecord.id, {
-        stageId,
-      });
-    } catch (error) {
-      await this.sideEffectService.markFailed(
-        bitrixRecord.id,
-        error instanceof Error ? error.message : 'BITRIX_UPDATE_FAILED',
-        true,
-      );
-      const current = await this.workflowRepository.findById(
-        command.workflowId,
-      );
-      if (!current) {
-        throw new Error(`Workflow not found: ${command.workflowId}`);
-      }
-      return {
-        type: 'blocked',
-        reason: 'bitrix_update_failed',
-        workflow: current,
-      };
+    if (bitrixResult.type === 'blocked') {
+      return bitrixResult;
     }
 
     await this.emitWorkflowEventUseCase.execute({
@@ -191,17 +167,18 @@ export class ExecutePendingSideEffectsUseCase {
     const stageId = resolveBitrixStageEscalated();
     const bitrixKey = `${command.workflowId}:bitrix_escalate`;
 
-    const bitrixRecord = await this.sideEffectService.record({
-      workflowId: command.workflowId,
-      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_ESCALATED,
+    const bitrixResult = await this.executeBitrixStageUpdate({
+      command,
+      workflow,
       idempotencyKey: bitrixKey,
-      requestId: command.requestId,
+      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_ESCALATED,
+      stageId,
+      path: 'escalation',
     });
 
-    this.sideEffectGuard.assertCanExecute(bitrixRecord);
-
-    await this.bitrixProvider.updateDealStage(workflow.bitrixDealId, stageId);
-    await this.sideEffectService.markSucceeded(bitrixRecord.id, { stageId });
+    if (bitrixResult.type === 'blocked') {
+      return bitrixResult;
+    }
 
     await this.recordCommentSideEffect(
       command,
@@ -244,6 +221,60 @@ export class ExecutePendingSideEffectsUseCase {
     };
   }
 
+  private async executeBitrixStageUpdate(input: {
+    command: ExecutePendingSideEffectsCommand;
+    workflow: NonNullable<
+      Awaited<ReturnType<PostsaleWorkflowRepository['findById']>>
+    >;
+    idempotencyKey: string;
+    sideEffectType: SideEffectType;
+    stageId: string;
+    path: 'completion' | 'escalation';
+  }): Promise<
+    | { type: 'succeeded' }
+    | Extract<ExecutePendingSideEffectsOutcome, { type: 'blocked' }>
+  > {
+    const bitrixRecord = await this.sideEffectService.recordForExecution({
+      workflowId: input.command.workflowId,
+      sideEffectType: input.sideEffectType,
+      idempotencyKey: input.idempotencyKey,
+      requestId: input.command.requestId,
+    });
+
+    if (bitrixRecord.status !== SideEffectRecordStatus.SUCCEEDED) {
+      this.sideEffectGuard.assertCanExecute(bitrixRecord);
+
+      try {
+        await this.bitrixProvider.updateDealStage(
+          input.workflow.bitrixDealId,
+          input.stageId,
+        );
+        await this.sideEffectService.markSucceeded(bitrixRecord.id, {
+          stageId: input.stageId,
+        });
+      } catch (error) {
+        await this.sideEffectService.markFailed(
+          bitrixRecord.id,
+          error instanceof Error ? error.message : 'BITRIX_UPDATE_FAILED',
+          true,
+        );
+        const current = await this.workflowRepository.findById(
+          input.command.workflowId,
+        );
+        if (!current) {
+          throw new Error(`Workflow not found: ${input.command.workflowId}`);
+        }
+        return {
+          type: 'blocked',
+          reason: 'bitrix_update_failed',
+          workflow: current,
+        };
+      }
+    }
+
+    return { type: 'succeeded' };
+  }
+
   private async recordCommentSideEffect(
     command: ExecutePendingSideEffectsCommand,
     dealId: string,
@@ -251,12 +282,16 @@ export class ExecutePendingSideEffectsUseCase {
     path: 'completion' | 'escalation',
   ): Promise<void> {
     const idempotencyKey = `${command.workflowId}:bitrix_comment:${path}`;
-    const record = await this.sideEffectService.record({
+    const record = await this.sideEffectService.recordForExecution({
       workflowId: command.workflowId,
       sideEffectType: SideEffectType.CREATE_BITRIX_COMMENT,
       idempotencyKey,
       requestId: command.requestId,
     });
+
+    if (record.status === SideEffectRecordStatus.SUCCEEDED) {
+      return;
+    }
 
     this.sideEffectGuard.assertCanExecute(record);
 
@@ -278,12 +313,16 @@ export class ExecutePendingSideEffectsUseCase {
     path: 'completion' | 'escalation',
   ): Promise<void> {
     const idempotencyKey = `${command.workflowId}:telegram:${path}`;
-    const record = await this.sideEffectService.record({
+    const record = await this.sideEffectService.recordForExecution({
       workflowId: command.workflowId,
       sideEffectType: SideEffectType.SEND_TELEGRAM_NOTIFICATION,
       idempotencyKey,
       requestId: command.requestId,
     });
+
+    if (record.status === SideEffectRecordStatus.SUCCEEDED) {
+      return;
+    }
 
     this.sideEffectGuard.assertCanExecute(record);
 

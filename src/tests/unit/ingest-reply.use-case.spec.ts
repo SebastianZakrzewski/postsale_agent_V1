@@ -14,6 +14,7 @@ import { IdempotencyService } from '../../domains/idempotency/services/idempoten
 import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
+import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { MessageDirection, WorkflowStatus } from '../../lib/enums';
 import { InMemoryCustomerMessageRepository } from '../helpers/in-memory-customer-message.repository';
@@ -46,6 +47,7 @@ describe('IngestReplyUseCase', () => {
         ReplyWorkflowMatcherService,
         GetWorkflowContextUseCase,
         EscalateWorkflowUseCase,
+        ...gatedEscalationTestProviders,
         EscalateUnmatchedReplyUseCase,
         IdempotencyService,
         CheckIdempotencyUseCase,

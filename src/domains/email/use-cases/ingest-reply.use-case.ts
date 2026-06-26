@@ -8,7 +8,9 @@ import {
 } from '../../../lib/enums';
 import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
 import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
+import { EscalateToPendingBitrixUseCase } from '../../postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
 import { EscalateWorkflowUseCase } from '../../postsale-workflows/use-cases/escalate-workflow.use-case';
+import { ExecutePendingSideEffectsUseCase } from '../../postsale-workflows/use-cases/execute-pending-side-effects.use-case';
 import { GetWorkflowContextUseCase } from '../../postsale-workflows/use-cases/get-workflow-context.use-case';
 import { DuplicateCustomerMessageError } from '../errors/customer-message.errors';
 import {
@@ -39,6 +41,8 @@ export class IngestReplyUseCase {
     private readonly linkRepository: MessageLinkRepository,
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     private readonly escalateWorkflowUseCase: EscalateWorkflowUseCase,
+    private readonly escalateToPendingBitrixUseCase: EscalateToPendingBitrixUseCase,
+    private readonly executePendingSideEffectsUseCase: ExecutePendingSideEffectsUseCase,
   ) {}
 
   async execute(command: IngestReplyCommand): Promise<IngestReplyOutcome> {
@@ -196,6 +200,36 @@ export class IngestReplyUseCase {
     reason: string,
     requestId?: string,
   ): Promise<IngestReplyOutcome> {
+    const { workflow } = await this.getWorkflowContextUseCase.execute({
+      workflowId,
+    });
+
+    if (
+      workflow.status === WorkflowStatus.REQUIREMENTS_UPDATED ||
+      workflow.status === WorkflowStatus.WAITING_FOR_CUSTOMER_REPLY
+    ) {
+      const pending = await this.escalateToPendingBitrixUseCase.execute({
+        workflowId,
+        reason,
+        requestId,
+      });
+      const executed = await this.executePendingSideEffectsUseCase.execute({
+        workflowId,
+        requestId,
+      });
+      const resolved =
+        executed.type === 'escalated' || executed.type === 'blocked'
+          ? executed.workflow
+          : pending.workflow;
+
+      return {
+        type: 'escalated',
+        capability: buildCapabilityResult(resolved),
+        workflow: resolved,
+        reason,
+      };
+    }
+
     const escalated = await this.escalateWorkflowUseCase.execute({
       workflowId,
       reason,

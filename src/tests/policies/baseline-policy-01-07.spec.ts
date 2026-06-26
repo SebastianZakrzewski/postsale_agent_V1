@@ -21,6 +21,7 @@ import { LANGFLOW_RUN_REPOSITORY } from '../../domains/langflow/repository/langf
 import { LangflowRunRecorderService } from '../../domains/langflow/services/langflow-run-recorder.service';
 import { validateClassifications } from '../../domains/langflow/parsers/classification-validation';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
+import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { FailWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/fail-workflow.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
@@ -302,6 +303,7 @@ describe('Policy baseline cases 1–7', () => {
           ReplyWorkflowMatcherService,
           GetWorkflowContextUseCase,
           EscalateWorkflowUseCase,
+          ...gatedEscalationTestProviders,
           EscalateUnmatchedReplyUseCase,
           IdempotencyService,
           CheckIdempotencyUseCase,
@@ -398,7 +400,7 @@ describe('Policy baseline cases 1–7', () => {
         providers: [
           AnalyzeReplyUseCase,
           GetWorkflowContextUseCase,
-          EscalateWorkflowUseCase,
+          ...gatedEscalationTestProviders,
           LangflowRunRecorderService,
           {
             provide: EmitWorkflowEventUseCase,
