@@ -9,7 +9,7 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-82/100
+84/100
 ```
 
 Last updated:
@@ -21,34 +21,34 @@ Last updated:
 Updated by:
 
 ```text
-Codex Audit 2026-06-26 — task-06 APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR
+Review 2026-06-26 — task-07/08/09 (PR #6); REQUEST_CHANGES
 ```
 
 Evidence basis:
 
 ```text
-task-06: IngestReplyUseCase + AnalyzeReplyUseCase; evidence guard; escalated_unmatched + ingest idempotency + UNIQUE external_message_id
-Retry after partial failure rematches and completes ingest (Codex re-audit fix)
-npm test 146/146 PASS (38 suites); npm run lint/build PASS; bash ./scripts/harness-check PASS (2026-06-26)
-Codex Audit APPROVED_FOR_HUMAN_REVIEW 2026-06-26; ExecPlan task-06 Done
-Production email/webhook still blocked on task-08; attachment contentRef fetch deferred (OD-001)
+PR #6 feat/task-07-08-09: completion/followup/escalation policies; Bitrix write; n8n webhooks; 15-case policy suite
+npm test 181/181 PASS (46 suites); npm run test:policies 18/18 PASS; lint/typecheck/build PASS
+powershell ./scripts/harness-check.ps1 PASS (local); GitHub Actions Harness Check SUCCESS on PR #6
+Gaps: task-09 policy README missing; task-08 inbound/follow-up Supertest + auth not covered; task-07 propose_completion integration test missing; ExecPlan task-07/08/09 still pending
+Fix 2026-06-26: README + webhook Supertest + propose_completion IT added (187 tests PASS); pending re-Review
 ```
 
 ## Score Categories
 
 | Category | Max | Score |
 | --- | ---: | ---: |
-| Source of truth hygiene | 10 | 9 |
+| Source of truth hygiene | 10 | 8 |
 | Architecture consistency | 10 | 9 |
 | Product clarity | 10 | 7 |
-| Task quality | 10 | 9 |
-| Test coverage | 10 | 8 |
-| Runtime validation | 10 | 6 |
-| Security | 10 | 9 |
+| Task quality | 10 | 8 |
+| Test coverage | 10 | 9 |
+| Runtime validation | 10 | 7 |
+| Security | 10 | 8 |
 | Reliability | 10 | 9 |
 | Observability | 10 | 8 |
 | AI slop / maintainability | 10 | 9 |
-| **Total** | **100** | **82** |
+| **Total** | **100** | **84** |
 
 ## Category Checks
 
@@ -60,13 +60,12 @@ Check: `AGENTS.md`, active ExecPlans, repo tasks, `docs/decision-log.md`, `docs/
 
 Problems found:
 
-- task-10 Linear TBD.
-- **Pass:** ExecPlan task-06 Done synced 2026-06-26 post-Fix.
-- Linear SEL-81 still manual sync pending.
+- ExecPlan still lists task-07/08/09 as pending; task files Status: Ready (not Done).
+- Linear SEL-82/83/84 manual sync pending.
 
 Recommended fixes:
 
-- Sync Linear SEL-81 to In Review after Codex re-audit.
+- Docs Maintenance after Fix: ExecPlan progress, task History, Linear sync.
 
 ### 2. Architecture Consistency
 
@@ -76,12 +75,13 @@ Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
 Problems found:
 
-- **Pass:** Standalone ingest/analyze use cases; parse-before-persist; evidence guard; no COMPLETED in task-06.
-- **Pass:** Case 6 `escalated_unmatched` + idempotency; operator Telegram wire remains task-08.
+- **Pass:** Completion/followup/escalation policies; ExecutePendingSideEffectsUseCase; side-effect guard preserved.
+- **Pass:** Langflow `invoke`-only boundary (case 14); analyze returns `propose_completion` capability, not direct COMPLETED.
+- WebhookAuthGuard allows all traffic when `N8N_WEBHOOK_SECRET` unset (dev convenience; prod must set secret).
 
 Recommended fixes:
 
-- None blocking for task-06.
+- Document prod requirement: `N8N_WEBHOOK_SECRET` mandatory before expose.
 
 ### 3. Product Clarity
 
@@ -105,12 +105,14 @@ Check: repo tasks vs `_template.md`.
 
 Problems found:
 
-- **Pass:** task-06 Implementation + Fix reports present; post-Fix Review 2026-06-26.
-- PR TBD (working tree).
+- **Pass:** task-07/08/09 implementation on PR #6; policy suite 15 cases in Jest.
+- **Gap:** task-09 AC — policy test README not added.
+- **Gap:** task-08 AC — Supertest only covers `workflow/start`; not inbound/follow-up/auth.
+- **Gap:** task-07 AC — dedicated `propose_completion` bypass integration test missing.
 
 Recommended fixes:
 
-- PR after Codex re-audit.
+- Fix mode: README + webhook integration tests + propose_completion integration test; then re-Review.
 
 ### 5. Test Coverage
 
@@ -120,11 +122,12 @@ Check: Jest suites vs V1 acceptance baseline.
 
 Problems found:
 
-- Baseline cases 4, 5, 6, 7, 15 covered in unit tests; full 15-case suite (task-09) not implemented.
+- **Pass:** 181 Jest tests; `npm run test:policies` 18/18; cases 1–15 in baseline-policy specs + unit specs.
+- Policy index documents case→spec mapping (partial OD-009 fixture doc).
 
 Recommended fixes:
 
-- task-09 after task-07–08.
+- Add `src/tests/policies/README.md` per task-09.
 
 ### 6. Runtime Validation
 
@@ -134,11 +137,12 @@ Check: runtime evidence per ExecPlan.
 
 Problems found:
 
-- Mock/Jest only for reply path; live n8n/Gmail deferred task-08 (acceptable per task Technology Context).
+- Supertest: `workflow/start` only (`webhooks.controller.spec.ts`).
+- No live n8n/Bitrix/Telegram E2E (acceptable pre-prod); migration `20260626120000_task07_followup_escalation_pending.sql` not applied in review env.
 
 Recommended fixes:
 
-- Runtime evidence when task-08 webhooks wired.
+- Add Supertest for `email/inbound`, `workflow/follow-up-check`, `X-Webhook-Secret` rejection.
 
 ### 7. Security
 
@@ -148,13 +152,13 @@ Check: `docs/SECURITY.md`, webhook auth, npm audit, LLM boundary parsing.
 
 Problems found:
 
-- WebhookAuthGuard stub (task-08 scope).
-- **Pass:** task-06 unmatched-reply log uses `from_email_hash` not raw email (Fix 2026-06-26).
-- **Pass:** No raw LLM persistence; evidence guard blocks VALID without evidence.
+- **Pass:** WebhookAuthGuard on all `/webhooks/*`; Bitrix write behind side-effect records.
+- **Pass:** Cases 5, 7, 8, 14, 15 covered in policy suite.
+- Webhook auth bypass when secret unset.
 
 Recommended fixes:
 
-- Wire webhook auth in task-08.
+- Enforce secret in production deploy checklist (Codex + Human Architect).
 
 ### 8. Reliability
 
@@ -164,11 +168,12 @@ Check: idempotency, side effects, failure modes.
 
 Problems found:
 
-- **Pass:** task-06 Codex audit APPROVED_FOR_HUMAN_REVIEW 2026-06-26; retry path after partial ingest failure.
+- **Pass:** Follow-up max 3; Bitrix failure blocks COMPLETED (cases 10, 13); idempotency on side effects.
+- Migration apply pending before prod.
 
 Recommended fixes:
 
-- Apply migration `20260626100000_task06_customer_message_idempotency.sql` on Supabase PROD before deploy.
+- Apply task-07 migration on Supabase before deploy.
 
 ### 9. Observability
 
@@ -178,12 +183,12 @@ Check: audit events, structured logs.
 
 Problems found:
 
-- CUSTOMER_REPLY_RECEIVED, REPLY_ANALYSIS_ACCEPTED, `unmatched_reply.escalated` wired.
-- Optional: `langflow_run_id` in workflow event payloads.
+- **Pass:** Policy use cases emit audit via existing EmitWorkflowEventUseCase paths.
+- Follow-up/completion audit events rely on side-effect + workflow status transitions.
 
 Recommended fixes:
 
-- Link langflow_run_id in analysis audit payloads (tech debt).
+- Codex verify audit event names match design doc at merge.
 
 ### 10. AI Slop / Maintainability
 
@@ -193,12 +198,12 @@ Check: dead code, doc drift, intentional stubs.
 
 Problems found:
 
-- **Pass:** task-06 scope contained; ephemeral benchmark scripts removed from working tree (Cleanup 2026-06-26).
-- **Pass:** `.gitignore` extended for local analyze-reply/classify benchmark artifacts.
+- **Pass:** Focused diff; policies separated from integrations; Windows harness-check.ps1 additive.
+- Untracked local smoke script `scripts/run-e2e-wrangler-tj.ts` correctly excluded from PR.
 
 Recommended fixes:
 
-- Keep task-07 policies separate from ingest/analyze.
+- None blocking.
 
 ## Score Interpretation
 
@@ -210,21 +215,20 @@ Recommended fixes:
 0-39   = unstable; stop and repair source of truth
 ```
 
-Current band: **75–89 — good, with manageable debt** (task-06 Codex APPROVED_FOR_HUMAN_REVIEW 2026-06-26).
+Current band: **75–89 — good, with manageable debt** (task-07/08/09 Review REQUEST_CHANGES 2026-06-26).
 
 ## Current Top Risks
 
-* Langflow/Email production adapters still stubs (OD-001, OD-003).
-* Policy baseline 15 cases not complete (task-09).
-* Webhook auth stub until task-08.
-* Supabase migrations (`langflow_runs`, `customer_message_idempotency`) must be applied before prod deploy.
+* Webhook auth disabled when `N8N_WEBHOOK_SECRET` unset.
+* Supabase task-07 migration not applied in review environment.
+* Production n8n/Langflow/Telegram wiring still external (OD-001, OD-005).
+* Incomplete Supertest coverage for inbound email and follow-up-check paths.
 
 ## Current Top Improvements
 
-* **Human Architect approval + PR** for task-06.
-* Implement **task-07** (completion / follow-up / escalation policies).
-* Operator Telegram for unmatched replies in task-08.
-* Sync Linear SEL-81 when PR opened.
+* **Fix** policy README + webhook Supertest + propose_completion integration test → re-Review.
+* **Codex Audit** PR #6 (CRM write, customer email, Telegram, webhooks).
+* Docs Maintenance: ExecPlan task-07/08/09 Done, Linear SEL-82/83/84.
 
 ## History
 
@@ -243,4 +247,5 @@ Current band: **75–89 — good, with manageable debt** (task-06 Codex APPROVED
 2026-06-26 - Updated - Review task-06 (pre-Fix); score 80/100; 144 tests PASS.
 2026-06-26 - Updated - Review task-06 post-Fix; PII redaction; ExecPlan sync; 145 tests; APPROVED_FOR_CODEX_AUDIT; score 81/100.
 2026-06-26 - Updated - Codex Audit task-06 APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR; 146 tests; score 82/100.
+2026-06-26 - Updated - Review task-07/08/09 PR #6; 181 tests; policy 15/15 Jest; REQUEST_CHANGES (README, webhook Supertest, propose_completion IT); score 84/100.
 ```
