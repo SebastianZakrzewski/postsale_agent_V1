@@ -104,6 +104,7 @@ describe('AnalyzeReplyUseCase', () => {
       label: RequirementLabel.YES_NO_INFO,
       status: RequirementStatus.PENDING,
       source_note: 'note-1',
+      customer_question: 'Prosimy o potwierdzenie: note-1',
       source_field: 'notes_front_3d',
       classification_reason: 'test',
       confidence: 0.9,
@@ -113,6 +114,7 @@ describe('AnalyzeReplyUseCase', () => {
       label: RequirementLabel.TEXT_CONFIRMATION,
       status: RequirementStatus.PENDING,
       source_note: 'note-2',
+      customer_question: null,
       source_field: 'notes_rear_3d',
       classification_reason: 'test',
       confidence: 0.9,
@@ -198,5 +200,47 @@ describe('AnalyzeReplyUseCase', () => {
     expect(evidenceRepository.all()).toHaveLength(1);
     const refreshed = await workflowRepository.findById(workflow.id);
     expect(refreshed?.status).toBe(WorkflowStatus.REQUIREMENTS_UPDATED);
+  });
+
+  it('passes customerQuestion to Langflow analyze payload', async () => {
+    const { workflow, req1, message } = await seedWorkflowWithMessage();
+    const invokeSpy = jest.spyOn(mockLangflow, 'invoke');
+
+    mockLangflow.analyzeReplyHandler = () => ({
+      requirement_updates: [
+        {
+          requirement_id: req1.id,
+          proposed_status: RequirementStatus.VALID,
+          evidence_proposals: [
+            {
+              evidence_type: EvidenceType.TEXT_FRAGMENT,
+              source_ref: null,
+              content: 'yes',
+            },
+          ],
+          confidence: 0.95,
+          analysis_reason: 'answered',
+        },
+      ],
+      unsafe: false,
+      proposed_next_action: 'FOLLOWUP',
+    });
+
+    await useCase.execute({
+      workflowId: workflow.id,
+      customerMessageId: message.id,
+    });
+
+    expect(invokeSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        requirements: expect.arrayContaining([
+          expect.objectContaining({
+            id: req1.id,
+            customerQuestion: 'Prosimy o potwierdzenie: note-1',
+          }),
+        ]),
+      }),
+    );
   });
 });

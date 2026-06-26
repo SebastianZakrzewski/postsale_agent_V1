@@ -1,5 +1,6 @@
 import { WorkflowRequirementRepository } from '../../domains/requirements/repository/workflow-requirement.repository';
 import { WorkflowRequirementRow } from '../../lib/persistence';
+import type { CreateWorkflowRequirementInput } from '../../domains/requirements/repository/workflow-requirement.repository';
 
 export class InMemoryWorkflowRequirementRepository extends WorkflowRequirementRepository {
   private readonly rows: WorkflowRequirementRow[] = [];
@@ -11,22 +12,21 @@ export class InMemoryWorkflowRequirementRepository extends WorkflowRequirementRe
   }
 
   async create(
-    row: Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>,
+    row: CreateWorkflowRequirementInput,
   ): Promise<WorkflowRequirementRow> {
     const rows = await this.createMany([row]);
     return rows[0]!;
   }
 
   async createMany(
-    inputRows: Array<
-      Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>
-    >,
+    inputRows: CreateWorkflowRequirementInput[],
   ): Promise<WorkflowRequirementRow[]> {
     const now = new Date().toISOString();
     const created = inputRows.map((row, index) => {
       const persisted: WorkflowRequirementRow = {
         id: `req-${this.rows.length + index + 1}`,
         ...row,
+        customer_question: row.customer_question ?? null,
         created_at: now,
         updated_at: now,
       };

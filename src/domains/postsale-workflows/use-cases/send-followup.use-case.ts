@@ -36,6 +36,7 @@ import {
   WORKFLOW_REQUIREMENT_REPOSITORY,
   WorkflowRequirementRepository,
 } from '../../requirements/repository/workflow-requirement.repository';
+import { mapRequirementForLangflow } from '../../requirements/services/requirement-langflow.mapper';
 import { evaluateFollowupPolicy } from '../policies/followup.policy';
 import { evaluateCompletionPolicy } from '../policies/completion.policy';
 import {
@@ -158,12 +159,9 @@ export class SendFollowupUseCase {
       LANGFLOW_FLOW_DRAFT_FOLLOWUP_EMAIL,
       {
         workflowId: command.workflowId,
-        requirements: pendingRequirements.map((row) => ({
-          id: row.id,
-          label: row.label,
-          sourceNote: row.source_note,
-          sourceField: row.source_field,
-        })),
+        requirements: pendingRequirements.map((row) =>
+          mapRequirementForLangflow(row),
+        ),
         dealContext: workflow.dealContext,
         followUpCount: workflow.followUpCount,
       },

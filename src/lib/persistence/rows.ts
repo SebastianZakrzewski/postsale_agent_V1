@@ -55,6 +55,7 @@ export interface WorkflowRequirementRow {
   label: RequirementLabel;
   status: RequirementStatus;
   source_note: string | null;
+  customer_question: string | null;
   source_field: string | null;
   classification_reason: string | null;
   confidence: number | null;

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { SupabaseIntegrationModule } from '../../integrations/supabase/supabase.module';
 import { SupabasePostsaleWorkflowRepository } from '../../integrations/supabase/supabase-postsale-workflow.repository';
 import { SupabaseOutgoingMessageRepository } from '../../integrations/supabase/supabase-outgoing-message.repository';
@@ -27,6 +27,7 @@ import { GetWorkflowContextUseCase } from './use-cases/get-workflow-context.use-
 import { LoadDealContextUseCase } from './use-cases/load-deal-context.use-case';
 import { MatchWorkflowTemplateUseCase } from './use-cases/match-workflow-template.use-case';
 import { ProcessFollowupCheckUseCase } from './use-cases/process-followup-check.use-case';
+import { NotifyTemplateMatchEscalationUseCase } from './use-cases/notify-template-match-escalation.use-case';
 import { SendFollowupUseCase } from './use-cases/send-followup.use-case';
 import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
 
@@ -71,6 +72,7 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     ApplyCompletionPolicyUseCase,
     SendFollowupUseCase,
     ProcessFollowupCheckUseCase,
+    NotifyTemplateMatchEscalationUseCase,
     ExecutePendingSideEffectsUseCase,
   ],
   exports: [
@@ -85,6 +87,7 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     ApplyCompletionPolicyUseCase,
     SendFollowupUseCase,
     ProcessFollowupCheckUseCase,
+    NotifyTemplateMatchEscalationUseCase,
     ExecutePendingSideEffectsUseCase,
   ],
 })

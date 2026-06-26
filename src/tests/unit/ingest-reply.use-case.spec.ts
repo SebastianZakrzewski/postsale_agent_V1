@@ -17,6 +17,8 @@ import { ExecutePendingSideEffectsUseCase } from '../../domains/postsale-workflo
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
 import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
+import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
+import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import {
   CreateSideEffectRecordInput,
   SIDE_EFFECT_RECORD_REPOSITORY,
@@ -28,7 +30,11 @@ import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
 import { TELEGRAM_PROVIDER } from '../../integrations/telegram/telegram.provider';
 import { MockTelegramProvider } from '../helpers/mock-telegram.provider';
-import { MessageDirection, SideEffectRecordStatus, WorkflowStatus } from '../../lib/enums';
+import {
+  MessageDirection,
+  SideEffectRecordStatus,
+  WorkflowStatus,
+} from '../../lib/enums';
 import { SideEffectRecordRow } from '../../lib/persistence';
 import { InMemoryCustomerMessageRepository } from '../helpers/in-memory-customer-message.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
@@ -134,6 +140,10 @@ describe('IngestReplyUseCase', () => {
         {
           provide: MESSAGE_LINK_REPOSITORY,
           useValue: linkRepository,
+        },
+        {
+          provide: WORKFLOW_REQUIREMENT_REPOSITORY,
+          useValue: new InMemoryWorkflowRequirementRepository(),
         },
       ],
     }).compile();
@@ -377,6 +387,10 @@ describe('IngestReplyUseCase gated escalation', () => {
         {
           provide: TELEGRAM_PROVIDER,
           useValue: new MockTelegramProvider(),
+        },
+        {
+          provide: WORKFLOW_REQUIREMENT_REPOSITORY,
+          useValue: new InMemoryWorkflowRequirementRepository(),
         },
       ],
     }).compile();

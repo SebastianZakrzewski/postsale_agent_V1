@@ -86,6 +86,16 @@ describe('NoteSegmentationService', () => {
     expect(segments[2].text).toBe('czy zakrywamy je?');
   });
 
+  it('splits notes with question mark followed by Proszę sprawdzić', () => {
+    const source =
+      'Proszę o informację czy przykrywamy wnękę w bagażniku? Proszę sprawdzić czy są haczyki w bagażniku.';
+
+    const segments = service.segmentNote(note(source));
+
+    expect(segments).toHaveLength(2);
+    expect(segments[1].text).toContain('haczyki');
+  });
+
   it('segments each input note independently', () => {
     const segments = service.segmentNotes([
       note('Proszę o informację czy przykrywamy wnękę w bagażniku?'),

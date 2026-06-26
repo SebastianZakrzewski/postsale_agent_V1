@@ -75,4 +75,39 @@ describe('note-column-resolver', () => {
     expect(result.column).toBe('notes_trunk_general');
     expect(result.text).toBe('Poziom bagażnika górny czy dolny?');
   });
+
+  it('falls back to notes_trunk_general when minivan 5-seater trunk is empty', () => {
+    const body = resolveBodyTypeProfile('minivan');
+    const template: CarTemplateWideRow = {
+      id: 't-doblo',
+      brand: 'fiat',
+      model: 'doblo_e_3_gen',
+      generation: '2023-2028',
+      body_type_1: 'minivan',
+      body_type_2: null,
+      body_type_3: null,
+      notes_general: null,
+      notes_front_classic: 'Front note',
+      notes_front_3d: null,
+      notes_rear_classic: 'Rear note',
+      notes_rear_3d: null,
+      notes_third_row: null,
+      notes_trunk_general: 'Wycięcia pod fotele w bagażniku',
+      notes_trunk_estate: null,
+      notes_trunk_hatchback: null,
+      notes_trunk_sedan: null,
+      notes_trunk_liftback: null,
+      notes_trunk_suv_5_seater: null,
+      notes_trunk_suv_7_seater: null,
+      notes_trunk_minivan_5_seater: null,
+      notes_trunk_minivan_7_seater: null,
+    };
+
+    const column = resolveNoteColumnForPart('trunk', 'classic', body);
+    expect(column).toBe('notes_trunk_minivan_5_seater');
+
+    const result = readNoteTextForPart(template, 'trunk', column);
+    expect(result.column).toBe('notes_trunk_general');
+    expect(result.text).toBe('Wycięcia pod fotele w bagażniku');
+  });
 });

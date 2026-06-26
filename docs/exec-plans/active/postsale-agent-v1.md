@@ -156,17 +156,17 @@ This ExecPlan is the planning source of truth for Postsale Agent V1. Product beh
 
 V1 includes:
 
-* Bitrix deal context load (`deal_context_json`)
-* Langflow classification into requirement labels (pending OD-015 notes source)
-* requirements persistence
-* initial customer email + reply ingestion
-* attachments and links as evidence
-* Langflow reply analysis
-* completion policy, follow-ups, escalation
-* Bitrix stage update and comment
-* Telegram operator notification
-* audit events, side effect records, idempotency
-* runtime validation and 15-case test baseline
+- Bitrix deal context load (`deal_context_json`)
+- Langflow classification into requirement labels (pending OD-015 notes source)
+- requirements persistence
+- initial customer email + reply ingestion
+- attachments and links as evidence
+- Langflow reply analysis
+- completion policy, follow-ups, escalation
+- Bitrix stage update and comment
+- Telegram operator notification
+- audit events, side effect records, idempotency
+- runtime validation and 15-case test baseline
 
 **Restored 2026-06-24 (OD-015):** wide `car_templates`, two-stage template matching + note selection. See `docs/decision-log.md` and `docs/references/template-matching-validation.md`.
 
@@ -174,30 +174,30 @@ V1 includes:
 
 V1 excludes:
 
-* image correctness classification
-* customer upload portal
-* scheduled template sync
-* multi-agent architecture
-* admin dashboard
-* fuzzy matching
-* microservices
-* CQRS / event sourcing
+- image correctness classification
+- customer upload portal
+- scheduled template sync
+- multi-agent architecture
+- admin dashboard
+- fuzzy matching
+- microservices
+- CQRS / event sourcing
 
 ## Deferred V2/V3
 
 V2 candidates:
 
-* customer upload portal
-* scheduled EVAMATS template sync
-* fuzzy template matching
-* basic operator dashboard
-* workflow capability API (`LoadDealContext`, guarded `match_template`, read + `allowed_next_actions`) for recovery/replay — see `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, OD-009
+- customer upload portal
+- scheduled EVAMATS template sync
+- fuzzy template matching
+- basic operator dashboard
+- workflow capability API (`LoadDealContext`, guarded `match_template`, read + `allowed_next_actions`) for recovery/replay — see `docs/design-docs/postsale-agent-capabilities-agent-loop.md`, OD-009
 
 V3 candidates:
 
-* image correctness classification
-* multi-agent orchestration and workflow-wide agent loop (level B) — OD-008, OD-010
-* full admin dashboard
+- image correctness classification
+- multi-agent orchestration and workflow-wide agent loop (level B) — OD-008, OD-010
+- full admin dashboard
 
 ## Architecture Summary
 
@@ -246,23 +246,25 @@ See `docs/design-docs/postsale-agent-architecture.md`.
 
 All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency order.
 
-| Task | Title | Depends on | Status |
-| --- | --- | --- | --- |
-| task-01 | V1 foundation — NestJS scaffold, Supabase schema, stack activation | — | Done |
-| task-02 | Cross-cutting — idempotency, audit events, side-effect records | task-01 | Done |
-| task-03 | Template import + car template matching | task-01 | Done |
-| task-04 | Workflow start — Bitrix read, template match, escalation paths | task-01, task-02, task-03 | Done |
-| task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04 | Done |
-| task-05 | Requirements + Langflow classification + initial email | task-02, task-12, OD-015 | Done |
-| task-06 | Reply ingestion, Langflow analysis, evidence storage | task-05 | Done |
-| task-07 | Completion, follow-up, escalation policies | task-06 | Ready |
-| task-08 | Bitrix write, Telegram, n8n webhook API | task-02, task-04–07 | Ready |
-| task-09 | Policy test baseline (15 cases) + runtime validation | task-01–08 | Ready |
-| task-10 | Supabase dedicated schema migration (`postsale_agent_evapremium`) | task-01 | Done |
-| task-11 | EVAMATS production data migration (one-time DML) | task-03, task-10 | Done |
-| task-13 | Template match accuracy — 90% stage arithmetic mean (PROD persistence) | task-03, task-04, task-11 | Done (historical; app matcher retired 2026-06-23) |
-| task-14 | Bitrix product + set-variant → template note selection | — | **Cancelled** (2026-06-23) |
-| task-15 | Template matching + normalization rebuild | — | **Cancelled** (2026-06-23) |
+| Task    | Title                                                                          | Depends on                | Status                                            |
+| ------- | ------------------------------------------------------------------------------ | ------------------------- | ------------------------------------------------- |
+| task-01 | V1 foundation — NestJS scaffold, Supabase schema, stack activation             | —                         | Done                                              |
+| task-02 | Cross-cutting — idempotency, audit events, side-effect records                 | task-01                   | Done                                              |
+| task-03 | Template import + car template matching                                        | task-01                   | Done                                              |
+| task-04 | Workflow start — Bitrix read, template match, escalation paths                 | task-01, task-02, task-03 | Done                                              |
+| task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04                   | Done                                              |
+| task-05 | Requirements + Langflow classification + initial email                         | task-02, task-12, OD-015  | Done                                              |
+| task-06 | Reply ingestion, Langflow analysis, evidence storage                           | task-05                   | Done                                              |
+| task-07 | Completion, follow-up, escalation policies                                     | task-06                   | Done                                              |
+| task-08 | Bitrix write, Telegram, n8n webhook API                                        | task-02, task-04–07       | Done                                              |
+| task-09 | Policy test baseline (15 cases) + runtime validation                           | task-01–08                | Done                                              |
+| task-16 | Agent effectiveness improvements (P0–P2)                                       | task-05, task-06, task-07 | In Review                                         |
+| task-17 | Post-completion UX and reply-path enhancements (deferred)                      | task-07, task-08, task-16 | Draft                                             |
+| task-10 | Supabase dedicated schema migration (`postsale_agent_evapremium`)              | task-01                   | Done                                              |
+| task-11 | EVAMATS production data migration (one-time DML)                               | task-03, task-10          | Done                                              |
+| task-13 | Template match accuracy — 90% stage arithmetic mean (PROD persistence)         | task-03, task-04, task-11 | Done (historical; app matcher retired 2026-06-23) |
+| task-14 | Bitrix product + set-variant → template note selection                         | —                         | **Cancelled** (2026-06-23)                        |
+| task-15 | Template matching + normalization rebuild                                      | —                         | **Cancelled** (2026-06-23)                        |
 
 Dependency graph:
 
@@ -288,30 +290,30 @@ Linear mapping (create issues when implementation starts):
 
 Documentation dependencies:
 
-* Approved product spec and design docs (complete)
-* Human Architect acceptance via Architecture Context Pack
+- Approved product spec and design docs (complete)
+- Human Architect acceptance via Architecture Context Pack
 
 Technical dependencies:
 
-* Supabase project provisioned
-* Langflow flows deployed (4 V1 flows)
-* n8n workflows for Bitrix trigger, email ingress, follow-up timers
-* Bitrix24 API access
-* Email provider (OD-001)
-* Telegram bot (OD-005)
+- Supabase project provisioned
+- Langflow flows deployed (4 V1 flows)
+- n8n workflows for Bitrix trigger, email ingress, follow-up timers
+- Bitrix24 API access
+- Email provider (OD-001)
+- Telegram bot (OD-005)
 
 Business dependencies:
 
-* EVAMATS template export for one-time import (OD-006 — implemented via task-11; awaiting Human Architect closure)
-* Bitrix field mapping confirmation (OD-004 — resolved 2026-06-18; see `docs/decision-log.md`)
+- EVAMATS template export for one-time import (OD-006 — implemented via task-11; awaiting Human Architect closure)
+- Bitrix field mapping confirmation (OD-004 — resolved 2026-06-18; see `docs/decision-log.md`)
 
 External dependencies:
 
-* Bitrix24, Supabase, Langflow, n8n, email provider, Telegram
+- Bitrix24, Supabase, Langflow, n8n, email provider, Telegram
 
 Blocking dependencies:
 
-* **OD-015** — resolved 2026-06-24 (wide `car_templates` notes source)
+- **OD-015** — resolved 2026-06-24 (wide `car_templates` notes source)
 
 ## Progress
 
@@ -329,9 +331,10 @@ Blocking dependencies:
 - [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
 - [done] task-05 - requirements + Langflow + initial email (2026-06-24)
 - [done] task-06 - reply + evidence (Fix 2026-06-26; Review APPROVED_FOR_CODEX_AUDIT)
-- [pending] task-07 - completion / follow-up / escalation policies
-- [pending] task-08 - Bitrix write + Telegram + n8n webhooks
-- [pending] task-09 - policy test baseline (15 cases)
+- [done] task-07 - completion / follow-up / escalation policies (PR #6, 2026-06-26)
+- [done] task-08 - Bitrix write + Telegram + n8n webhooks (PR #6, 2026-06-26)
+- [done] task-09 - policy test baseline 15 cases (PR #6, 2026-06-26)
+- [in review] task-16 - agent effectiveness improvements (customer_question, Langflow specs, Bitrix AMBIGUOUS comment)
 - [done] task-10 - Supabase dedicated schema migration (postsale_agent_evapremium)
 - [done] task-13 - PROD template match accuracy 93.3% (historical; app matcher retired 2026-06-23)
 - [cancelled] task-14 - Bitrix product/set-variant → template note selection (2026-06-23 removal)
@@ -407,15 +410,15 @@ Runtime Validation: YES (partial — links collected below; production E2E pendi
 
 Collected evidence (repo):
 
-| Flow | Evidence | Status |
-|------|----------|--------|
-| Workflow start (happy path) | `src/tests/unit/start-workflow.use-case.spec.ts`; `src/tests/integration/postsale-workflows.module.spec.ts`; `src/tests/integration/webhooks.controller.spec.ts` | PASS (Jest) |
-| Template match | `TemplateMatchingService` + `TemplateNoteSelectionService` | PROD 99.4% self-match; 100% note logic accuracy (see validation ref) |
-| Idempotency / audit | `src/tests/unit/idempotency.service.spec.ts`; `src/tests/unit/idempotency-concurrent.spec.ts`; `src/tests/unit/audit.service.spec.ts` | PASS |
-| EVAMATS PROD load | task-11 History — 2719/2169 verified | Done |
-| Bitrix sandbox read | removed with 2026-06-23 script retirement | N/A |
-| task-12 schema migration | `supabase/migrations/20260619100000_task12_workflow_context_columns.sql` | File in repo; PROD apply not verified from harness |
-| n8n production webhooks | — | Pending task-08 |
+| Flow                        | Evidence                                                                                                                                                         | Status                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Workflow start (happy path) | `src/tests/unit/start-workflow.use-case.spec.ts`; `src/tests/integration/postsale-workflows.module.spec.ts`; `src/tests/integration/webhooks.controller.spec.ts` | PASS (Jest)                                                          |
+| Template match              | `TemplateMatchingService` + `TemplateNoteSelectionService`                                                                                                       | PROD 99.4% self-match; 100% note logic accuracy (see validation ref) |
+| Idempotency / audit         | `src/tests/unit/idempotency.service.spec.ts`; `src/tests/unit/idempotency-concurrent.spec.ts`; `src/tests/unit/audit.service.spec.ts`                            | PASS                                                                 |
+| EVAMATS PROD load           | task-11 History — 2719/2169 verified                                                                                                                             | Done                                                                 |
+| Bitrix sandbox read         | removed with 2026-06-23 script retirement                                                                                                                        | N/A                                                                  |
+| task-12 schema migration    | `supabase/migrations/20260619100000_task12_workflow_context_columns.sql`                                                                                         | File in repo; PROD apply not verified from harness                   |
+| n8n production webhooks     | —                                                                                                                                                                | Pending task-08                                                      |
 
 Evidence to collect (remaining V1):
 
@@ -438,21 +441,21 @@ Linear Project:
 
 Linear Issues:
 
-| Repo task | Linear issue | Linear status |
-|-----------|--------------|---------------|
-| Architecture | [SEL-73](https://linear.app/sellgenius-dev/issue/SEL-73) | Done |
-| task-01 | [SEL-77](https://linear.app/sellgenius-dev/issue/SEL-77) | Done |
-| task-02 | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76) | Done |
-| task-03 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) | Done |
-| task-04 | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80) | Done |
-| task-12 | [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85) | Done |
-| task-05 | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79) | Ready (repo; unblock SEL-85 Done — sync Linear) |
-| task-06 | [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81) | Ready (repo Done; sync In Review after Codex) |
-| task-07 | [SEL-82](https://linear.app/sellgenius-dev/issue/SEL-82) | Backlog |
-| task-08 | [SEL-83](https://linear.app/sellgenius-dev/issue/SEL-83) | Backlog |
-| task-09 | [SEL-84](https://linear.app/sellgenius-dev/issue/SEL-84) | Backlog |
-| task-10 | TBD (repo Done) | Done (repo) |
-| task-11 | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) (PROD load noted in description) | Done (repo) |
+| Repo task    | Linear issue                                                                              | Linear status                                   |
+| ------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Architecture | [SEL-73](https://linear.app/sellgenius-dev/issue/SEL-73)                                  | Done                                            |
+| task-01      | [SEL-77](https://linear.app/sellgenius-dev/issue/SEL-77)                                  | Done                                            |
+| task-02      | [SEL-76](https://linear.app/sellgenius-dev/issue/SEL-76)                                  | Done                                            |
+| task-03      | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78)                                  | Done                                            |
+| task-04      | [SEL-80](https://linear.app/sellgenius-dev/issue/SEL-80)                                  | Done                                            |
+| task-12      | [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85)                                  | Done                                            |
+| task-05      | [SEL-79](https://linear.app/sellgenius-dev/issue/SEL-79)                                  | Ready (repo; unblock SEL-85 Done — sync Linear) |
+| task-06      | [SEL-81](https://linear.app/sellgenius-dev/issue/SEL-81)                                  | Ready (repo Done; sync In Review after Codex)   |
+| task-07      | [SEL-82](https://linear.app/sellgenius-dev/issue/SEL-82)                                  | Backlog                                         |
+| task-08      | [SEL-83](https://linear.app/sellgenius-dev/issue/SEL-83)                                  | Backlog                                         |
+| task-09      | [SEL-84](https://linear.app/sellgenius-dev/issue/SEL-84)                                  | Backlog                                         |
+| task-10      | TBD (repo Done)                                                                           | Done (repo)                                     |
+| task-11      | [SEL-78](https://linear.app/sellgenius-dev/issue/SEL-78) (PROD load noted in description) | Done (repo)                                     |
 
 Note: Previous Linear project instance was trashed; active project recreated 2026-06-17.
 

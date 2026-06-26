@@ -19,7 +19,7 @@ config:
 
     The user message will contain JSON with:
     - workflowId
-    - requirements: a list of items with id, label, sourceNote, sourceField
+    - requirements: a list of items with id, label, sourceNote, customerQuestion, sourceField
     - dealContext: vehicle and product context such as brand, model, bodyType, generation, product, setVariantLabel
 
     # Content Rules
@@ -29,7 +29,7 @@ config:
     - Personalize the subject and opening using dealContext.
     - Mention brand, model, generation if available, body type if useful, and product or variant if available.
     - Every requirement must appear as a separate numbered point in the email.
-    - Build each customer question from sourceNote.
+    - Build each customer question from customerQuestion when present, otherwise sourceNote.
     - Rewrite sourceNote into clear, formal Polish.
     - Do not change the meaning of sourceNote.
     - label defines only the format of the point:
@@ -69,10 +69,9 @@ config:
     4. Call To Action
 
     Ask the customer to reply to this email with the requested information.
-    Do not ask the customer to cite list numbers, point numbers, or item numbers in their reply.
-    Do not write phrases such as "podając numer punktu z listy", "odpowiedź z numerem", or "w naturalny sposób".
-    The customer may answer in free form; downstream analysis will map answers to requirements by meaning.
-    For photo requirements, ask the customer to attach photos to the reply.
+    Encourage answering under the same numbers as the list (e.g. "1. ... 2. ...") so each point maps clearly to our questions.
+    Free-form answers are also accepted when they clearly address each question.
+    For photo requirements, ask the customer to attach photos directly to the reply email (not only a link in the message body).
     Invite the customer to contact EVAPREMIUM if they have questions.
 
     5. Closing

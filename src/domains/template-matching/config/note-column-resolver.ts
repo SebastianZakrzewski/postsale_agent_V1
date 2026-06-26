@@ -66,6 +66,8 @@ const TRUNK_NOTE_FALLBACKS: Partial<
   Record<CarTemplateNoteColumn, CarTemplateNoteColumn>
 > = {
   notes_trunk_suv_5_seater: 'notes_trunk_general',
+  notes_trunk_minivan_5_seater: 'notes_trunk_general',
+  notes_trunk_minivan_7_seater: 'notes_trunk_general',
 };
 
 export function readNoteTextForPart(

@@ -7,6 +7,7 @@ import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-ca
 import { FailWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/fail-workflow.use-case';
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
 import { MatchWorkflowTemplateUseCase } from '../../domains/postsale-workflows/use-cases/match-workflow-template.use-case';
+import { NotifyTemplateMatchEscalationUseCase } from '../../domains/postsale-workflows/use-cases/notify-template-match-escalation.use-case';
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
 import { DuplicateStartWorkflowInProgressError } from '../../domains/postsale-workflows/errors/start-workflow.errors';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
@@ -36,12 +37,14 @@ describe('StartWorkflowUseCase', () => {
   let bitrixProvider: MockBitrixProvider;
   let auditService: { emit: jest.Mock };
   let carTemplateRepository: InMemoryCarTemplateRepository;
+  let notifyTemplateMatchEscalationUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
     workflowRepository = new InMemoryPostsaleWorkflowRepository();
     bitrixProvider = new MockBitrixProvider();
     auditService = { emit: jest.fn().mockResolvedValue({}) };
     carTemplateRepository = new InMemoryCarTemplateRepository();
+    notifyTemplateMatchEscalationUseCase = { execute: jest.fn() };
 
     const idempotencyRepository = new InMemoryIdempotencyRepository();
 
@@ -76,6 +79,10 @@ describe('StartWorkflowUseCase', () => {
         {
           provide: CarTemplateRepository,
           useValue: carTemplateRepository,
+        },
+        {
+          provide: NotifyTemplateMatchEscalationUseCase,
+          useValue: notifyTemplateMatchEscalationUseCase,
         },
       ],
     }).compile();
@@ -140,6 +147,10 @@ describe('StartWorkflowUseCase', () => {
           provide: CarTemplateRepository,
           useValue: carTemplateRepository,
         },
+        {
+          provide: NotifyTemplateMatchEscalationUseCase,
+          useValue: notifyTemplateMatchEscalationUseCase,
+        },
       ],
     }).compile();
 
@@ -190,6 +201,7 @@ describe('StartWorkflowUseCase', () => {
     const persisted = await workflowRepository.findById(result.workflowId);
     expect(persisted?.dealContext).toMatchObject({ brand: 'BMW', model: 'X5' });
     expect(persisted?.product).toBe('3D EVAPREMIUM Z RANTAMI');
+    expect(notifyTemplateMatchEscalationUseCase.execute).toHaveBeenCalled();
   });
 
   it('insufficient Bitrix data escalates before template match', async () => {

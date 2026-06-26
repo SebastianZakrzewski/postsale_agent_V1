@@ -1,0 +1,32 @@
+[
+  {
+    "name": "happy_yes_no",
+    "raw": {
+      "requirement_updates": [
+        {
+          "requirement_id": "req-1",
+          "proposed_status": "VALID",
+          "evidence_proposals": [
+            {
+              "evidence_type": "TEXT_FRAGMENT",
+              "source_ref": null,
+              "content": "Tak, potwierdzam."
+            }
+          ],
+          "confidence": 0.92,
+          "analysis_reason": "Clear yes."
+        }
+      ],
+      "unsafe": false,
+      "proposed_next_action": "COMPLETE"
+    }
+  },
+  {
+    "name": "unsafe_manual_review",
+    "raw": {
+      "requirement_updates": [],
+      "unsafe": true,
+      "proposed_next_action": "MANUAL_REVIEW"
+    }
+  }
+]

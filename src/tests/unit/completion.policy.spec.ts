@@ -17,6 +17,7 @@ function requirement(
     label: overrides.label ?? RequirementLabel.YES_NO_INFO,
     status: overrides.status ?? RequirementStatus.PENDING,
     source_note: overrides.source_note ?? 'note',
+    customer_question: overrides.customer_question ?? null,
     source_field: overrides.source_field ?? 'notes_front_3d',
     classification_reason: overrides.classification_reason ?? null,
     confidence: overrides.confidence ?? 0.9,

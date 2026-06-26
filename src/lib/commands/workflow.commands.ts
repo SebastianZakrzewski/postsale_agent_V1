@@ -91,3 +91,10 @@ export interface ExecutePendingSideEffectsCommand {
   workflowId: string;
   requestId?: string;
 }
+
+export interface NotifyTemplateMatchEscalationCommand {
+  workflowId: string;
+  templateMatchStatus: TemplateMatchStatus;
+  reason?: string | null;
+  requestId?: string;
+}

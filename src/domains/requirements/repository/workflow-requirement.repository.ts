@@ -1,16 +1,21 @@
 import { WorkflowRequirementRow } from '../../../lib/persistence';
 
+export type CreateWorkflowRequirementInput = Omit<
+  WorkflowRequirementRow,
+  'id' | 'created_at' | 'updated_at' | 'customer_question'
+> & {
+  customer_question?: string | null;
+};
+
 export abstract class WorkflowRequirementRepository {
   abstract findByWorkflowId(
     workflowId: string,
   ): Promise<WorkflowRequirementRow[]>;
   abstract create(
-    row: Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>,
+    row: CreateWorkflowRequirementInput,
   ): Promise<WorkflowRequirementRow>;
   abstract createMany(
-    rows: Array<
-      Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>
-    >,
+    rows: CreateWorkflowRequirementInput[],
   ): Promise<WorkflowRequirementRow[]>;
   abstract findById(id: string): Promise<WorkflowRequirementRow | null>;
   abstract updateStatus(

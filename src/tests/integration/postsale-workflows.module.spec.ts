@@ -3,6 +3,7 @@ import { AuditModule } from '../../domains/audit/audit.module';
 import { IdempotencyModule } from '../../domains/idempotency/idempotency.module';
 import { PostsaleWorkflowsModule } from '../../domains/postsale-workflows/postsale-workflows.module';
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
+import { NotifyTemplateMatchEscalationUseCase } from '../../domains/postsale-workflows/use-cases/notify-template-match-escalation.use-case';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
@@ -18,8 +19,10 @@ import { InMemoryCarTemplateRepository } from '../helpers/in-memory-car-template
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 
-import { WorkflowEventRepository } from '../../domains/audit/repository/workflow-event.repository';
-import { AppendWorkflowEventInput } from '../../domains/audit/repository/workflow-event.repository';
+import {
+  AppendWorkflowEventInput,
+  WorkflowEventRepository,
+} from '../../domains/audit/repository/workflow-event.repository';
 import { WorkflowEventRow } from '../../lib/persistence';
 
 class InMemoryWorkflowEventRepository extends WorkflowEventRepository {
@@ -62,6 +65,8 @@ describe('PostsaleWorkflowsModule (integration)', () => {
       .useValue(bitrixProvider)
       .overrideProvider(SupabaseCarTemplateRepository)
       .useValue(new InMemoryCarTemplateRepository())
+      .overrideProvider(NotifyTemplateMatchEscalationUseCase)
+      .useValue({ execute: jest.fn().mockResolvedValue(undefined) })
       .compile();
 
     useCase = moduleFixture.get(StartWorkflowUseCase);

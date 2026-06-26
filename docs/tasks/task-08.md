@@ -1,6 +1,6 @@
 # Task: Bitrix Write, Telegram, n8n Webhook API
 
-Status: Ready  
+Status: Done — merged PR #6 (2026-06-26)  
 Stage: Integration | API  
 Mode: Implementation  
 Owner: Implementation agent  

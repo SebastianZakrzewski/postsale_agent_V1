@@ -24,6 +24,11 @@ import { extractUrlsFromEmailBody } from '../services/link-extractor.service';
 import { ReplyWorkflowMatcherService } from '../services/reply-workflow-matcher.service';
 import { EscalateUnmatchedReplyUseCase } from './escalate-unmatched-reply.use-case';
 import { IngestReplyOutcome } from './ingest-reply.outcome';
+import {
+  WORKFLOW_REQUIREMENT_REPOSITORY,
+  WorkflowRequirementRepository,
+} from '../../requirements/repository/workflow-requirement.repository';
+import { RequirementLabel } from '../../../lib/enums';
 
 @Injectable()
 export class IngestReplyUseCase {
@@ -38,6 +43,8 @@ export class IngestReplyUseCase {
     private readonly attachmentRepository: MessageAttachmentRepository,
     @Inject(MESSAGE_LINK_REPOSITORY)
     private readonly linkRepository: MessageLinkRepository,
+    @Inject(WORKFLOW_REQUIREMENT_REPOSITORY)
+    private readonly requirementRepository: WorkflowRequirementRepository,
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     private readonly escalateToPendingBitrixUseCase: EscalateToPendingBitrixUseCase,
     private readonly executePendingSideEffectsUseCase: ExecutePendingSideEffectsUseCase,
@@ -180,6 +187,10 @@ export class IngestReplyUseCase {
         externalMessageId: command.messageId,
         attachmentCount: attachments.length,
         linkCount: links.length,
+        ...(await this.buildIngestObservabilityPayload(
+          outgoing.workflow_id,
+          attachments.length,
+        )),
       },
       requestId: command.requestId,
     });
@@ -191,6 +202,21 @@ export class IngestReplyUseCase {
       attachmentIds: attachments.map((row) => row.id),
       linkIds: links.map((row) => row.id),
     };
+  }
+
+  private async buildIngestObservabilityPayload(
+    workflowId: string,
+    attachmentCount: number,
+  ): Promise<Record<string, unknown>> {
+    const requirements =
+      await this.requirementRepository.findByWorkflowId(workflowId);
+    const hasPhotoRequired = requirements.some(
+      (row) => row.label === RequirementLabel.PHOTO_REQUIRED,
+    );
+    if (hasPhotoRequired && attachmentCount === 0) {
+      return { photoReplyWithoutAttachments: true };
+    }
+    return {};
   }
 
   private async escalate(

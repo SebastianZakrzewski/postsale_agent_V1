@@ -447,6 +447,39 @@ describe('Template mapping edge cases', () => {
       ]);
     });
 
+    it('falls back to notes_trunk_general for minivan variant 276 full set', () => {
+      const result = service.selectNotes({
+        carTemplate: buildMinimalTemplate({
+          body_type_1: 'minivan',
+          notes_front_classic: 'Front classic',
+          notes_rear_classic: 'Rear classic',
+          notes_trunk_minivan_5_seater: null,
+          notes_trunk_general: 'Trunk general bagażnik',
+        }),
+        product: 'Klasyczne EVAPREMIUM BEZ RANTÓW',
+        productEnumId: '266',
+        setVariantId: '276',
+        resolvedBodyProfile: resolveBodyTypeProfile('minivan'),
+      });
+      expect(result.notes).toEqual([
+        {
+          part: 'front',
+          column: 'notes_front_classic',
+          text: 'Front classic',
+        },
+        {
+          part: 'rear',
+          column: 'notes_rear_classic',
+          text: 'Rear classic',
+        },
+        {
+          part: 'trunk',
+          column: 'notes_trunk_general',
+          text: 'Trunk general bagażnik',
+        },
+      ]);
+    });
+
     it('selects front and trunk without rear for variant 1332', () => {
       const result = service.selectNotes({
         carTemplate: buildAcuraMdxTemplate({

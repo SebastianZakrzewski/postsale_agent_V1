@@ -3,6 +3,7 @@ import { SelectedTemplateNote } from '../../template-matching/types';
 
 const NUMBERED_MARKER = /\d+[.)]\s*/g;
 const PROSZE_AFTER_PERIOD = /(?<=\.)\s+(?=Proszę\s)/i;
+const QUESTION_THEN_PROSZE_SPRAWDZ = /\?\s+(?=Proszę\s+sprawdz)/i;
 
 @Injectable()
 export class NoteSegmentationService {
@@ -18,6 +19,7 @@ export class NoteSegmentationService {
 
     const segments = splitByNumberedMarkers(trimmed) ??
       splitByConjunctiveCzy(trimmed) ??
+      splitByQuestionThenProszeSprawdz(trimmed) ??
       splitByProszeSentences(trimmed) ?? [trimmed];
 
     if (segments.length <= 1) {
@@ -95,6 +97,28 @@ function splitByProszeSentences(text: string): string[] | null {
   const segments = text
     .split(PROSZE_AFTER_PERIOD)
     .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+
+  return segments.length >= 2 ? segments : null;
+}
+
+function splitByQuestionThenProszeSprawdz(text: string): string[] | null {
+  if (!QUESTION_THEN_PROSZE_SPRAWDZ.test(text)) {
+    return null;
+  }
+
+  const segments = text
+    .split(QUESTION_THEN_PROSZE_SPRAWDZ)
+    .map((segment, index) => {
+      const trimmed = segment.trim();
+      if (index === 0) {
+        return trimmed;
+      }
+      if (/^prosz[eę]\s+sprawdz/i.test(trimmed)) {
+        return trimmed;
+      }
+      return `Proszę sprawdzić ${trimmed}`;
+    })
     .filter((segment) => segment.length > 0);
 
   return segments.length >= 2 ? segments : null;

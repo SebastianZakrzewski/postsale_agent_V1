@@ -42,6 +42,7 @@ import {
   WORKFLOW_REQUIREMENT_REPOSITORY,
   WorkflowRequirementRepository,
 } from '../../requirements/repository/workflow-requirement.repository';
+import { mapRequirementForLangflow } from '../../requirements/services/requirement-langflow.mapper';
 import { SendInitialEmailOutcome } from './send-initial-email.outcome';
 
 @Injectable()
@@ -110,12 +111,7 @@ export class SendInitialEmailUseCase {
       LANGFLOW_FLOW_DRAFT_INITIAL_EMAIL,
       {
         workflowId: command.workflowId,
-        requirements: requirements.map((row) => ({
-          id: row.id,
-          label: row.label,
-          sourceNote: row.source_note,
-          sourceField: row.source_field,
-        })),
+        requirements: requirements.map((row) => mapRequirementForLangflow(row)),
         dealContext: workflow.dealContext,
       },
     );

@@ -52,8 +52,13 @@ import {
   EvidenceGuardError,
   validateAllRequirementUpdates,
 } from '../services/evidence-guard.service';
+import { mapRequirementForLangflow } from '../services/requirement-langflow.mapper';
+import { applyOptionSelectionReplyHeuristic } from '../services/option-selection-reply-heuristic.service';
+import { buildReplyEffectivenessMetrics } from '../services/reply-effectiveness-metrics';
+import { isOptionSelectionHeuristicEnabled } from '../../../lib/config/agent-effectiveness.config';
+import { RequirementUpdateDraft } from '../../../lib/domain/reply-analysis.domain';
+import { WorkflowRequirementRow } from '../../../lib/persistence';
 import { AnalyzeReplyOutcome } from './analyze-reply.outcome';
-
 @Injectable()
 export class AnalyzeReplyUseCase {
   constructor(
@@ -115,12 +120,7 @@ export class AnalyzeReplyUseCase {
       {
         workflowId: command.workflowId,
         customerMessageId: command.customerMessageId,
-        requirements: requirements.map((row) => ({
-          id: row.id,
-          label: row.label,
-          status: row.status,
-          sourceNote: row.source_note,
-        })),
+        requirements: requirements.map((row) => mapRequirementForLangflow(row)),
         message: {
           subject: message.subject,
           body: message.body,
@@ -151,6 +151,18 @@ export class AnalyzeReplyUseCase {
     if (analysis.unsafe) {
       await this.recordLangflowRun(command, false, 'unsafe_reply');
       return this.escalate(command, 'unsafe_reply');
+    }
+
+    if (isOptionSelectionHeuristicEnabled()) {
+      analysis = applyOptionSelectionReplyHeuristic({
+        analysis,
+        requirements,
+        messageBody: message.body ?? '',
+      });
+      analysis = {
+        ...analysis,
+        proposedNextAction: recomputeProposedNextAction(requirements, analysis),
+      };
     }
 
     try {
@@ -239,6 +251,11 @@ export class AnalyzeReplyUseCase {
       payload: {
         proposedNextAction: analysis.proposedNextAction,
         customerMessageId: command.customerMessageId,
+        effectivenessMetrics: buildReplyEffectivenessMetrics({
+          proposedNextAction: analysis.proposedNextAction,
+          requirements,
+          attachmentCount: attachments.length,
+        }),
       },
       requestId: command.requestId,
     });
@@ -328,4 +345,28 @@ function mapProposedNextAction(action: ProposedNextAction): string[] {
     default:
       return [];
   }
+}
+
+const INCOMPLETE_AFTER_ANALYSIS: RequirementStatus[] = [
+  RequirementStatus.PENDING,
+  RequirementStatus.PARTIAL,
+  RequirementStatus.UNCLEAR,
+];
+
+function recomputeProposedNextAction(
+  requirements: WorkflowRequirementRow[],
+  analysis: { requirementUpdates: RequirementUpdateDraft[] },
+): ProposedNextAction {
+  const statusById = new Map(requirements.map((row) => [row.id, row.status]));
+  for (const update of analysis.requirementUpdates) {
+    statusById.set(update.requirementId, update.proposedStatus);
+  }
+
+  for (const status of statusById.values()) {
+    if (INCOMPLETE_AFTER_ANALYSIS.includes(status)) {
+      return 'FOLLOWUP';
+    }
+  }
+
+  return 'COMPLETE';
 }

@@ -211,6 +211,7 @@ export class CreateRequirementsUseCase {
               label: item.requirementLabel,
               status: RequirementStatus.PENDING,
               source_note: item.sourceNote,
+              customer_question: item.questionText,
               source_field: item.sourceField,
               classification_reason: item.classificationReason,
               confidence: item.confidence,

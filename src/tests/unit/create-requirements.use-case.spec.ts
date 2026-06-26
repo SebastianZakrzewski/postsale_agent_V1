@@ -207,6 +207,9 @@ describe('CreateRequirementsUseCase', () => {
       expect(outcome.workflow.status).toBe(WorkflowStatus.REQUIREMENTS_CREATED);
       expect(outcome.requirementIds.length).toBeGreaterThan(0);
     }
+    const requirements =
+      await requirementRepository.findByWorkflowId(workflowId);
+    expect(requirements[0]?.customer_question).toContain('Front 3D note');
     expect(langflowRuns.all()).toHaveLength(1);
     expect(langflowRuns.all()[0]).toMatchObject({
       parsed_success: true,

@@ -1,6 +1,6 @@
 # Task: Completion Policy, Follow-Up, Escalation Policies
 
-Status: Ready  
+Status: Done — merged PR #6 (2026-06-26)  
 Stage: Domain | Use Case  
 Mode: Implementation  
 Owner: Implementation agent  

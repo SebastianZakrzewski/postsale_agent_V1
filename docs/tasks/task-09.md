@@ -1,6 +1,6 @@
 # Task: V1 Policy Test Baseline — 15 Cases + Runtime Validation
 
-Status: Ready  
+Status: Done — merged PR #6 (2026-06-26)  
 Stage: QA | Observability  
 Mode: Implementation  
 Owner: Implementation agent  
@@ -135,23 +135,23 @@ Edge cases:
 
 Baseline cases:
 
-| # | Case |
-| --- | --- |
-| 1 | duplicate Bitrix trigger → no second workflow |
-| 2 | template not found → escalate |
-| 3 | ambiguous template → escalate |
-| 4 | unsafe Langflow notes → escalate |
-| 5 | no initial email before requirements |
-| 6 | unmatched reply → escalate |
-| 7 | VALID without evidence rejected |
-| 8 | incomplete requirements → no complete |
-| 9 | complete → Bitrix Deale do dodania |
-| 10 | Bitrix failure → COMPLETED blocked |
-| 11 | follow-up only when missing requirements |
-| 12 | max 3 follow-ups → escalation |
-| 13 | Telegram failure → completion not blocked |
-| 14 | forbidden Langflow direct side-effect tools |
-| 15 | confidence < 0.75 rejected |
+| #   | Case                                          |
+| --- | --------------------------------------------- |
+| 1   | duplicate Bitrix trigger → no second workflow |
+| 2   | template not found → escalate                 |
+| 3   | ambiguous template → escalate                 |
+| 4   | unsafe Langflow notes → escalate              |
+| 5   | no initial email before requirements          |
+| 6   | unmatched reply → escalate                    |
+| 7   | VALID without evidence rejected               |
+| 8   | incomplete requirements → no complete         |
+| 9   | complete → Bitrix Deale do dodania            |
+| 10  | Bitrix failure → COMPLETED blocked            |
+| 11  | follow-up only when missing requirements      |
+| 12  | max 3 follow-ups → escalation                 |
+| 13  | Telegram failure → completion not blocked     |
+| 14  | forbidden Langflow direct side-effect tools   |
+| 15  | confidence < 0.75 rejected                    |
 
 ## Technical Requirements
 

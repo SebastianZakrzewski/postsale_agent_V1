@@ -27,10 +27,12 @@ import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
 import { MatchWorkflowTemplateUseCase } from '../../domains/postsale-workflows/use-cases/match-workflow-template.use-case';
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
+import { NotifyTemplateMatchEscalationUseCase } from '../../domains/postsale-workflows/use-cases/notify-template-match-escalation.use-case';
+import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
+import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { AnalyzeReplyUseCase } from '../../domains/requirements/use-cases/analyze-reply.use-case';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../../domains/requirements/repository/requirement-evidence.repository';
-import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
 import { CarTemplateRepository } from '../../domains/template-matching/repository/car-template.repository.port';
 import { TemplateMatchingService } from '../../domains/template-matching/services/template-matching.service';
 import { TemplateNoteSelectionService } from '../../domains/template-matching/services/template-note-selection.service';
@@ -64,7 +66,6 @@ import { InMemoryMessageLinkRepository } from '../helpers/in-memory-message-link
 import { InMemoryOutgoingMessageRepository } from '../helpers/in-memory-outgoing-message.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 import { InMemoryRequirementEvidenceRepository } from '../helpers/in-memory-requirement-evidence.repository';
-import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import { MockEmailProvider } from '../helpers/mock-email.provider';
 import { MockLangflowProvider } from '../helpers/mock-langflow.provider';
 import {
@@ -141,6 +142,10 @@ describe('Policy baseline cases 1–7', () => {
             useValue: { emit: jest.fn().mockResolvedValue({}) },
           },
           { provide: CarTemplateRepository, useValue: carTemplateRepository },
+          {
+            provide: NotifyTemplateMatchEscalationUseCase,
+            useValue: { execute: jest.fn().mockResolvedValue(undefined) },
+          },
         ],
       }).compile();
       startWorkflow = moduleFixture.get(StartWorkflowUseCase);
@@ -194,6 +199,10 @@ describe('Policy baseline cases 1–7', () => {
           {
             provide: CarTemplateRepository,
             useValue: new InMemoryCarTemplateRepository(),
+          },
+          {
+            provide: NotifyTemplateMatchEscalationUseCase,
+            useValue: { execute: jest.fn().mockResolvedValue(undefined) },
           },
         ],
       }).compile();
@@ -334,6 +343,10 @@ describe('Policy baseline cases 1–7', () => {
           {
             provide: MESSAGE_LINK_REPOSITORY,
             useValue: new InMemoryMessageLinkRepository(),
+          },
+          {
+            provide: WORKFLOW_REQUIREMENT_REPOSITORY,
+            useValue: new InMemoryWorkflowRequirementRepository(),
           },
         ],
       }).compile();

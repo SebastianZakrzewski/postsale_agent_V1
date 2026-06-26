@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { WorkflowRequirementRepository } from '../../domains/requirements/repository/workflow-requirement.repository';
+import {
+  CreateWorkflowRequirementInput,
+  WorkflowRequirementRepository,
+} from '../../domains/requirements/repository/workflow-requirement.repository';
 import { WorkflowRequirementRow } from '../../lib/persistence';
 import { SUPABASE_CLIENT } from './supabase.tokens';
 
@@ -29,16 +32,14 @@ export class SupabaseWorkflowRequirementRepository extends WorkflowRequirementRe
   }
 
   async create(
-    row: Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>,
+    row: CreateWorkflowRequirementInput,
   ): Promise<WorkflowRequirementRow> {
     const rows = await this.createMany([row]);
     return rows[0]!;
   }
 
   async createMany(
-    rows: Array<
-      Omit<WorkflowRequirementRow, 'id' | 'created_at' | 'updated_at'>
-    >,
+    rows: CreateWorkflowRequirementInput[],
   ): Promise<WorkflowRequirementRow[]> {
     if (rows.length === 0) {
       return [];
@@ -46,7 +47,12 @@ export class SupabaseWorkflowRequirementRepository extends WorkflowRequirementRe
 
     const { data, error } = await this.client
       .from('workflow_requirements')
-      .insert(rows)
+      .insert(
+        rows.map((row) => ({
+          ...row,
+          customer_question: row.customer_question ?? null,
+        })),
+      )
       .select('*');
 
     if (error) {

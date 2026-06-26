@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+﻿import { Inject, Injectable } from '@nestjs/common';
 import { StartWorkflowCommand } from '../../../lib/commands/workflow.commands';
 import { StartWorkflowResult } from '../../../lib/domain';
 import {
@@ -18,6 +18,7 @@ import { EscalateWorkflowUseCase } from './escalate-workflow.use-case';
 import { FailWorkflowUseCase } from './fail-workflow.use-case';
 import { LoadDealContextUseCase } from './load-deal-context.use-case';
 import { MatchWorkflowTemplateUseCase } from './match-workflow-template.use-case';
+import { NotifyTemplateMatchEscalationUseCase } from './notify-template-match-escalation.use-case';
 
 const START_WORKFLOW_SCOPE = 'start_workflow';
 
@@ -31,6 +32,7 @@ export class StartWorkflowUseCase {
     private readonly loadDealContextUseCase: LoadDealContextUseCase,
     private readonly matchWorkflowTemplateUseCase: MatchWorkflowTemplateUseCase,
     private readonly escalateWorkflowUseCase: EscalateWorkflowUseCase,
+    private readonly notifyTemplateMatchEscalationUseCase: NotifyTemplateMatchEscalationUseCase,
     private readonly failWorkflowUseCase: FailWorkflowUseCase,
   ) {}
 
@@ -136,6 +138,15 @@ export class StartWorkflowUseCase {
         matchOutcome.matchResult.escalationReason ??
         matchOutcome.matchResult.status,
       templateMatchStatus: matchOutcome.matchResult.status,
+      requestId: command.requestId,
+    });
+
+    await this.notifyTemplateMatchEscalationUseCase.execute({
+      workflowId: workflow.id,
+      templateMatchStatus: matchOutcome.matchResult.status,
+      reason:
+        matchOutcome.matchResult.escalationReason ??
+        matchOutcome.matchResult.status,
       requestId: command.requestId,
     });
 
