@@ -9,7 +9,7 @@ It helps detect: architecture drift, AI slop, missing tests/runtime evidence, st
 Overall score:
 
 ```text
-84/100
+87/100
 ```
 
 Last updated:
@@ -21,18 +21,17 @@ Last updated:
 Updated by:
 
 ```text
-Codex Audit 2026-06-26 (re-run) — task-07/08/09 (PR #6); REQUEST_CHANGES
+Codex Audit 2026-06-26 (re-run #2) — task-07/08/09 (PR #6); APPROVED_FOR_HUMAN_REVIEW
 ```
 
 Evidence basis:
 
 ```text
-PR #6 feat/task-07-08-09 (4 commits): policies, Bitrix write, n8n webhooks, policy tests, post-Codex fixes
-Re-Review + Codex re-audit 2026-06-26: prior gaps closed — retry on failed Bitrix side effect, escalation path blocking parity, follow-up-check blocked status, analyze-reply gated escalation
-Checks: harness-check.ps1 PASS; npm test 191/191 PASS (48 suites); npm run test:policies 18/18 PASS
-Remaining Codex finding: IngestReply fallback still uses EscalateWorkflowUseCase for non-WAITING/REQUIREMENTS_UPDATED states, which can bypass ESCALATION_PENDING_BITRIX_UPDATE gate
-Known deployment risk: webhook auth allows requests when N8N_WEBHOOK_SECRET is unset (OD-007 still non-blocking, production hardening pending)
-ExecPlan task-07/08/09 still pending; migration apply pending pre-prod
+PR #6 feat/task-07-08-09 (5 commits): policies, Bitrix write, n8n webhooks, policy tests, two post-Codex fix commits
+Codex re-audit 2026-06-26: ingest escalation fallback gate-bypass closed (`fix(task-08): close ingest escalation gate bypass`)
+Checks: harness-check.ps1 PASS; npm test 194/194 PASS (49 suites); npm run test:policies 18/18 PASS
+Security hardening: WebhookAuthGuard now rejects missing secret in production (`NODE_ENV=production`)
+Residual non-blocking debt: ExecPlan task-07/08/09 status still pending in docs; task-07 migration apply pending pre-prod; harness-check script reports PASS despite lint/prettier failures
 ```
 
 ## Score Categories
@@ -40,16 +39,16 @@ ExecPlan task-07/08/09 still pending; migration apply pending pre-prod
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 8 |
-| Architecture consistency | 10 | 8 |
+| Architecture consistency | 10 | 9 |
 | Product clarity | 10 | 7 |
 | Task quality | 10 | 9 |
 | Test coverage | 10 | 10 |
-| Runtime validation | 10 | 7 |
-| Security | 10 | 8 |
-| Reliability | 10 | 8 |
+| Runtime validation | 10 | 8 |
+| Security | 10 | 9 |
+| Reliability | 10 | 9 |
 | Observability | 10 | 8 |
 | AI slop / maintainability | 10 | 9 |
-| **Total** | **100** | **84** |
+| **Total** | **100** | **87** |
 
 ## Category Checks
 
@@ -70,7 +69,7 @@ Recommended fixes:
 
 ### 2. Architecture Consistency
 
-Score: 8/10
+Score: 10/10
 
 Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
@@ -78,13 +77,13 @@ Problems found:
 
 - **Pass:** Completion/followup/escalation policies; ExecutePendingSideEffectsUseCase; side-effect guard preserved.
 - **Pass:** Langflow `invoke`-only boundary (case 14); gated completion path via `propose_completion` IT.
-- **Gap:** `IngestReplyUseCase` fallback path still calls `EscalateWorkflowUseCase` for statuses outside `{REQUIREMENTS_UPDATED, WAITING_FOR_CUSTOMER_REPLY}` → possible terminal `ESCALATED` without `ESCALATION_PENDING_BITRIX_UPDATE` + `ExecutePendingSideEffectsUseCase`.
-- WebhookAuthGuard allows all traffic when `N8N_WEBHOOK_SECRET` unset (dev convenience; prod must set secret).
+- **Pass:** `IngestReplyUseCase` escalation path now routes through `EscalateToPendingBitrixUseCase` + `ExecutePendingSideEffectsUseCase`; fallback bypass removed.
+- **Pass:** `EscalateToPendingBitrixUseCase` allows escalation from non-terminal statuses while still blocking terminal statuses.
+- WebhookAuthGuard remains fail-open only in non-production environments (acceptable for local/test).
 
 Recommended fixes:
 
-- Route all ingest escalation paths through `EscalateToPendingBitrixUseCase` + `ExecutePendingSideEffectsUseCase` (remove fallback bypass).
-- Document prod requirement: `N8N_WEBHOOK_SECRET` mandatory before expose.
+- Keep a regression test for any future escalation shortcut that could bypass pending-side-effect gates.
 
 ### 3. Product Clarity
 
@@ -110,11 +109,11 @@ Problems found:
 
 - **Pass:** task-07/08/09 implementation on PR #6; policy suite 15 cases in Jest.
 - **Pass:** task-09 policy README; task-08 webhook Supertest; task-07 propose_completion IT (fix commit `80ba26e`).
-- Codex: task-08 gate-bypass on analyze/ingest escalation paths not fully closed.
+- **Pass:** Codex gate-bypass finding closed in commit `7ff7ddd` with gated ingest escalation + regression test.
 
 Recommended fixes:
 
-- Fix mode: gated escalation for analyze/ingest + Bitrix retry + escalation error handling.
+- Keep task docs/ExecPlan/Linear status synchronized after merge.
 
 ### 5. Test Coverage
 
@@ -134,13 +133,14 @@ Recommended fixes:
 
 ### 6. Runtime Validation
 
-Score: 7/10
+Score: 8/10
 
 Check: runtime evidence per ExecPlan.
 
 Problems found:
 
 - **Pass:** Supertest covers `workflow/start`, `email/inbound`, `workflow/follow-up-check`, invalid `X-Webhook-Secret`.
+- **Pass:** new unit coverage for `WebhookAuthGuard` production behavior and ingest gated escalation.
 - No live n8n/Bitrix/Telegram E2E (acceptable pre-prod); migration `20260626120000_task07_followup_escalation_pending.sql` not applied in review env.
 
 Recommended fixes:
@@ -149,23 +149,23 @@ Recommended fixes:
 
 ### 7. Security
 
-Score: 8/10
+Score: 9/10
 
 Check: `docs/SECURITY.md`, webhook auth, npm audit, LLM boundary parsing.
 
 Problems found:
 
 - **Pass:** WebhookAuthGuard on all `/webhooks/*`; Bitrix write behind side-effect records.
+- **Pass:** production mode now rejects missing `N8N_WEBHOOK_SECRET`.
 - **Pass:** Cases 5, 7, 8, 14, 15 covered in policy suite.
-- Webhook auth bypass when secret unset.
 
 Recommended fixes:
 
-- Enforce secret in production deploy checklist (Codex + Human Architect).
+- Keep production deploy checklist requirement for `N8N_WEBHOOK_SECRET`.
 
 ### 8. Reliability
 
-Score: 8/10
+Score: 9/10
 
 Check: idempotency, side effects, failure modes.
 
@@ -175,12 +175,12 @@ Problems found:
 - **Pass:** Retry after failed Bitrix completion now reopens existing FAILED side_effect_record with `retryAllowed=true` and reuses idempotency key safely.
 - **Pass:** Escalation Bitrix path now reuses completion-style blocked handling (`bitrix_update_failed`) instead of throwing.
 - **Pass:** `ProcessFollowupCheckUseCase` now returns current pending status when side effects are blocked.
-- **Gap:** Ingest fallback gate bypass can finalize escalation without Bitrix pending-side-effect execution.
+- **Pass:** Ingest escalation from unexpected statuses now goes through pending Bitrix gate; no direct terminal escalation bypass.
 - Migration apply pending before prod.
 
 Recommended fixes:
 
-- Remove ingest fallback bypass and add regression test for status transition through pending Bitrix gate.
+- Apply task-07 migration in target environment before production deploy.
 
 ### 9. Observability
 
@@ -222,18 +222,17 @@ Recommended fixes:
 0-39   = unstable; stop and repair source of truth
 ```
 
-Current band: **75–89 — good, with manageable debt** (task-07/08/09 Codex re-audit REQUEST_CHANGES 2026-06-26).
+Current band: **75–89 — good, with manageable debt** (task-07/08/09 Codex re-audit APPROVED_FOR_HUMAN_REVIEW 2026-06-26).
 
 ## Current Top Risks
 
-* Ingest fallback escalation can bypass Bitrix pending gate (`ESCALATED` in app while CRM side effects may be skipped).
-* Webhook auth disabled when `N8N_WEBHOOK_SECRET` unset.
 * Supabase task-07 migration not applied in review environment.
+* harness-check script currently reports PASS despite lint/prettier failures in output.
 
 ## Current Top Improvements
 
-* **Fix** remaining ingest fallback gate bypass + add targeted regression test → re-Review → Codex re-run.
-* Docs Maintenance: ExecPlan task-07/08/09 Done, Linear SEL-82/83/84.
+* Docs Maintenance: mark task-07/08/09 done in ExecPlan/tasks and sync Linear SEL-82/83/84.
+* Improve harness-check to fail when lint fails (avoid false-green gate).
 * Production n8n/Langflow/Telegram wiring (OD-001, OD-005).
 
 ## History
@@ -257,4 +256,5 @@ Current band: **75–89 — good, with manageable debt** (task-07/08/09 Codex re
 2026-06-26 - Updated - Re-Review task-07/08/09 PR #6 post-Fix; 187 tests; APPROVED_FOR_CODEX_AUDIT; score 86/100 (interim).
 2026-06-26 - Updated - Codex Audit task-07/08/09 PR #6; reliability/architecture gaps; REQUEST_CHANGES; score 82/100.
 2026-06-26 - Updated - Codex Audit re-run task-07/08/09 PR #6; 3 prior findings closed, ingest fallback gate bypass remains; harness-check + npm test + test:policies PASS; REQUEST_CHANGES; score 84/100.
+2026-06-26 - Updated - Codex Audit re-run #2 task-07/08/09 PR #6; ingest gate bypass fixed, production webhook-secret guard added; harness-check + npm test + test:policies PASS; APPROVED_FOR_HUMAN_REVIEW; score 87/100.
 ```
