@@ -24,6 +24,7 @@ describe('bitrix field mapping', () => {
       product: 'UF_CRM_1781552572183',
       productEnum: 'UF_CRM_1757024835301',
       setVariant: 'UF_CRM_1757024931236',
+      floorPhotos: 'UF_CRM_1773006949217',
     });
   });
 

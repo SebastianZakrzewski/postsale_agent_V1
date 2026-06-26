@@ -21,6 +21,7 @@ export function mapInboundEmailDtoToCommand(
       mimeType: attachment.mimeType,
       sizeBytes: attachment.sizeBytes,
       contentRef: attachment.contentRef,
+      contentBase64: attachment.contentBase64,
     })),
     requestId,
   };

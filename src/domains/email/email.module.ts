@@ -16,6 +16,7 @@ import {
   OUTGOING_MESSAGE_REPOSITORY,
 } from './repository/message.repository';
 import { SendInitialEmailUseCase } from './use-cases/send-initial-email.use-case';
+import { SendCompletionConfirmationEmailUseCase } from './use-cases/send-completion-confirmation-email.use-case';
 import { IngestReplyUseCase } from './use-cases/ingest-reply.use-case';
 import { EscalateUnmatchedReplyUseCase } from './use-cases/escalate-unmatched-reply.use-case';
 import { ReplyWorkflowMatcherService } from './services/reply-workflow-matcher.service';
@@ -30,7 +31,7 @@ import { SupabaseMessageLinkRepository } from '../../integrations/supabase/supab
     IdempotencyModule,
     LangflowDomainModule,
     LangflowIntegrationModule,
-    PostsaleWorkflowsModule,
+    forwardRef(() => PostsaleWorkflowsModule),
     forwardRef(() => RequirementsModule),
     SideEffectsModule,
     SupabaseIntegrationModule,
@@ -55,6 +56,7 @@ import { SupabaseMessageLinkRepository } from '../../integrations/supabase/supab
     ReplyWorkflowMatcherService,
     EscalateUnmatchedReplyUseCase,
     SendInitialEmailUseCase,
+    SendCompletionConfirmationEmailUseCase,
     IngestReplyUseCase,
   ],
   exports: [
@@ -63,6 +65,7 @@ import { SupabaseMessageLinkRepository } from '../../integrations/supabase/supab
     MESSAGE_ATTACHMENT_REPOSITORY,
     MESSAGE_LINK_REPOSITORY,
     SendInitialEmailUseCase,
+    SendCompletionConfirmationEmailUseCase,
     IngestReplyUseCase,
   ],
 })

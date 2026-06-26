@@ -41,11 +41,11 @@ Why this task exists:
 
 Full stage audit (`scripts/batch-stage-full-audit.ts`, artifact `scripts/.full-audit-all-stages.json`):
 
-| Metric | Value |
-| --- | ---: |
+| Metric                              |     Value |
+| ----------------------------------- | --------: |
 | Template arithmetic mean (5 stages) | **94.5%** |
-| Notes arithmetic mean (5 stages) | **16.0%** |
-| End-to-end (template + notes OK) | **15.1%** |
+| Notes arithmetic mean (5 stages)    | **16.0%** |
+| End-to-end (template + notes OK)    | **15.1%** |
 
 Primary failure mode in audit: `NO_NOTES_FOR_SLUGS` — template MATCHED but product/set-variant not mapped to existing `car_template_notes.product` slugs (e.g. deal `33950` «Przód + Tył» → expected `front_3d`, `rear_3d`, `general`).
 

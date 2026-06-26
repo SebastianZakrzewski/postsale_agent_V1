@@ -10,6 +10,7 @@ export interface N8nInboundEmailAttachmentDto {
   mimeType: string;
   sizeBytes: number;
   contentRef: string;
+  contentBase64?: string;
 }
 
 export interface N8nInboundEmailDto {

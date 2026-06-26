@@ -14,7 +14,13 @@ import { parseN8nInboundEmailDto } from '../../domains/email/parsers/inbound-ema
 import { AnalyzeReplyUseCase } from '../../domains/requirements/use-cases/analyze-reply.use-case';
 import { DuplicateStartWorkflowInProgressError } from '../../domains/postsale-workflows/errors/start-workflow.errors';
 import { ProcessFollowupCheckUseCase } from '../../domains/postsale-workflows/use-cases/process-followup-check.use-case';
+import { SendFollowupUseCase } from '../../domains/postsale-workflows/use-cases/send-followup.use-case';
+import { SendFollowupOutcome } from '../../domains/postsale-workflows/use-cases/send-followup.outcome';
 import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/start-workflow.use-case';
+import {
+  TryCompleteWorkflowOutcome,
+  TryCompleteWorkflowUseCase,
+} from '../../domains/postsale-workflows/use-cases/try-complete-workflow.use-case';
 import {
   FollowupCheckWebhookDto,
   IngestEmailWebhookDto,
@@ -32,6 +38,8 @@ export class WebhooksController {
     private readonly ingestReplyUseCase: IngestReplyUseCase,
     private readonly analyzeReplyUseCase: AnalyzeReplyUseCase,
     private readonly processFollowupCheckUseCase: ProcessFollowupCheckUseCase,
+    private readonly tryCompleteWorkflowUseCase: TryCompleteWorkflowUseCase,
+    private readonly sendFollowupUseCase: SendFollowupUseCase,
   ) {}
 
   @Post('workflow/start')
@@ -76,15 +84,49 @@ export class WebhooksController {
         requestId: body.request_id,
       });
 
+      let completionResult: TryCompleteWorkflowOutcome | undefined;
+      if (analyzeResult.type === 'analyzed') {
+        completionResult = await this.tryCompleteWorkflowUseCase.execute({
+          workflowId: ingestResult.workflow.id,
+          requestId: body.request_id,
+        });
+      }
+
+      let followupResult: SendFollowupOutcome | undefined;
+      if (
+        analyzeResult.type === 'analyzed' &&
+        analyzeResult.proposedNextAction === 'FOLLOWUP' &&
+        completionResult?.type !== 'completed'
+      ) {
+        followupResult = await this.sendFollowupUseCase.execute({
+          workflowId: ingestResult.workflow.id,
+          requestId: body.request_id,
+          trigger: 'ACTIVE_REPLY',
+          customerMessageId: ingestResult.customerMessageId,
+        });
+      }
+
+      const workflowAfterAnalyze =
+        followupResult?.type === 'sent'
+          ? followupResult.workflow
+          : completionResult?.type === 'completed'
+            ? completionResult.workflow
+            : completionResult?.type === 'blocked'
+              ? completionResult.workflow
+              : followupResult?.type === 'escalated'
+                ? followupResult.workflow
+                : analyzeResult.type === 'analyzed' ||
+                    analyzeResult.type === 'escalated'
+                  ? analyzeResult.workflow
+                  : ingestResult.workflow;
+
       return {
         ingest: ingestResult.type,
         analyze: analyzeResult.type,
+        ...(completionResult ? { completion: completionResult.type } : {}),
+        ...(followupResult ? { followup: followupResult.type } : {}),
         workflow_id: ingestResult.workflow.id,
-        status:
-          analyzeResult.type === 'analyzed' ||
-          analyzeResult.type === 'escalated'
-            ? analyzeResult.workflow.status
-            : ingestResult.workflow.status,
+        status: workflowAfterAnalyze.status,
       };
     }
 

@@ -6,9 +6,25 @@ import {
   isRetryableHttpStatus,
   sleep,
 } from './bitrix-read.retry';
+import {
+  BitrixDealFileUpload,
+  buildBitrixMultipleFileFieldUpdate,
+  parseExistingBitrixFileIds,
+  toCrmItemUserFieldName,
+} from '../../domains/bitrix/services/bitrix-deal-file-field.builder';
+
+const CRM_DEAL_ENTITY_TYPE_ID = 2;
 
 interface BitrixMutationResponse {
   result?: unknown;
+  error?: string;
+  error_description?: string;
+}
+
+interface BitrixCrmItemGetResponse {
+  result?: {
+    item?: Record<string, unknown>;
+  };
   error?: string;
   error_description?: string;
 }
@@ -36,6 +52,89 @@ export class BitrixWriteAdapter extends BitrixReadAdapter {
         COMMENT: comment,
       },
     });
+  }
+
+  async uploadDealFloorPhotos(
+    dealId: string,
+    fieldName: string,
+    uploads: BitrixDealFileUpload[],
+  ): Promise<void> {
+    if (uploads.length === 0) {
+      return;
+    }
+
+    const crmItemFieldName = toCrmItemUserFieldName(fieldName);
+    const existing = await this.readCrmItemDealField(dealId, crmItemFieldName);
+    const beforeFileIds = parseExistingBitrixFileIds(existing);
+    const fieldValue = buildBitrixMultipleFileFieldUpdate(existing, uploads);
+
+    // crm.deal.update accepts file payloads but does not persist them on this portal;
+    // crm.item.update is required for UF file fields (Bitrix REST file upload docs).
+    await this.postWithRetry('crm.item.update', dealId, {
+      entityTypeId: CRM_DEAL_ENTITY_TYPE_ID,
+      id: dealId,
+      fields: {
+        [crmItemFieldName]: fieldValue,
+      },
+    });
+
+    const afterExisting = await this.readCrmItemDealField(
+      dealId,
+      crmItemFieldName,
+    );
+    const afterFileIds = parseExistingBitrixFileIds(afterExisting);
+    const addedCount = afterFileIds.filter(
+      (id) => !beforeFileIds.includes(id),
+    ).length;
+    if (addedCount === 0) {
+      throw new BitrixReadError(
+        dealId,
+        'Bitrix deal file field unchanged after crm.item.update',
+        false,
+      );
+    }
+  }
+
+  private async readCrmItemDealField(
+    dealId: string,
+    crmItemFieldName: string,
+  ): Promise<unknown> {
+    const url = `${this.webhookUrl.replace(/\/$/, '')}/crm.item.get`;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entityTypeId: CRM_DEAL_ENTITY_TYPE_ID,
+          id: dealId,
+        }),
+        signal: AbortSignal.timeout(this.retryOptions.timeoutMs),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Network error';
+      throw new BitrixReadError(dealId, message, true);
+    }
+
+    if (!response.ok) {
+      throw new BitrixReadError(
+        dealId,
+        `HTTP ${response.status}`,
+        isRetryableHttpStatus(response.status),
+      );
+    }
+
+    const payload = (await response.json()) as BitrixCrmItemGetResponse;
+    if (payload.error) {
+      throw new BitrixReadError(
+        dealId,
+        payload.error_description ?? payload.error,
+        false,
+      );
+    }
+
+    return payload.result?.item?.[crmItemFieldName];
   }
 
   private async postWithRetry(

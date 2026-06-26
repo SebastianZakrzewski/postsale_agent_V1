@@ -3,6 +3,8 @@ import { AuditService } from '../../domains/audit/services/audit.service';
 import { EmitWorkflowEventUseCase } from '../../domains/audit/use-cases/emit-workflow-event.use-case';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
 import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
+import { CreateRequirementsUseCase } from '../../domains/requirements/use-cases/create-requirements.use-case';
+import { SendInitialEmailUseCase } from '../../domains/email/use-cases/send-initial-email.use-case';
 import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { FailWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/fail-workflow.use-case';
 import { LoadDealContextUseCase } from '../../domains/postsale-workflows/use-cases/load-deal-context.use-case';
@@ -37,6 +39,8 @@ describe('StartWorkflowUseCase', () => {
   let bitrixProvider: MockBitrixProvider;
   let auditService: { emit: jest.Mock };
   let carTemplateRepository: InMemoryCarTemplateRepository;
+  let createRequirementsUseCase: { execute: jest.Mock };
+  let sendInitialEmailUseCase: { execute: jest.Mock };
   let notifyTemplateMatchEscalationUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
@@ -44,6 +48,8 @@ describe('StartWorkflowUseCase', () => {
     bitrixProvider = new MockBitrixProvider();
     auditService = { emit: jest.fn().mockResolvedValue({}) };
     carTemplateRepository = new InMemoryCarTemplateRepository();
+    createRequirementsUseCase = { execute: jest.fn() };
+    sendInitialEmailUseCase = { execute: jest.fn() };
     notifyTemplateMatchEscalationUseCase = { execute: jest.fn() };
 
     const idempotencyRepository = new InMemoryIdempotencyRepository();
@@ -79,6 +85,14 @@ describe('StartWorkflowUseCase', () => {
         {
           provide: CarTemplateRepository,
           useValue: carTemplateRepository,
+        },
+        {
+          provide: CreateRequirementsUseCase,
+          useValue: createRequirementsUseCase,
+        },
+        {
+          provide: SendInitialEmailUseCase,
+          useValue: sendInitialEmailUseCase,
         },
         {
           provide: NotifyTemplateMatchEscalationUseCase,
@@ -146,6 +160,14 @@ describe('StartWorkflowUseCase', () => {
         {
           provide: CarTemplateRepository,
           useValue: carTemplateRepository,
+        },
+        {
+          provide: CreateRequirementsUseCase,
+          useValue: createRequirementsUseCase,
+        },
+        {
+          provide: SendInitialEmailUseCase,
+          useValue: sendInitialEmailUseCase,
         },
         {
           provide: NotifyTemplateMatchEscalationUseCase,

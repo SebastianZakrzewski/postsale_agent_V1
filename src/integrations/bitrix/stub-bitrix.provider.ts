@@ -1,4 +1,5 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
+import { BitrixDealFileUpload } from '../../domains/bitrix/services/bitrix-deal-file-field.builder';
 import { BitrixProvider } from './bitrix.provider';
 import { BitrixDealPayload } from './bitrix.types';
 
@@ -17,6 +18,14 @@ export class StubBitrixProvider extends BitrixProvider {
   }
 
   async addDealComment(_dealId: string, _comment: string): Promise<void> {
+    throw new NotImplementedException('BitrixProvider stub');
+  }
+
+  async uploadDealFloorPhotos(
+    _dealId: string,
+    _fieldName: string,
+    _uploads: BitrixDealFileUpload[],
+  ): Promise<void> {
     throw new NotImplementedException('BitrixProvider stub');
   }
 }

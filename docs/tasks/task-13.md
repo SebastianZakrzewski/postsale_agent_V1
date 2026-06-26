@@ -34,27 +34,27 @@ Why this task exists:
 
 Audited stages (`CATEGORY_ID=0`):
 
-| Label | `STATUS_ID` | Matchable | MATCHED | NOT_FOUND | AMBIGUOUS | Hit rate |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Czeka na opłatę | `NEW` | 11 | 7 | 3 | 1 | 63.6% |
-| Opłacone | `PREPARATION` | 14 | 13 | 0 | 1 | 92.9% |
-| Deale do dodania | `UC_ZQ68O2` | 22 | 17 | 4 | 1 | 77.3% |
-| Wysłane do Realizacji | `EXECUTING` | 91 | 73 | 8 | 10 | 80.2% |
-| Faktura końcowa | `FINAL_INVOICE` | 173 | 121 | 26 | 26 | 69.9% |
-| **Pooled** | — | **311** | **231** | **41** | **39** | **74.3%** |
+| Label                 | `STATUS_ID`     | Matchable | MATCHED | NOT_FOUND | AMBIGUOUS |  Hit rate |
+| --------------------- | --------------- | --------: | ------: | --------: | --------: | --------: |
+| Czeka na opłatę       | `NEW`           |        11 |       7 |         3 |         1 |     63.6% |
+| Opłacone              | `PREPARATION`   |        14 |      13 |         0 |         1 |     92.9% |
+| Deale do dodania      | `UC_ZQ68O2`     |        22 |      17 |         4 |         1 |     77.3% |
+| Wysłane do Realizacji | `EXECUTING`     |        91 |      73 |         8 |        10 |     80.2% |
+| Faktura końcowa       | `FINAL_INVOICE` |       173 |     121 |        26 |        26 |     69.9% |
+| **Pooled**            | —               |   **311** | **231** |    **41** |    **39** | **74.3%** |
 
 **Arithmetic mean (five stages):** (63.6 + 92.9 + 77.3 + 80.2 + 69.9) / 5 = **76.8%**  
 **Acceptance target:** arithmetic mean **≥ 90.0%** (equivalent to sum of stage rates ≥ 450%).
 
 Per-stage floor (recommended, simplifies verification):
 
-| Stage | Min MATCHED | Min hit rate |
-| --- | ---: | ---: |
-| `NEW` | 10 | 90.9% |
-| `PREPARATION` | 13 | 92.9% (already met) |
-| `UC_ZQ68O2` | 20 | 90.9% |
-| `EXECUTING` | 82 | 90.1% |
-| `FINAL_INVOICE` | 156 | 90.2% |
+| Stage           | Min MATCHED |        Min hit rate |
+| --------------- | ----------: | ------------------: |
+| `NEW`           |          10 |               90.9% |
+| `PREPARATION`   |          13 | 92.9% (already met) |
+| `UC_ZQ68O2`     |          20 |               90.9% |
+| `EXECUTING`     |          82 |               90.1% |
+| `FINAL_INVOICE` |         156 |               90.2% |
 
 **Gap to close:** +49 pooled matches (231 → 280) if using weighted view; arithmetic mean requires +66.1 percentage-points distributed across stages (largest gap on `FINAL_INVOICE`: +35 matches).
 

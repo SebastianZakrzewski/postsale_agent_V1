@@ -8,6 +8,7 @@ import {
   sleep,
 } from './bitrix-read.retry';
 import { BitrixProvider } from './bitrix.provider';
+import { BitrixDealFileUpload } from '../../domains/bitrix/services/bitrix-deal-file-field.builder';
 
 interface BitrixGetResponse {
   result?: Record<string, unknown>;
@@ -176,6 +177,14 @@ export class BitrixReadAdapter extends BitrixProvider {
     }
 
     return { id, stageId, fields };
+  }
+
+  async uploadDealFloorPhotos(
+    _dealId: string,
+    _fieldName: string,
+    _uploads: BitrixDealFileUpload[],
+  ): Promise<void> {
+    throw new Error('uploadDealFloorPhotos requires BitrixWriteAdapter');
   }
 }
 

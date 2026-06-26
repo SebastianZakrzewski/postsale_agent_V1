@@ -109,6 +109,7 @@ describe('WebhooksController (integration)', () => {
   let workflowRepository: InMemoryPostsaleWorkflowRepository;
   let outgoingRepository: InMemoryOutgoingMessageRepository;
   let requirementRepository: InMemoryWorkflowRequirementRepository;
+  let mockEmailProvider: MockEmailProvider;
   let originalWebhookSecret: string | undefined;
 
   beforeEach(async () => {
@@ -119,6 +120,7 @@ describe('WebhooksController (integration)', () => {
     workflowRepository = new InMemoryPostsaleWorkflowRepository();
     outgoingRepository = new InMemoryOutgoingMessageRepository();
     requirementRepository = new InMemoryWorkflowRequirementRepository();
+    mockEmailProvider = new MockEmailProvider();
 
     bitrixProvider.setDeal('deal-api-1', {
       id: 'deal-api-1',
@@ -157,7 +159,7 @@ describe('WebhooksController (integration)', () => {
       .overrideProvider(SIDE_EFFECT_RECORD_REPOSITORY)
       .useValue(new InMemorySideEffectRecordRepository())
       .overrideProvider(EMAIL_PROVIDER)
-      .useValue(new MockEmailProvider())
+      .useValue(mockEmailProvider)
       .overrideProvider(TELEGRAM_PROVIDER)
       .useValue(new MockTelegramProvider())
       .compile();

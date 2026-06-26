@@ -17,9 +17,15 @@ import {
 } from '../../../integrations/langflow/langflow.provider';
 import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
 import {
+  CUSTOMER_MESSAGE_REPOSITORY,
+  CustomerMessageRepository,
   OUTGOING_MESSAGE_REPOSITORY,
   OutgoingMessageRepository,
 } from '../../email/repository/message.repository';
+import {
+  buildLastCustomerReplyExcerpt,
+  shouldIncludeCustomerReplyExcerpt,
+} from '../../email/services/customer-reply-excerpt';
 import { SideEffectGuard } from '../../side-effects/guards/side-effect.guard';
 import { SideEffectService } from '../../side-effects/services/side-effect.service';
 import {
@@ -68,6 +74,8 @@ export class SendFollowupUseCase {
     private readonly sideEffectGuard: SideEffectGuard,
     @Inject(EMAIL_PROVIDER)
     private readonly emailProvider: EmailProvider,
+    @Inject(CUSTOMER_MESSAGE_REPOSITORY)
+    private readonly customerMessageRepository: CustomerMessageRepository,
     @Inject(OUTGOING_MESSAGE_REPOSITORY)
     private readonly outgoingMessageRepository: OutgoingMessageRepository,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
@@ -102,6 +110,7 @@ export class SendFollowupUseCase {
       completionOutcome: completionResult.outcome,
       now: new Date(),
       waitingSince: workflow.updatedAt,
+      trigger: command.trigger === 'ACTIVE_REPLY' ? 'ACTIVE_REPLY' : 'SILENCE',
     });
 
     if (followupResult.outcome === 'DENY') {
@@ -155,16 +164,29 @@ export class SendFollowupUseCase {
       };
     }
 
+    const langflowInput: Record<string, unknown> = {
+      workflowId: command.workflowId,
+      requirements: pendingRequirements.map((row) =>
+        mapRequirementForLangflow(row),
+      ),
+      dealContext: workflow.dealContext,
+      followUpCount: workflow.followUpCount,
+    };
+
+    if (shouldIncludeCustomerReplyExcerpt(workflow.status)) {
+      const customerMessages =
+        await this.customerMessageRepository.findByWorkflowId(
+          command.workflowId,
+        );
+      const excerpt = buildLastCustomerReplyExcerpt(customerMessages);
+      if (excerpt) {
+        langflowInput.lastCustomerReplyExcerpt = excerpt;
+      }
+    }
+
     const langflowOutput = await this.langflowProvider.invoke(
       LANGFLOW_FLOW_DRAFT_FOLLOWUP_EMAIL,
-      {
-        workflowId: command.workflowId,
-        requirements: pendingRequirements.map((row) =>
-          mapRequirementForLangflow(row),
-        ),
-        dealContext: workflow.dealContext,
-        followUpCount: workflow.followUpCount,
-      },
+      langflowInput,
     );
 
     let draft;
@@ -210,8 +232,12 @@ export class SendFollowupUseCase {
 
     await this.recordLangflowRun(command, true, null);
 
-    const followUpNumber = workflow.followUpCount + 1;
-    const idempotencyKey = `${command.workflowId}:send_followup:${followUpNumber}`;
+    const isTimerFollowUp = command.trigger === 'SILENCE';
+    const followUpNumber = isTimerFollowUp ? workflow.followUpCount + 1 : null;
+    const idempotencyKey =
+      command.trigger === 'ACTIVE_REPLY'
+        ? `${command.workflowId}:send_followup:active:${command.customerMessageId}`
+        : `${command.workflowId}:send_followup:timer:${followUpNumber}`;
     const sideEffectRecord = await this.sideEffectService.record({
       workflowId: command.workflowId,
       sideEffectType: SideEffectType.SEND_FOLLOWUP_EMAIL,
@@ -254,11 +280,12 @@ export class SendFollowupUseCase {
       provider_message_id: providerMessageId,
     });
 
-    const followedUpAt = new Date();
-    await this.workflowRepository.incrementFollowUp(
-      command.workflowId,
-      followedUpAt,
-    );
+    if (isTimerFollowUp) {
+      await this.workflowRepository.incrementFollowUp(
+        command.workflowId,
+        new Date(),
+      );
+    }
     await this.workflowRepository.updateStatus(
       command.workflowId,
       WorkflowStatus.WAITING_FOR_CUSTOMER_REPLY,
@@ -274,6 +301,7 @@ export class SendFollowupUseCase {
         providerMessageId,
         followUpNumber,
         isFollowUp: true,
+        followUpTrigger: command.trigger,
       },
       requestId: command.requestId,
     });
@@ -291,7 +319,7 @@ export class SendFollowupUseCase {
       workflow: updated,
       outgoingMessageId: outgoing.id,
       providerMessageId,
-      followUpNumber,
+      followUpNumber: followUpNumber ?? undefined,
     };
   }
 

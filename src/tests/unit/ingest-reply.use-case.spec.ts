@@ -9,16 +9,17 @@ import {
   OUTGOING_MESSAGE_REPOSITORY,
 } from '../../domains/email/repository/message.repository';
 import { ReplyWorkflowMatcherService } from '../../domains/email/services/reply-workflow-matcher.service';
-import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
+import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
+import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
 import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
+import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { EscalateToPendingBitrixUseCase } from '../../domains/postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
 import { ExecutePendingSideEffectsUseCase } from '../../domains/postsale-workflows/use-cases/execute-pending-side-effects.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
 import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
+import { buildExecutePendingSideEffectsTestProviders } from '../helpers/execute-pending-side-effects-test.providers';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
-import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
-import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import {
   CreateSideEffectRecordInput,
   SIDE_EFFECT_RECORD_REPOSITORY,
@@ -388,10 +389,7 @@ describe('IngestReplyUseCase gated escalation', () => {
           provide: TELEGRAM_PROVIDER,
           useValue: new MockTelegramProvider(),
         },
-        {
-          provide: WORKFLOW_REQUIREMENT_REPOSITORY,
-          useValue: new InMemoryWorkflowRequirementRepository(),
-        },
+        ...buildExecutePendingSideEffectsTestProviders(),
       ],
     }).compile();
 

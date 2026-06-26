@@ -83,6 +83,7 @@ export interface MessageAttachmentRow {
   filename: string;
   content_type: string | null;
   storage_ref: string | null;
+  content_base64: string | null;
   created_at: string;
 }
 

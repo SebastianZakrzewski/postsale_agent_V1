@@ -35,6 +35,8 @@ import {
 } from '../../email/repository/message.repository';
 import { EscalateToPendingBitrixUseCase } from '../../postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
 import { ExecutePendingSideEffectsUseCase } from '../../postsale-workflows/use-cases/execute-pending-side-effects.use-case';
+import { UploadDealFloorPhotosUseCase } from '../../bitrix/use-cases/upload-deal-floor-photos.use-case';
+import { collectAcceptedPhotoAttachmentRefs } from '../../bitrix/services/accepted-photo-attachment-refs';
 import { GetWorkflowContextUseCase } from '../../postsale-workflows/use-cases/get-workflow-context.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
@@ -59,6 +61,7 @@ import { isOptionSelectionHeuristicEnabled } from '../../../lib/config/agent-eff
 import { RequirementUpdateDraft } from '../../../lib/domain/reply-analysis.domain';
 import { WorkflowRequirementRow } from '../../../lib/persistence';
 import { AnalyzeReplyOutcome } from './analyze-reply.outcome';
+
 @Injectable()
 export class AnalyzeReplyUseCase {
   constructor(
@@ -81,6 +84,7 @@ export class AnalyzeReplyUseCase {
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
     private readonly escalateToPendingBitrixUseCase: EscalateToPendingBitrixUseCase,
     private readonly executePendingSideEffectsUseCase: ExecutePendingSideEffectsUseCase,
+    private readonly uploadDealFloorPhotosUseCase: UploadDealFloorPhotosUseCase,
   ) {}
 
   async execute(command: AnalyzeReplyCommand): Promise<AnalyzeReplyOutcome> {
@@ -259,6 +263,20 @@ export class AnalyzeReplyUseCase {
       },
       requestId: command.requestId,
     });
+
+    const photoSourceRefs = collectAcceptedPhotoAttachmentRefs(
+      analysis.requirementUpdates,
+      requirements,
+    );
+    if (photoSourceRefs.length > 0) {
+      await this.uploadDealFloorPhotosUseCase.execute({
+        workflowId: command.workflowId,
+        bitrixDealId: workflow.bitrixDealId,
+        customerMessageId: command.customerMessageId,
+        sourceRefs: photoSourceRefs,
+        requestId: command.requestId,
+      });
+    }
 
     const updated = await this.workflowRepository.findById(command.workflowId);
     if (!updated) {

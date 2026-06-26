@@ -10,6 +10,7 @@ export interface BitrixFieldMapping {
   product: string;
   productEnum: string;
   setVariant: string;
+  floorPhotos: string;
 }
 
 export const DEFAULT_BITRIX_FIELD_MAPPING: BitrixFieldMapping = {
@@ -20,6 +21,7 @@ export const DEFAULT_BITRIX_FIELD_MAPPING: BitrixFieldMapping = {
   product: 'UF_CRM_1781552572183',
   productEnum: 'UF_CRM_1757024835301',
   setVariant: 'UF_CRM_1757024931236',
+  floorPhotos: 'UF_CRM_1773006949217',
 };
 
 export function parseBitrixFieldMappingFromEnv(
@@ -40,6 +42,8 @@ export function parseBitrixFieldMappingFromEnv(
       productEnum:
         parsed.productEnum ?? DEFAULT_BITRIX_FIELD_MAPPING.productEnum,
       setVariant: parsed.setVariant ?? DEFAULT_BITRIX_FIELD_MAPPING.setVariant,
+      floorPhotos:
+        parsed.floorPhotos ?? DEFAULT_BITRIX_FIELD_MAPPING.floorPhotos,
     };
   } catch {
     return DEFAULT_BITRIX_FIELD_MAPPING;
@@ -48,4 +52,8 @@ export function parseBitrixFieldMappingFromEnv(
 
 export function resolveBitrixFieldMapping(): BitrixFieldMapping {
   return parseBitrixFieldMappingFromEnv(process.env.BITRIX_DEAL_FIELD_MAP);
+}
+
+export function resolveBitrixFloorPhotosField(): string {
+  return resolveBitrixFieldMapping().floorPhotos;
 }

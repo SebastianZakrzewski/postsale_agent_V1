@@ -8,6 +8,7 @@ import {
 import { LANGFLOW_RUN_REPOSITORY } from '../../domains/langflow/repository/langflow-run.repository';
 import { LangflowRunRecorderService } from '../../domains/langflow/services/langflow-run-recorder.service';
 import { AnalyzeReplyUseCase } from '../../domains/requirements/use-cases/analyze-reply.use-case';
+import { UploadDealFloorPhotosUseCase } from '../../domains/bitrix/use-cases/upload-deal-floor-photos.use-case';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../../domains/requirements/repository/requirement-evidence.repository';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
@@ -86,6 +87,12 @@ describe('AnalyzeReplyUseCase', () => {
         {
           provide: LANGFLOW_RUN_REPOSITORY,
           useValue: new InMemoryLangflowRunRepository(),
+        },
+        {
+          provide: UploadDealFloorPhotosUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({ type: 'skipped' }),
+          },
         },
       ],
     }).compile();

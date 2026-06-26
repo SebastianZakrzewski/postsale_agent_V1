@@ -39,6 +39,7 @@ import {
   SideEffectRecordRow,
 } from '../../lib/persistence';
 import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
+import { buildExecutePendingSideEffectsTestProviders } from '../helpers/execute-pending-side-effects-test.providers';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
 import { InMemoryRequirementEvidenceRepository } from '../helpers/in-memory-requirement-evidence.repository';
 import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
@@ -200,6 +201,7 @@ describe('Policy baseline cases 8–15', () => {
 
     beforeEach(async () => {
       process.env.BITRIX_STAGE_COMPLETED = 'UC_ZQ68O2';
+      process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED = 'true';
       workflowRepository = new InMemoryPostsaleWorkflowRepository();
       bitrixProvider = new MockBitrixProvider();
       const workflow = await workflowRepository.create({
@@ -235,6 +237,7 @@ describe('Policy baseline cases 8–15', () => {
             provide: EmitWorkflowEventUseCase,
             useValue: { execute: jest.fn().mockResolvedValue({}) },
           },
+          ...buildExecutePendingSideEffectsTestProviders(),
         ],
       }).compile();
       executeSideEffects = moduleFixture.get(ExecutePendingSideEffectsUseCase);
@@ -255,6 +258,7 @@ describe('Policy baseline cases 8–15', () => {
   describe('case 10: Bitrix failure → COMPLETED blocked', () => {
     it('Given Bitrix error When execute Then workflow stays pending', async () => {
       process.env.BITRIX_STAGE_COMPLETED = 'UC_ZQ68O2';
+      process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED = 'true';
       const workflowRepository = new InMemoryPostsaleWorkflowRepository();
       const bitrixProvider = new MockBitrixProvider();
       bitrixProvider.setStageUpdateFailure('Bitrix down');
@@ -291,6 +295,7 @@ describe('Policy baseline cases 8–15', () => {
             provide: EmitWorkflowEventUseCase,
             useValue: { execute: jest.fn().mockResolvedValue({}) },
           },
+          ...buildExecutePendingSideEffectsTestProviders(),
         ],
       }).compile();
       const result = await moduleFixture
@@ -312,6 +317,7 @@ describe('Policy baseline cases 8–15', () => {
         completionOutcome: 'PASS',
         now: new Date(),
         waitingSince: new Date(),
+        trigger: 'SILENCE',
       });
       expect(result.outcome).toBe('DENY');
     });
@@ -327,6 +333,7 @@ describe('Policy baseline cases 8–15', () => {
         completionOutcome: 'INCOMPLETE',
         now: new Date('2026-02-01'),
         waitingSince: new Date('2026-01-01'),
+        trigger: 'SILENCE',
       });
       expect(result.outcome).toBe('ESCALATE');
     });
@@ -335,6 +342,7 @@ describe('Policy baseline cases 8–15', () => {
   describe('case 13: Telegram failure → completion not blocked', () => {
     it('Given Telegram fails When Bitrix OK Then COMPLETED', async () => {
       process.env.BITRIX_STAGE_COMPLETED = 'UC_ZQ68O2';
+      process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED = 'true';
       const workflowRepository = new InMemoryPostsaleWorkflowRepository();
       const bitrixProvider = new MockBitrixProvider();
       const telegramProvider = new MockTelegramProvider();
@@ -369,6 +377,7 @@ describe('Policy baseline cases 8–15', () => {
             provide: EmitWorkflowEventUseCase,
             useValue: { execute: jest.fn().mockResolvedValue({}) },
           },
+          ...buildExecutePendingSideEffectsTestProviders(),
         ],
       }).compile();
       const result = await moduleFixture

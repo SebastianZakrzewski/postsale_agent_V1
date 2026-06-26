@@ -256,7 +256,7 @@ Full workflow runtime validation deferred to task-09.
 - `.harness/stack.env` reflects NestJS profile from CI_STACK_PROFILES.md
 - `bash ./scripts/harness-check` passes
 - `npm run lint`, `npm run test`, `npm run build` pass
-- `.env.example` lists SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, BITRIX_*, LANGFLOW_*, EMAIL_*, TELEGRAM_*, N8N_WEBHOOK_SECRET placeholders
+- `.env.example` lists SUPABASE*URL, SUPABASE_SERVICE_ROLE_KEY, BITRIX*_, LANGFLOW\__, EMAIL*\*, TELEGRAM*\*, N8N_WEBHOOK_SECRET placeholders
 
 ## Validation Commands
 

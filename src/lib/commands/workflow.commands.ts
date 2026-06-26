@@ -29,6 +29,7 @@ export interface IngestReplyCommand {
     mimeType: string;
     sizeBytes: number;
     contentRef: string;
+    contentBase64?: string;
   }>;
   requestId?: string;
 }
@@ -70,7 +71,16 @@ export interface ApplyCompletionPolicyCommand {
   requestId?: string;
 }
 
+export type FollowupTrigger = 'ACTIVE_REPLY' | 'SILENCE';
+
 export interface SendFollowupCommand {
+  workflowId: string;
+  requestId?: string;
+  trigger: FollowupTrigger;
+  customerMessageId?: string;
+}
+
+export interface SendCompletionConfirmationEmailCommand {
   workflowId: string;
   requestId?: string;
 }
@@ -89,6 +99,12 @@ export interface FollowupCheckCommand {
 
 export interface ExecutePendingSideEffectsCommand {
   workflowId: string;
+  requestId?: string;
+}
+
+export interface TryCompleteWorkflowCommand {
+  workflowId: string;
+  langflowAnalysisValid?: boolean;
   requestId?: string;
 }
 

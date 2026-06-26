@@ -30,6 +30,7 @@ import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases
 import { NotifyTemplateMatchEscalationUseCase } from '../../domains/postsale-workflows/use-cases/notify-template-match-escalation.use-case';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
 import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
+import { CreateRequirementsUseCase } from '../../domains/requirements/use-cases/create-requirements.use-case';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { AnalyzeReplyUseCase } from '../../domains/requirements/use-cases/analyze-reply.use-case';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../../domains/requirements/repository/requirement-evidence.repository';
@@ -143,6 +144,14 @@ describe('Policy baseline cases 1–7', () => {
           },
           { provide: CarTemplateRepository, useValue: carTemplateRepository },
           {
+            provide: CreateRequirementsUseCase,
+            useValue: { execute: jest.fn() },
+          },
+          {
+            provide: SendInitialEmailUseCase,
+            useValue: { execute: jest.fn() },
+          },
+          {
             provide: NotifyTemplateMatchEscalationUseCase,
             useValue: { execute: jest.fn().mockResolvedValue(undefined) },
           },
@@ -199,6 +208,14 @@ describe('Policy baseline cases 1–7', () => {
           {
             provide: CarTemplateRepository,
             useValue: new InMemoryCarTemplateRepository(),
+          },
+          {
+            provide: CreateRequirementsUseCase,
+            useValue: { execute: jest.fn() },
+          },
+          {
+            provide: SendInitialEmailUseCase,
+            useValue: { execute: jest.fn() },
           },
           {
             provide: NotifyTemplateMatchEscalationUseCase,

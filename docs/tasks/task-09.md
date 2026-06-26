@@ -1,6 +1,6 @@
 # Task: V1 Policy Test Baseline — 15 Cases + Runtime Validation
 
-Status: Done — merged PR #6 (2026-06-26)  
+Status: Ready  
 Stage: QA | Observability  
 Mode: Implementation  
 Owner: Implementation agent  

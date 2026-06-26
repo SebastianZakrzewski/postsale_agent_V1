@@ -1,5 +1,6 @@
 import { EscalateToPendingBitrixUseCase } from '../../domains/postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
 import { ExecutePendingSideEffectsUseCase } from '../../domains/postsale-workflows/use-cases/execute-pending-side-effects.use-case';
+import { UploadDealFloorPhotosUseCase } from '../../domains/bitrix/use-cases/upload-deal-floor-photos.use-case';
 
 export const gatedEscalationTestProviders = [
   {
@@ -18,5 +19,9 @@ export const gatedEscalationTestProviders = [
         type: 'escalated',
       }),
     },
+  },
+  {
+    provide: UploadDealFloorPhotosUseCase,
+    useValue: { execute: jest.fn().mockResolvedValue({ type: 'skipped' }) },
   },
 ];

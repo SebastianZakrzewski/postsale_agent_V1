@@ -71,8 +71,24 @@ function parseAttachments(value: unknown): N8nInboundEmailAttachmentDto[] {
         record.contentRef,
         `missing_attachment_content_ref_${index}`,
       ),
+      ...(parseOptionalContentBase64(record.contentBase64, index) ?? {}),
     };
   });
+}
+
+function parseOptionalContentBase64(
+  value: unknown,
+  index: number,
+): { contentBase64: string } | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new InboundEmailParseError(
+      `invalid_attachment_content_base64_${index}`,
+    );
+  }
+  return { contentBase64: value.trim() };
 }
 
 export function parseN8nInboundEmailDto(payload: unknown): N8nInboundEmailDto {

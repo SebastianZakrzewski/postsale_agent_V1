@@ -255,11 +255,9 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-12 | Workflow capability foundation — schema, start decomposition, CapabilityResult | task-04                   | Done                                              |
 | task-05 | Requirements + Langflow classification + initial email                         | task-02, task-12, OD-015  | Done                                              |
 | task-06 | Reply ingestion, Langflow analysis, evidence storage                           | task-05                   | Done                                              |
-| task-07 | Completion, follow-up, escalation policies                                     | task-06                   | Done                                              |
-| task-08 | Bitrix write, Telegram, n8n webhook API                                        | task-02, task-04–07       | Done                                              |
-| task-09 | Policy test baseline (15 cases) + runtime validation                           | task-01–08                | Done                                              |
-| task-16 | Agent effectiveness improvements (P0–P2)                                       | task-05, task-06, task-07 | In Review                                         |
-| task-17 | Post-completion UX and reply-path enhancements (deferred)                      | task-07, task-08, task-16 | Draft                                             |
+| task-07 | Completion, follow-up, escalation policies                                     | task-06                   | Ready                                             |
+| task-08 | Bitrix write, Telegram, n8n webhook API                                        | task-02, task-04–07       | Ready                                             |
+| task-09 | Policy test baseline (15 cases) + runtime validation                           | task-01–08                | Ready                                             |
 | task-10 | Supabase dedicated schema migration (`postsale_agent_evapremium`)              | task-01                   | Done                                              |
 | task-11 | EVAMATS production data migration (one-time DML)                               | task-03, task-10          | Done                                              |
 | task-13 | Template match accuracy — 90% stage arithmetic mean (PROD persistence)         | task-03, task-04, task-11 | Done (historical; app matcher retired 2026-06-23) |
@@ -331,10 +329,9 @@ Blocking dependencies:
 - [done] task-12 - workflow capability foundation (schema + start decomposition; merge 2026-06-19)
 - [done] task-05 - requirements + Langflow + initial email (2026-06-24)
 - [done] task-06 - reply + evidence (Fix 2026-06-26; Review APPROVED_FOR_CODEX_AUDIT)
-- [done] task-07 - completion / follow-up / escalation policies (PR #6, 2026-06-26)
-- [done] task-08 - Bitrix write + Telegram + n8n webhooks (PR #6, 2026-06-26)
-- [done] task-09 - policy test baseline 15 cases (PR #6, 2026-06-26)
-- [in review] task-16 - agent effectiveness improvements (customer_question, Langflow specs, Bitrix AMBIGUOUS comment)
+- [pending] task-07 - completion / follow-up / escalation policies
+- [pending] task-08 - Bitrix write + Telegram + n8n webhooks
+- [pending] task-09 - policy test baseline (15 cases)
 - [done] task-10 - Supabase dedicated schema migration (postsale_agent_evapremium)
 - [done] task-13 - PROD template match accuracy 93.3% (historical; app matcher retired 2026-06-23)
 - [cancelled] task-14 - Bitrix product/set-variant → template note selection (2026-06-23 removal)

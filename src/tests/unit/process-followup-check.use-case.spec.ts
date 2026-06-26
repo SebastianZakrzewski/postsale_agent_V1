@@ -34,6 +34,7 @@ import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsal
 import { InMemoryRequirementEvidenceRepository } from '../helpers/in-memory-requirement-evidence.repository';
 import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
 import { MockTelegramProvider } from '../helpers/mock-telegram.provider';
+import { SendCompletionConfirmationEmailUseCase } from '../../domains/email/use-cases/send-completion-confirmation-email.use-case';
 
 class InMemorySideEffectRecordRepository extends SideEffectRecordRepository {
   private readonly records = new Map<string, SideEffectRecordRow>();
@@ -123,6 +124,12 @@ describe('ProcessFollowupCheckUseCase', () => {
           useValue: evidenceRepository,
         },
         {
+          provide: SendCompletionConfirmationEmailUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({ type: 'sent' }),
+          },
+        },
+        {
           provide: SIDE_EFFECT_RECORD_REPOSITORY,
           useClass: InMemorySideEffectRecordRepository,
         },
@@ -145,6 +152,7 @@ describe('ProcessFollowupCheckUseCase', () => {
   });
 
   it('returns pending Bitrix status when completion side effects are blocked', async () => {
+    process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED = 'true';
     const workflow = await workflowRepository.create({
       bitrixDealId: 'deal-1',
       status: WorkflowStatus.REQUIREMENTS_UPDATED,

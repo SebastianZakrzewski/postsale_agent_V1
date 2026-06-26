@@ -2,12 +2,14 @@ import { Workflow } from '../../../lib/domain';
 import { CompletionPolicyOutcome } from './completion.policy';
 
 export type FollowupPolicyOutcome = 'ALLOW' | 'WAIT' | 'DENY' | 'ESCALATE';
+export type FollowupPolicyTrigger = 'ACTIVE_REPLY' | 'SILENCE';
 
 export interface FollowupPolicyInput {
   workflow: Workflow;
   completionOutcome: CompletionPolicyOutcome;
   now: Date;
   waitingSince: Date;
+  trigger: FollowupPolicyTrigger;
 }
 
 export interface FollowupPolicyResult {
@@ -15,9 +17,12 @@ export interface FollowupPolicyResult {
   reason?: string;
 }
 
-const MAX_FOLLOW_UPS = 3;
-const FIRST_FOLLOW_UP_DELAY_MS = 24 * 60 * 60 * 1000;
-const SUBSEQUENT_FOLLOW_UP_DELAY_MS = 48 * 60 * 60 * 1000;
+const MAX_TIMER_FOLLOW_UPS = 3;
+const TIMER_FOLLOW_UP_DELAYS_MS = [
+  24 * 60 * 60 * 1000,
+  48 * 60 * 60 * 1000,
+  60 * 60 * 60 * 1000,
+] as const;
 
 export function evaluateFollowupPolicy(
   input: FollowupPolicyInput,
@@ -30,7 +35,11 @@ export function evaluateFollowupPolicy(
     return { outcome: 'ESCALATE', reason: 'completion_escalate' };
   }
 
-  if (input.workflow.followUpCount >= MAX_FOLLOW_UPS) {
+  if (input.trigger === 'ACTIVE_REPLY') {
+    return { outcome: 'ALLOW' };
+  }
+
+  if (input.workflow.followUpCount >= MAX_TIMER_FOLLOW_UPS) {
     return { outcome: 'ESCALATE', reason: 'max_follow_ups_reached' };
   }
 
@@ -39,11 +48,7 @@ export function evaluateFollowupPolicy(
       ? input.waitingSince
       : (input.workflow.lastFollowUpAt ?? input.waitingSince);
 
-  const requiredDelayMs =
-    input.workflow.followUpCount === 0
-      ? FIRST_FOLLOW_UP_DELAY_MS
-      : SUBSEQUENT_FOLLOW_UP_DELAY_MS;
-
+  const requiredDelayMs = resolveTimerDelayMs(input.workflow.followUpCount);
   const elapsedMs = input.now.getTime() - referenceTime.getTime();
   if (elapsedMs < requiredDelayMs) {
     return { outcome: 'WAIT', reason: 'follow_up_not_due' };
@@ -52,4 +57,13 @@ export function evaluateFollowupPolicy(
   return { outcome: 'ALLOW' };
 }
 
-export const FOLLOWUP_POLICY_MAX_ATTEMPTS = MAX_FOLLOW_UPS;
+function resolveTimerDelayMs(followUpCount: number): number {
+  if (followUpCount < TIMER_FOLLOW_UP_DELAYS_MS.length) {
+    return TIMER_FOLLOW_UP_DELAYS_MS[followUpCount];
+  }
+
+  return TIMER_FOLLOW_UP_DELAYS_MS[TIMER_FOLLOW_UP_DELAYS_MS.length - 1];
+}
+
+export const FOLLOWUP_POLICY_MAX_ATTEMPTS = MAX_TIMER_FOLLOW_UPS;
+export const FOLLOWUP_TIMER_DELAYS_MS = TIMER_FOLLOW_UP_DELAYS_MS;

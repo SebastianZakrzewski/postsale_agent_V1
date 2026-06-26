@@ -1,6 +1,7 @@
-﻿import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { SupabaseIntegrationModule } from '../../integrations/supabase/supabase.module';
 import { SupabasePostsaleWorkflowRepository } from '../../integrations/supabase/supabase-postsale-workflow.repository';
+import { SupabaseCustomerMessageRepository } from '../../integrations/supabase/supabase-customer-message.repository';
 import { SupabaseOutgoingMessageRepository } from '../../integrations/supabase/supabase-outgoing-message.repository';
 import { SupabaseWorkflowRequirementRepository } from '../../integrations/supabase/supabase-workflow-requirement.repository';
 import { SupabaseRequirementEvidenceRepository } from '../../integrations/supabase/supabase-requirement-evidence.repository';
@@ -13,9 +14,14 @@ import { IdempotencyModule } from '../idempotency/idempotency.module';
 import { TemplateMatchingModule } from '../template-matching/template-matching.module';
 import { SideEffectsModule } from '../side-effects/side-effects.module';
 import { LangflowDomainModule } from '../langflow/langflow.module';
+import { EmailDomainModule } from '../email/email.module';
+import { RequirementsModule } from '../requirements/requirements.module';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../requirements/repository/workflow-requirement.repository';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../requirements/repository/requirement-evidence.repository';
-import { OUTGOING_MESSAGE_REPOSITORY } from '../email/repository/message.repository';
+import {
+  CUSTOMER_MESSAGE_REPOSITORY,
+  OUTGOING_MESSAGE_REPOSITORY,
+} from '../email/repository/message.repository';
 import { POSTSALE_WORKFLOW_REPOSITORY } from './repository/postsale-workflow.repository';
 import { PolicyContextBuilderService } from './services/policy-context-builder.service';
 import { ApplyCompletionPolicyUseCase } from './use-cases/apply-completion-policy.use-case';
@@ -30,6 +36,7 @@ import { ProcessFollowupCheckUseCase } from './use-cases/process-followup-check.
 import { NotifyTemplateMatchEscalationUseCase } from './use-cases/notify-template-match-escalation.use-case';
 import { SendFollowupUseCase } from './use-cases/send-followup.use-case';
 import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
+import { TryCompleteWorkflowUseCase } from './use-cases/try-complete-workflow.use-case';
 
 @Module({
   imports: [
@@ -43,6 +50,8 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     SideEffectsModule,
     SupabaseIntegrationModule,
     TemplateMatchingModule,
+    forwardRef(() => RequirementsModule),
+    forwardRef(() => EmailDomainModule),
   ],
   providers: [
     {
@@ -56,6 +65,10 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     {
       provide: REQUIREMENT_EVIDENCE_REPOSITORY,
       useExisting: SupabaseRequirementEvidenceRepository,
+    },
+    {
+      provide: CUSTOMER_MESSAGE_REPOSITORY,
+      useExisting: SupabaseCustomerMessageRepository,
     },
     {
       provide: OUTGOING_MESSAGE_REPOSITORY,
@@ -74,6 +87,7 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     ProcessFollowupCheckUseCase,
     NotifyTemplateMatchEscalationUseCase,
     ExecutePendingSideEffectsUseCase,
+    TryCompleteWorkflowUseCase,
   ],
   exports: [
     POSTSALE_WORKFLOW_REPOSITORY,
@@ -89,6 +103,7 @@ import { StartWorkflowUseCase } from './use-cases/start-workflow.use-case';
     ProcessFollowupCheckUseCase,
     NotifyTemplateMatchEscalationUseCase,
     ExecutePendingSideEffectsUseCase,
+    TryCompleteWorkflowUseCase,
   ],
 })
 export class PostsaleWorkflowsModule {}

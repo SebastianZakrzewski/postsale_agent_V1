@@ -165,6 +165,7 @@ export class IngestReplyUseCase {
         filename: attachment.filename,
         content_type: attachment.mimeType,
         storage_ref: attachment.contentRef,
+        content_base64: attachment.contentBase64 ?? null,
       })),
     );
 

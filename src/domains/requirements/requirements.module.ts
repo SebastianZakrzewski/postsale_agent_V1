@@ -8,6 +8,7 @@ import { IdempotencyModule } from '../idempotency/idempotency.module';
 import { LangflowDomainModule } from '../langflow/langflow.module';
 import { PostsaleWorkflowsModule } from '../postsale-workflows/postsale-workflows.module';
 import { EmailDomainModule } from '../email/email.module';
+import { BitrixDomainModule } from '../bitrix/bitrix.module';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from './repository/workflow-requirement.repository';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from './repository/requirement-evidence.repository';
 import { NoteSegmentationService } from './services/note-segmentation.service';
@@ -22,10 +23,11 @@ import { SupabaseRequirementEvidenceRepository } from '../../integrations/supaba
     IdempotencyModule,
     LangflowIntegrationModule,
     LangflowDomainModule,
-    PostsaleWorkflowsModule,
+    forwardRef(() => PostsaleWorkflowsModule),
     SupabaseIntegrationModule,
     TemplateMatchingModule,
     forwardRef(() => EmailDomainModule),
+    BitrixDomainModule,
   ],
   providers: [
     {

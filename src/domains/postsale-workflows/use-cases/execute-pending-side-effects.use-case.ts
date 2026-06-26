@@ -1,7 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ExecutePendingSideEffectsCommand } from '../../../lib/commands/workflow.commands';
 import { buildCapabilityResult, CapabilityResult } from '../../../lib/domain';
-import { SideEffectRecordStatus, SideEffectType, WorkflowEventType, WorkflowStatus } from '../../../lib/enums';
+import {
+  SideEffectRecordStatus,
+  SideEffectType,
+  WorkflowEventType,
+  WorkflowStatus,
+} from '../../../lib/enums';
 import {
   BITRIX_PROVIDER,
   BitrixProvider,
@@ -11,12 +16,27 @@ import {
   TelegramProvider,
 } from '../../../integrations/telegram/telegram.provider';
 import {
+  isBitrixCompletionStageUpdateEnabled,
   resolveBitrixStageCompleted,
   resolveBitrixStageEscalated,
 } from '../../bitrix/config/bitrix-stage.config';
+import { buildBitrixCompletionComment } from '../../bitrix/services/bitrix-completion-comment.builder';
+import {
+  buildTelegramCompletionNotification,
+  buildTelegramEscalationNotification,
+} from '../../telegram/services/telegram-workflow-notification.builder';
 import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
+import { SendCompletionConfirmationEmailUseCase } from '../../email/use-cases/send-completion-confirmation-email.use-case';
 import { SideEffectGuard } from '../../side-effects/guards/side-effect.guard';
 import { SideEffectService } from '../../side-effects/services/side-effect.service';
+import {
+  REQUIREMENT_EVIDENCE_REPOSITORY,
+  RequirementEvidenceRepository,
+} from '../../requirements/repository/requirement-evidence.repository';
+import {
+  WORKFLOW_REQUIREMENT_REPOSITORY,
+  WorkflowRequirementRepository,
+} from '../../requirements/repository/workflow-requirement.repository';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -56,6 +76,10 @@ export class ExecutePendingSideEffectsUseCase {
     private readonly getWorkflowContextUseCase: GetWorkflowContextUseCase,
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
+    @Inject(WORKFLOW_REQUIREMENT_REPOSITORY)
+    private readonly requirementRepository: WorkflowRequirementRepository,
+    @Inject(REQUIREMENT_EVIDENCE_REPOSITORY)
+    private readonly evidenceRepository: RequirementEvidenceRepository,
     @Inject(BITRIX_PROVIDER)
     private readonly bitrixProvider: BitrixProvider,
     @Inject(TELEGRAM_PROVIDER)
@@ -63,6 +87,7 @@ export class ExecutePendingSideEffectsUseCase {
     private readonly sideEffectService: SideEffectService,
     private readonly sideEffectGuard: SideEffectGuard,
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
+    private readonly sendCompletionConfirmationEmailUseCase: SendCompletionConfirmationEmailUseCase,
   ) {}
 
   async execute(
@@ -92,41 +117,53 @@ export class ExecutePendingSideEffectsUseCase {
       Awaited<ReturnType<PostsaleWorkflowRepository['findById']>>
     >,
   ): Promise<ExecutePendingSideEffectsOutcome> {
-    const stageId = resolveBitrixStageCompleted();
-    const bitrixKey = `${command.workflowId}:bitrix_complete`;
+    if (isBitrixCompletionStageUpdateEnabled()) {
+      const stageId = resolveBitrixStageCompleted();
+      const bitrixKey = `${command.workflowId}:bitrix_complete`;
 
-    const bitrixResult = await this.executeBitrixStageUpdate({
-      command,
-      workflow,
-      idempotencyKey: bitrixKey,
-      sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
-      stageId,
-      path: 'completion',
-    });
+      const bitrixResult = await this.executeBitrixStageUpdate({
+        command,
+        workflow,
+        idempotencyKey: bitrixKey,
+        sideEffectType: SideEffectType.UPDATE_BITRIX_STAGE_TO_COMPLETED,
+        stageId,
+        path: 'completion',
+      });
 
-    if (bitrixResult.type === 'blocked') {
-      return bitrixResult;
+      if (bitrixResult.type === 'blocked') {
+        return bitrixResult;
+      }
+
+      await this.emitWorkflowEventUseCase.execute({
+        workflowId: command.workflowId,
+        eventType: WorkflowEventType.BITRIX_STAGE_UPDATE_SUCCEEDED,
+        statusBefore: WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE,
+        statusAfter: WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE,
+        payload: { stageId, path: 'completion' },
+        requestId: command.requestId,
+      });
     }
 
-    await this.emitWorkflowEventUseCase.execute({
-      workflowId: command.workflowId,
-      eventType: WorkflowEventType.BITRIX_STAGE_UPDATE_SUCCEEDED,
-      statusBefore: WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE,
-      statusAfter: WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE,
-      payload: { stageId, path: 'completion' },
-      requestId: command.requestId,
-    });
+    const [requirements, evidence] = await Promise.all([
+      this.requirementRepository.findByWorkflowId(command.workflowId),
+      this.evidenceRepository.findByWorkflowId(command.workflowId),
+    ]);
 
     await this.recordCommentSideEffect(
       command,
       workflow.bitrixDealId,
-      'Postsale Agent: wymagania zebrane, deal przeniesiony do Deale do dodania.',
+      buildBitrixCompletionComment(requirements, evidence),
       'completion',
     );
 
+    await this.sendCompletionConfirmationEmailUseCase.execute({
+      workflowId: command.workflowId,
+      requestId: command.requestId,
+    });
+
     await this.tryTelegramNotification(
       command,
-      `Workflow ${command.workflowId} completed for deal ${workflow.bitrixDealId}`,
+      buildTelegramCompletionNotification(evidence, workflow.bitrixDealId),
       'completion',
     );
 
@@ -189,7 +226,7 @@ export class ExecutePendingSideEffectsUseCase {
 
     await this.tryTelegramNotification(
       command,
-      `Workflow ${command.workflowId} escalated for deal ${workflow.bitrixDealId}`,
+      buildTelegramEscalationNotification(workflow.bitrixDealId),
       'escalation',
     );
 

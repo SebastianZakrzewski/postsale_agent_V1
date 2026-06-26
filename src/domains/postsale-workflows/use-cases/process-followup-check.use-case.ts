@@ -109,6 +109,7 @@ export class ProcessFollowupCheckUseCase {
       completionOutcome: completionResult.outcome,
       now,
       waitingSince: workflow.updatedAt,
+      trigger: 'SILENCE',
     });
 
     if (followupResult.outcome === 'ESCALATE') {
@@ -137,6 +138,7 @@ export class ProcessFollowupCheckUseCase {
       const sent = await this.sendFollowupUseCase.execute({
         workflowId: command.workflowId,
         requestId: command.requestId,
+        trigger: 'SILENCE',
       });
 
       if (sent.type === 'sent') {

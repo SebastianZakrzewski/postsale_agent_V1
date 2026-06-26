@@ -7,7 +7,7 @@ export type SendFollowupOutcome =
       workflow: Workflow;
       outgoingMessageId: string;
       providerMessageId: string;
-      followUpNumber: number;
+      followUpNumber?: number;
     }
   | {
       type: 'not_due';

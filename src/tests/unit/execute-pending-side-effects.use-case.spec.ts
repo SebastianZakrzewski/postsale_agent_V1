@@ -13,15 +13,23 @@ import { SideEffectService } from '../../domains/side-effects/services/side-effe
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { TELEGRAM_PROVIDER } from '../../integrations/telegram/telegram.provider';
 import {
+  EvidenceType,
+  RequirementLabel,
+  RequirementStatus,
   SideEffectRecordStatus,
   TemplateMatchStatus,
   WorkflowStatus,
 } from '../../lib/enums';
 import { SideEffectRecordRow } from '../../lib/persistence';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
+import { InMemoryWorkflowRequirementRepository } from '../helpers/in-memory-workflow-requirement.repository';
+import { InMemoryRequirementEvidenceRepository } from '../helpers/in-memory-requirement-evidence.repository';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
 import { MockTelegramProvider } from '../helpers/mock-telegram.provider';
 import { buildPersistedDealContext } from '../helpers/bitrix-deal-fields';
+import { SendCompletionConfirmationEmailUseCase } from '../../domains/email/use-cases/send-completion-confirmation-email.use-case';
+import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
+import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../../domains/requirements/repository/requirement-evidence.repository';
 
 class InMemorySideEffectRecordRepository extends SideEffectRecordRepository {
   private readonly records = new Map<string, SideEffectRecordRow>();
@@ -72,12 +80,17 @@ describe('ExecutePendingSideEffectsUseCase', () => {
   let workflowRepository: InMemoryPostsaleWorkflowRepository;
   let bitrixProvider: MockBitrixProvider;
   let telegramProvider: MockTelegramProvider;
+  let requirementRepository: InMemoryWorkflowRequirementRepository;
+  let evidenceRepository: InMemoryRequirementEvidenceRepository;
 
   beforeEach(async () => {
     process.env.BITRIX_STAGE_COMPLETED = 'UC_ZQ68O2';
+    process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED = 'true';
     workflowRepository = new InMemoryPostsaleWorkflowRepository();
     bitrixProvider = new MockBitrixProvider();
     telegramProvider = new MockTelegramProvider();
+    requirementRepository = new InMemoryWorkflowRequirementRepository();
+    evidenceRepository = new InMemoryRequirementEvidenceRepository();
 
     const workflow = await workflowRepository.create({
       bitrixDealId: 'deal-1',
@@ -94,6 +107,25 @@ describe('ExecutePendingSideEffectsUseCase', () => {
       carTemplateId: 'tpl-1',
     });
     bitrixProvider.setDeal('deal-1', { id: 'deal-1', fields: {} });
+
+    const requirement = await requirementRepository.create({
+      workflow_id: workflow.id,
+      label: RequirementLabel.YES_NO_INFO,
+      status: RequirementStatus.VALID,
+      source_note: 'Czy jest gaśnica?',
+      source_field: 'notes_front_3d',
+      classification_reason: 'test',
+      confidence: 0.9,
+    });
+    await evidenceRepository.createMany([
+      {
+        requirement_id: requirement.id,
+        workflow_id: workflow.id,
+        evidence_type: EvidenceType.TEXT_FRAGMENT,
+        source_ref: null,
+        content: 'tak',
+      },
+    ]);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       providers: [
@@ -118,6 +150,20 @@ describe('ExecutePendingSideEffectsUseCase', () => {
           useValue: telegramProvider,
         },
         {
+          provide: WORKFLOW_REQUIREMENT_REPOSITORY,
+          useValue: requirementRepository,
+        },
+        {
+          provide: REQUIREMENT_EVIDENCE_REPOSITORY,
+          useValue: evidenceRepository,
+        },
+        {
+          provide: SendCompletionConfirmationEmailUseCase,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({ type: 'sent' }),
+          },
+        },
+        {
           provide: EmitWorkflowEventUseCase,
           useValue: { execute: jest.fn().mockResolvedValue({}) },
         },
@@ -125,6 +171,18 @@ describe('ExecutePendingSideEffectsUseCase', () => {
     }).compile();
 
     useCase = moduleFixture.get(ExecutePendingSideEffectsUseCase);
+  });
+
+  it('completes without Bitrix stage update when completion stage update is disabled', async () => {
+    delete process.env.BITRIX_COMPLETION_STAGE_UPDATE_ENABLED;
+    const workflow = await workflowRepository.findByBitrixDealId('deal-1');
+    const result = await useCase.execute({ workflowId: workflow!.id });
+
+    expect(result.type).toBe('completed');
+    expect(bitrixProvider.getStageUpdates()).toEqual([]);
+    if (result.type === 'completed') {
+      expect(result.workflow.status).toBe(WorkflowStatus.COMPLETED);
+    }
   });
 
   it('moves Bitrix to completed stage (case 9)', async () => {
@@ -138,6 +196,12 @@ describe('ExecutePendingSideEffectsUseCase', () => {
     expect(bitrixProvider.getStageUpdates()).toEqual([
       { dealId: 'deal-1', stageId: 'UC_ZQ68O2' },
     ]);
+    expect(bitrixProvider.getComments()[0]?.comment).toContain(
+      'Czy jest gaśnica? → tak',
+    );
+    expect(telegramProvider.sentMessages[0]?.message).toBe(
+      'Klient poprawnie odpowiedział na informacje dotyczące uwag szablonów.\nhttps://evapremium.bitrix24.pl/crm/deal/details/deal-1/',
+    );
     expect(result.workflow.status).toBe(WorkflowStatus.COMPLETED);
   });
 
