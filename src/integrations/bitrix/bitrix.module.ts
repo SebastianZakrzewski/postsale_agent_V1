@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { BITRIX_PROVIDER } from './bitrix.provider';
-import { BitrixReadAdapter } from './bitrix-read.adapter';
+import { BitrixWriteAdapter } from './bitrix-write.adapter';
 import { StubBitrixProvider } from './stub-bitrix.provider';
 
-function createBitrixProvider(): StubBitrixProvider | BitrixReadAdapter {
+function createBitrixProvider(): StubBitrixProvider | BitrixWriteAdapter {
   const webhookUrl = process.env.BITRIX_WEBHOOK_URL?.trim();
   if (webhookUrl) {
-    return new BitrixReadAdapter(webhookUrl);
+    return new BitrixWriteAdapter(webhookUrl);
   }
   return new StubBitrixProvider();
 }

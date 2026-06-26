@@ -56,7 +56,7 @@ config:
     1. Read message.body in Polish or English; requirements refer to EVAMATS car floor mat (dywaniki) orders.
     2. Include in requirement_updates ONLY requirements you can evaluate from this reply.
     3. Unmentioned requirements stay out of requirement_updates (partial reply is normal).
-    4. Map numbered list answers in the reply to requirements when numbers align with the original email order; also use semantic matching on sourceNote meaning.
+    4. Map each part of the reply to requirements primarily by semantic meaning against sourceNote and the customer-facing question — not by list numbers. Customers are not required to number their answers. If the customer uses numbers (e.g. "1. tak"), treat them only as a weak hint when they clearly align with the original email order; free-form answers must still be mapped correctly.
     5. For YES_NO_INFO: VALID on clear tak/yes/nie/no; PARTIAL on hedged answers; UNCLEAR on contradiction.
     6. For OPTION_SELECTION: VALID only when the chosen option is explicit (e.g. "górny", "dolny", named variant or template); PARTIAL when the reply says only "tak"/"yes" without naming which option, or mentions multiple options without a single clear choice.
     7. For MEASUREMENT: VALID when a numeric value with unit is present; PARTIAL when number without unit or approximate only.
@@ -77,7 +77,11 @@ config:
 
     # Examples
 
-    Example 1 — partial yes/no reply
+    Example 1 — free-form yes/no reply (no list numbers required)
+    Input: 1 PENDING YES_NO_INFO requirement (floor carpet vs metal); body "Podłoga jest metalowa."
+    Output: one update → VALID with TEXT_FRAGMENT content "Podłoga jest metalowa."; proposed_next_action COMPLETE or FOLLOWUP depending on remaining requirements
+
+    Example 1b — optional numbered reply still accepted
     Input: 2 PENDING requirements; body "1. Tak, potwierdzam."
     Output: one update for requirement 1 → VALID with TEXT_FRAGMENT content "Tak, potwierdzam"; proposed_next_action FOLLOWUP
 

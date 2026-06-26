@@ -12,16 +12,74 @@ import { ReplyWorkflowMatcherService } from '../../domains/email/services/reply-
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { IdempotencyService } from '../../domains/idempotency/services/idempotency.service';
 import { CheckIdempotencyUseCase } from '../../domains/idempotency/use-cases/check-idempotency.use-case';
-import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
+import { EscalateToPendingBitrixUseCase } from '../../domains/postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
+import { ExecutePendingSideEffectsUseCase } from '../../domains/postsale-workflows/use-cases/execute-pending-side-effects.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
+import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
-import { MessageDirection, WorkflowStatus } from '../../lib/enums';
+import {
+  CreateSideEffectRecordInput,
+  SIDE_EFFECT_RECORD_REPOSITORY,
+  SideEffectRecordRepository,
+} from '../../domains/side-effects/repository/side-effect-record.repository';
+import { SideEffectGuard } from '../../domains/side-effects/guards/side-effect.guard';
+import { SideEffectService } from '../../domains/side-effects/services/side-effect.service';
+import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
+import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
+import { TELEGRAM_PROVIDER } from '../../integrations/telegram/telegram.provider';
+import { MockTelegramProvider } from '../helpers/mock-telegram.provider';
+import { MessageDirection, SideEffectRecordStatus, WorkflowStatus } from '../../lib/enums';
+import { SideEffectRecordRow } from '../../lib/persistence';
 import { InMemoryCustomerMessageRepository } from '../helpers/in-memory-customer-message.repository';
 import { InMemoryIdempotencyRepository } from '../helpers/in-memory-idempotency.repository';
 import { InMemoryMessageAttachmentRepository } from '../helpers/in-memory-message-attachment.repository';
 import { InMemoryMessageLinkRepository } from '../helpers/in-memory-message-link.repository';
 import { InMemoryOutgoingMessageRepository } from '../helpers/in-memory-outgoing-message.repository';
 import { InMemoryPostsaleWorkflowRepository } from '../helpers/in-memory-postsale-workflow.repository';
+
+class InMemorySideEffectRecordRepository extends SideEffectRecordRepository {
+  private readonly records = new Map<string, SideEffectRecordRow>();
+
+  async createPending(
+    input: CreateSideEffectRecordInput,
+  ): Promise<SideEffectRecordRow> {
+    const row: SideEffectRecordRow = {
+      id: `se-${this.records.size + 1}`,
+      workflow_id: input.workflowId,
+      side_effect_type: input.sideEffectType,
+      idempotency_key: input.idempotencyKey,
+      status: SideEffectRecordStatus.PENDING,
+      retry_allowed: false,
+      error_code: null,
+      provider_response: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.records.set(input.idempotencyKey, row);
+    return row;
+  }
+
+  async findByIdempotencyKey(key: string): Promise<SideEffectRecordRow | null> {
+    return this.records.get(key) ?? null;
+  }
+
+  async updateStatus(
+    id: string,
+    status: SideEffectRecordStatus,
+    errorCode?: string,
+    retryAllowed?: boolean,
+    providerResponse?: Record<string, unknown>,
+  ): Promise<void> {
+    for (const row of this.records.values()) {
+      if (row.id === id) {
+        row.status = status;
+        row.error_code = errorCode ?? null;
+        row.retry_allowed = retryAllowed ?? row.retry_allowed;
+        row.provider_response = providerResponse ?? row.provider_response;
+      }
+    }
+  }
+}
 
 describe('IngestReplyUseCase', () => {
   let useCase: IngestReplyUseCase;
@@ -45,7 +103,7 @@ describe('IngestReplyUseCase', () => {
         IngestReplyUseCase,
         ReplyWorkflowMatcherService,
         GetWorkflowContextUseCase,
-        EscalateWorkflowUseCase,
+        ...gatedEscalationTestProviders,
         EscalateUnmatchedReplyUseCase,
         IdempotencyService,
         CheckIdempotencyUseCase,
@@ -253,5 +311,116 @@ describe('IngestReplyUseCase', () => {
 
     expect(outcome.type).toBe('ingested');
     expect(customerMessageRepository.all()).toHaveLength(1);
+  });
+});
+
+describe('IngestReplyUseCase gated escalation', () => {
+  let useCase: IngestReplyUseCase;
+  let workflowRepository: InMemoryPostsaleWorkflowRepository;
+  let outgoingRepository: InMemoryOutgoingMessageRepository;
+  let bitrixProvider: MockBitrixProvider;
+
+  beforeEach(async () => {
+    process.env.BITRIX_STAGE_ESCALATED = 'UC_ESCALATED';
+    workflowRepository = new InMemoryPostsaleWorkflowRepository();
+    outgoingRepository = new InMemoryOutgoingMessageRepository();
+    bitrixProvider = new MockBitrixProvider();
+
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      providers: [
+        IngestReplyUseCase,
+        ReplyWorkflowMatcherService,
+        GetWorkflowContextUseCase,
+        EscalateToPendingBitrixUseCase,
+        ExecutePendingSideEffectsUseCase,
+        SideEffectService,
+        SideEffectGuard,
+        EscalateUnmatchedReplyUseCase,
+        IdempotencyService,
+        CheckIdempotencyUseCase,
+        {
+          provide: IDEMPOTENCY_REPOSITORY,
+          useValue: new InMemoryIdempotencyRepository(),
+        },
+        {
+          provide: EmitWorkflowEventUseCase,
+          useValue: { execute: jest.fn().mockResolvedValue({}) },
+        },
+        {
+          provide: POSTSALE_WORKFLOW_REPOSITORY,
+          useValue: workflowRepository,
+        },
+        {
+          provide: OUTGOING_MESSAGE_REPOSITORY,
+          useValue: outgoingRepository,
+        },
+        {
+          provide: CUSTOMER_MESSAGE_REPOSITORY,
+          useValue: new InMemoryCustomerMessageRepository(),
+        },
+        {
+          provide: MESSAGE_ATTACHMENT_REPOSITORY,
+          useValue: new InMemoryMessageAttachmentRepository(),
+        },
+        {
+          provide: MESSAGE_LINK_REPOSITORY,
+          useValue: new InMemoryMessageLinkRepository(),
+        },
+        {
+          provide: SIDE_EFFECT_RECORD_REPOSITORY,
+          useClass: InMemorySideEffectRecordRepository,
+        },
+        {
+          provide: BITRIX_PROVIDER,
+          useValue: bitrixProvider,
+        },
+        {
+          provide: TELEGRAM_PROVIDER,
+          useValue: new MockTelegramProvider(),
+        },
+      ],
+    }).compile();
+
+    useCase = moduleFixture.get(IngestReplyUseCase);
+  });
+
+  it('routes unexpected early-stage reply through Bitrix escalation gate', async () => {
+    const workflow = await workflowRepository.create({
+      bitrixDealId: 'deal-early',
+      status: WorkflowStatus.TEMPLATE_MATCHED,
+    });
+    bitrixProvider.setDeal('deal-early', { id: 'deal-early', fields: {} });
+
+    await outgoingRepository.create({
+      workflow_id: workflow.id,
+      customer_message_id: null,
+      to_address: 'customer@example.com',
+      subject: 'Initial',
+      body: 'Please reply',
+      provider_message_id: 'provider-early',
+    });
+
+    const outcome = await useCase.execute({
+      messageId: 'gmail-early-1',
+      threadId: 'thread-early',
+      inReplyTo: 'provider-early',
+      fromEmail: 'customer@example.com',
+      fromName: null,
+      toEmails: ['sales@evapremium.com'],
+      subject: 'Re: Initial',
+      bodyText: 'unexpected early reply',
+      bodyHtml: null,
+      receivedAt: '2026-06-26T10:00:00.000Z',
+      attachments: [],
+    });
+
+    expect(outcome.type).toBe('escalated');
+    if (outcome.type !== 'escalated') {
+      return;
+    }
+    expect(outcome.workflow.status).toBe(WorkflowStatus.ESCALATED);
+    expect(bitrixProvider.getStageUpdates()).toEqual([
+      { dealId: 'deal-early', stageId: 'UC_ESCALATED' },
+    ]);
   });
 });

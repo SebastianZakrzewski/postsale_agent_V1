@@ -8,7 +8,8 @@ import {
 } from '../../../lib/enums';
 import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
 import { CheckIdempotencyUseCase } from '../../idempotency/use-cases/check-idempotency.use-case';
-import { EscalateWorkflowUseCase } from '../../postsale-workflows/use-cases/escalate-workflow.use-case';
+import { EscalateToPendingBitrixUseCase } from '../../postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
+import { ExecutePendingSideEffectsUseCase } from '../../postsale-workflows/use-cases/execute-pending-side-effects.use-case';
 import { GetWorkflowContextUseCase } from '../../postsale-workflows/use-cases/get-workflow-context.use-case';
 import { DuplicateCustomerMessageError } from '../errors/customer-message.errors';
 import {
@@ -38,7 +39,8 @@ export class IngestReplyUseCase {
     @Inject(MESSAGE_LINK_REPOSITORY)
     private readonly linkRepository: MessageLinkRepository,
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
-    private readonly escalateWorkflowUseCase: EscalateWorkflowUseCase,
+    private readonly escalateToPendingBitrixUseCase: EscalateToPendingBitrixUseCase,
+    private readonly executePendingSideEffectsUseCase: ExecutePendingSideEffectsUseCase,
   ) {}
 
   async execute(command: IngestReplyCommand): Promise<IngestReplyOutcome> {
@@ -196,16 +198,42 @@ export class IngestReplyUseCase {
     reason: string,
     requestId?: string,
   ): Promise<IngestReplyOutcome> {
-    const escalated = await this.escalateWorkflowUseCase.execute({
+    const { workflow } = await this.getWorkflowContextUseCase.execute({
+      workflowId,
+    });
+
+    const terminalStatuses = new Set<WorkflowStatus>([
+      WorkflowStatus.COMPLETED,
+      WorkflowStatus.ESCALATED,
+      WorkflowStatus.FAILED,
+    ]);
+
+    if (terminalStatuses.has(workflow.status)) {
+      return {
+        type: 'rejected',
+        workflow,
+        reason: `cannot_escalate_from_${workflow.status}`,
+      };
+    }
+
+    const pending = await this.escalateToPendingBitrixUseCase.execute({
       workflowId,
       reason,
       requestId,
     });
+    const executed = await this.executePendingSideEffectsUseCase.execute({
+      workflowId,
+      requestId,
+    });
+    const resolved =
+      executed.type === 'escalated' || executed.type === 'blocked'
+        ? executed.workflow
+        : pending.workflow;
 
     return {
       type: 'escalated',
-      capability: buildCapabilityResult(escalated),
-      workflow: escalated,
+      capability: buildCapabilityResult(resolved),
+      workflow: resolved,
       reason,
     };
   }

@@ -10,9 +10,9 @@ import { LangflowRunRecorderService } from '../../domains/langflow/services/lang
 import { AnalyzeReplyUseCase } from '../../domains/requirements/use-cases/analyze-reply.use-case';
 import { REQUIREMENT_EVIDENCE_REPOSITORY } from '../../domains/requirements/repository/requirement-evidence.repository';
 import { WORKFLOW_REQUIREMENT_REPOSITORY } from '../../domains/requirements/repository/workflow-requirement.repository';
-import { EscalateWorkflowUseCase } from '../../domains/postsale-workflows/use-cases/escalate-workflow.use-case';
 import { GetWorkflowContextUseCase } from '../../domains/postsale-workflows/use-cases/get-workflow-context.use-case';
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
+import { gatedEscalationTestProviders } from '../helpers/gated-escalation-test.providers';
 import { LANGFLOW_PROVIDER } from '../../integrations/langflow/langflow.provider';
 import {
   EvidenceType,
@@ -49,7 +49,7 @@ describe('AnalyzeReplyUseCase', () => {
       providers: [
         AnalyzeReplyUseCase,
         GetWorkflowContextUseCase,
-        EscalateWorkflowUseCase,
+        ...gatedEscalationTestProviders,
         LangflowRunRecorderService,
         {
           provide: EmitWorkflowEventUseCase,

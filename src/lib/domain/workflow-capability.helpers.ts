@@ -21,7 +21,15 @@ export function allowedNextActionsForStatus(status: WorkflowStatus): string[] {
     case WorkflowStatus.WAITING_FOR_CUSTOMER_REPLY:
       return ['ingest_customer_reply'];
     case WorkflowStatus.REQUIREMENTS_UPDATED:
-      return ['analyze_reply', 'escalate_workflow'];
+      return [
+        'analyze_reply',
+        'apply_completion_policy',
+        'send_followup',
+        'escalate_workflow',
+      ];
+    case WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE:
+    case WorkflowStatus.ESCALATION_PENDING_BITRIX_UPDATE:
+      return ['execute_pending_side_effects'];
     default:
       return [];
   }
@@ -53,6 +61,7 @@ export function isContextLoadedStatus(status: WorkflowStatus): boolean {
     WorkflowStatus.WAITING_FOR_CUSTOMER_REPLY,
     WorkflowStatus.REQUIREMENTS_UPDATED,
     WorkflowStatus.COMPLETION_PENDING_BITRIX_UPDATE,
+    WorkflowStatus.ESCALATION_PENDING_BITRIX_UPDATE,
     WorkflowStatus.COMPLETED,
   ].includes(status);
 }

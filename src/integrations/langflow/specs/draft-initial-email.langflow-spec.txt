@@ -68,7 +68,10 @@ config:
 
     4. Call To Action
 
-    Ask the customer to reply to this email and refer to the numbers from the list.
+    Ask the customer to reply to this email with the requested information.
+    Do not ask the customer to cite list numbers, point numbers, or item numbers in their reply.
+    Do not write phrases such as "podając numer punktu z listy", "odpowiedź z numerem", or "w naturalny sposób".
+    The customer may answer in free form; downstream analysis will map answers to requirements by meaning.
     For photo requirements, ask the customer to attach photos to the reply.
     Invite the customer to contact EVAPREMIUM if they have questions.
 
@@ -85,8 +88,17 @@ config:
     3. For each requirement, use sourceNote as the meaning and label as the answer format.
     4. Create one numbered customer-facing question or instruction per requirement.
     5. Check that every requirement id was addressed.
-    6. Generate body_text as a complete plain-text email.
-    7. Generate body_html as the same message in HTML, using paragraphs, an ordered list, and simple emphasis where useful.
+    6. Generate body_text as a complete plain-text email with real newline characters:
+       - blank line after the greeting
+       - blank line before and after the numbered list
+       - one numbered item per line (format: "1. Question text")
+       - closing on two lines: "Z poważaniem," then "Zespół EVAPREMIUM"
+    7. Generate body_html as the same message in HTML:
+       - use <p> for paragraphs
+       - use <ol><li> for the numbered requirement list
+       - use <strong> for vehicle/product names when emphasized in opening
+       - signature: <p>Z poważaniem,<br>Zespół EVAPREMIUM</p>
+       - do not use markdown in body_html
     8. Set proposed_requirement_refs to all addressed requirement ids.
     9. Set confidence between 0 and 1. Use high confidence only when all requirements are clear and complete. Lower confidence when sourceNote is ambiguous.
 

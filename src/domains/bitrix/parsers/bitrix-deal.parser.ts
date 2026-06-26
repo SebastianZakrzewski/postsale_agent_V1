@@ -4,7 +4,7 @@ import {
   resolveBitrixProductLabelFromFields,
 } from '../config/bitrix-deal-labels';
 import { BitrixDealPayload } from '../../../integrations/bitrix/bitrix.types';
-import { DealContext } from '../../../lib/domain';
+import { VehicleDealContext } from '../../../lib/domain';
 
 export interface BitrixDealParseFailure {
   ok: false;
@@ -13,7 +13,7 @@ export interface BitrixDealParseFailure {
 }
 
 export type BitrixDealParseResult =
-  | { ok: true; dealContext: DealContext }
+  | { ok: true; dealContext: VehicleDealContext }
   | BitrixDealParseFailure;
 
 function readField(

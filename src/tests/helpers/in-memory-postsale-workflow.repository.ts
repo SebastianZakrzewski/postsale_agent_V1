@@ -36,6 +36,8 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
       deal_context_json: null,
       product: null,
       car_template_id: null,
+      follow_up_count: 0,
+      last_follow_up_at: null,
       created_at: now,
       updated_at: now,
     };
@@ -94,6 +96,19 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
     if (input.carTemplateId !== undefined) {
       row.car_template_id = input.carTemplateId;
     }
+    row.updated_at = new Date().toISOString();
+  }
+
+  async incrementFollowUp(
+    workflowId: string,
+    followedUpAt: Date,
+  ): Promise<void> {
+    const row = this.workflows.get(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+    row.follow_up_count = (row.follow_up_count ?? 0) + 1;
+    row.last_follow_up_at = followedUpAt.toISOString();
     row.updated_at = new Date().toISOString();
   }
 

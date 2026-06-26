@@ -126,6 +126,28 @@ export class SupabasePostsaleWorkflowRepository extends PostsaleWorkflowReposito
     }
   }
 
+  async incrementFollowUp(
+    workflowId: string,
+    followedUpAt: Date,
+  ): Promise<void> {
+    const row = await this.findRowById(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        follow_up_count: (row.follow_up_count ?? 0) + 1,
+        last_follow_up_at: followedUpAt.toISOString(),
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to increment follow-up count: ${error.message}`);
+    }
+  }
+
   async findRowById(id: string): Promise<PostsaleWorkflowRow | null> {
     const { data, error } = await this.client
       .from('postsale_workflows')

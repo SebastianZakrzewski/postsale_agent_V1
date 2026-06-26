@@ -39,6 +39,10 @@ export abstract class PostsaleWorkflowRepository {
     workflowId: string,
     input: UpdateTemplateMatchInput,
   ): Promise<void>;
+  abstract incrementFollowUp(
+    workflowId: string,
+    followedUpAt: Date,
+  ): Promise<void>;
   abstract findRowById(id: string): Promise<PostsaleWorkflowRow | null>;
 }
 

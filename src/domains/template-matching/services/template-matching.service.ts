@@ -4,7 +4,7 @@ import {
   normalizeGeneration,
   normalizeIdentifier,
 } from '../../../lib/normalization';
-import { DealContext } from '../../../lib/domain';
+import { VehicleDealContext } from '../../../lib/domain';
 import {
   resolveBodyTypeProfile,
   templateRowMatchesBodyType,
@@ -17,7 +17,7 @@ export class TemplateMatchingService {
   constructor(private readonly carTemplateRepository: CarTemplateRepository) {}
 
   async matchDealContext(
-    dealContext: DealContext,
+    dealContext: VehicleDealContext,
   ): Promise<TemplateMatchStage1Result> {
     const brand = normalizeIdentifier(dealContext.brand);
     const model = normalizeIdentifier(dealContext.model);

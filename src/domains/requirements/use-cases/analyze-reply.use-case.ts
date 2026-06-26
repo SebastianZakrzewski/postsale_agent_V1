@@ -33,7 +33,8 @@ import {
   MessageAttachmentRepository,
   MessageLinkRepository,
 } from '../../email/repository/message.repository';
-import { EscalateWorkflowUseCase } from '../../postsale-workflows/use-cases/escalate-workflow.use-case';
+import { EscalateToPendingBitrixUseCase } from '../../postsale-workflows/use-cases/escalate-to-pending-bitrix.use-case';
+import { ExecutePendingSideEffectsUseCase } from '../../postsale-workflows/use-cases/execute-pending-side-effects.use-case';
 import { GetWorkflowContextUseCase } from '../../postsale-workflows/use-cases/get-workflow-context.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
@@ -73,7 +74,8 @@ export class AnalyzeReplyUseCase {
     private readonly langflowProvider: LangflowProvider,
     private readonly langflowRunRecorder: LangflowRunRecorderService,
     private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
-    private readonly escalateWorkflowUseCase: EscalateWorkflowUseCase,
+    private readonly escalateToPendingBitrixUseCase: EscalateToPendingBitrixUseCase,
+    private readonly executePendingSideEffectsUseCase: ExecutePendingSideEffectsUseCase,
   ) {}
 
   async execute(command: AnalyzeReplyCommand): Promise<AnalyzeReplyOutcome> {
@@ -290,16 +292,26 @@ export class AnalyzeReplyUseCase {
     command: AnalyzeReplyCommand,
     reason: string,
   ): Promise<AnalyzeReplyOutcome> {
-    const escalated = await this.escalateWorkflowUseCase.execute({
+    const pending = await this.escalateToPendingBitrixUseCase.execute({
       workflowId: command.workflowId,
       reason,
       requestId: command.requestId,
     });
 
+    const executed = await this.executePendingSideEffectsUseCase.execute({
+      workflowId: command.workflowId,
+      requestId: command.requestId,
+    });
+
+    const workflow =
+      executed.type === 'escalated' || executed.type === 'blocked'
+        ? executed.workflow
+        : pending.workflow;
+
     return {
       type: 'escalated',
-      capability: buildCapabilityResult(escalated),
-      workflow: escalated,
+      capability: buildCapabilityResult(workflow),
+      workflow,
       reason,
     };
   }

@@ -6,7 +6,10 @@ import { StartWorkflowUseCase } from '../../domains/postsale-workflows/use-cases
 import { POSTSALE_WORKFLOW_REPOSITORY } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { BITRIX_PROVIDER } from '../../integrations/bitrix/bitrix.provider';
 import { MockBitrixProvider } from '../../integrations/bitrix/mock-bitrix.provider';
-import { buildBitrixDealFields } from '../helpers/bitrix-deal-fields';
+import {
+  buildBitrixDealFields,
+  seedMockBitrixDeal,
+} from '../helpers/bitrix-deal-fields';
 import { IDEMPOTENCY_REPOSITORY } from '../../domains/idempotency/repository/idempotency.repository';
 import { WORKFLOW_EVENT_REPOSITORY } from '../../domains/audit/repository/workflow-event.repository';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
@@ -65,10 +68,7 @@ describe('PostsaleWorkflowsModule (integration)', () => {
   });
 
   it('wires StartWorkflowUseCase through module', async () => {
-    bitrixProvider.setDeal('deal-10', {
-      id: 'deal-10',
-      fields: buildBitrixDealFields(),
-    });
+    seedMockBitrixDeal(bitrixProvider, 'deal-10', buildBitrixDealFields());
 
     const result = await useCase.execute({
       bitrixDealId: 'deal-10',

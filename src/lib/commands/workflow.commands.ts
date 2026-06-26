@@ -61,6 +61,33 @@ export interface CreateRequirementsCommand {
 
 export interface SendInitialEmailCommand {
   workflowId: string;
-  recipientEmail: string;
+  requestId?: string;
+}
+
+export interface ApplyCompletionPolicyCommand {
+  workflowId: string;
+  langflowAnalysisValid?: boolean;
+  requestId?: string;
+}
+
+export interface SendFollowupCommand {
+  workflowId: string;
+  requestId?: string;
+}
+
+export interface EscalateToPendingBitrixCommand {
+  workflowId: string;
+  reason: string;
+  requestId?: string;
+}
+
+export interface FollowupCheckCommand {
+  workflowId: string;
+  now?: string;
+  requestId?: string;
+}
+
+export interface ExecutePendingSideEffectsCommand {
+  workflowId: string;
   requestId?: string;
 }
