@@ -10,47 +10,43 @@ import {
   MessageDirection,
 } from '../../lib/enums';
 
-export interface TemplateImportBatchRow {
+export interface PostsaleWorkflowRow {
   id: string;
-  source_filename: string | null;
-  row_count: number;
-  error_count: number;
-  status: string;
+  bitrix_deal_id: string;
+  status: WorkflowStatus;
+  template_match_status: TemplateMatchStatus | null;
+  deal_context_json: Record<string, unknown> | null;
+  product: string | null;
+  car_template_id: string | null;
+  follow_up_count: number;
+  last_follow_up_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface CarTemplateRow {
   id: string;
-  import_batch_id: string | null;
   brand: string;
   model: string;
-  body_type: string;
   generation: string | null;
-  aliases: string[] | null;
-  raw_row_json: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CarTemplateNoteRow {
-  id: string;
-  car_template_id: string;
-  product: string;
-  body_type: string;
-  note_text: string;
-  source_field: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PostsaleWorkflowRow {
-  id: string;
-  bitrix_deal_id: string;
-  status: WorkflowStatus;
-  template_match_status: TemplateMatchStatus | null;
-  created_at: string;
-  updated_at: string;
+  body_type_1: string;
+  body_type_2: string | null;
+  body_type_3: string | null;
+  notes_general: string | null;
+  notes_front_classic: string | null;
+  notes_front_3d: string | null;
+  notes_rear_classic: string | null;
+  notes_rear_3d: string | null;
+  notes_third_row: string | null;
+  notes_trunk_general: string | null;
+  notes_trunk_estate: string | null;
+  notes_trunk_hatchback: string | null;
+  notes_trunk_sedan: string | null;
+  notes_trunk_liftback: string | null;
+  notes_trunk_suv_5_seater: string | null;
+  notes_trunk_suv_7_seater: string | null;
+  notes_trunk_minivan_5_seater: string | null;
+  notes_trunk_minivan_7_seater: string | null;
 }
 
 export interface WorkflowRequirementRow {
@@ -113,7 +109,10 @@ export interface LangflowRunRow {
   workflow_id: string;
   flow_name: string;
   request_id: string | null;
+  /** @deprecated Application must always persist NULL. */
   raw_output: Record<string, unknown> | null;
+  parsed_success: boolean;
+  validation_errors: string | null;
   created_at: string;
 }
 

@@ -104,6 +104,8 @@ Bitrix (Oczekiwanie na Zdjęcia)
 
 ### Step 4 — Template matching
 
+> **Current runtime (2026-06-24):** Implemented via `template-matching` domain — `TemplateMatchingService` cascade + `MatchWorkflowTemplateUseCase`. Temporarily removed 2026-06-23; restored per OD-015. Validation: `docs/references/template-matching-validation.md`.
+
 | Field | Value |
 | --- | --- |
 | Actor | NestJS |
@@ -121,6 +123,8 @@ Bitrix (Oczekiwanie na Zdjęcia)
 
 ### Step 5 — Note selection
 
+> **Current runtime (2026-06-24):** `TemplateNoteSelectionService` maps Bitrix product + set variant to wide-table `notes_*` columns. Empty cells are not an error (OD-015). Zero notes still allows task-05 classification.
+
 | Field | Value |
 | --- | --- |
 | Actor | NestJS |
@@ -129,9 +133,9 @@ Bitrix (Oczekiwanie na Zdjęcia)
 | Decision | Which notes apply to this deal? |
 | Output | Selected template notes list |
 | State change | None (pre-classification) |
-| Side effect | Supabase read car_template_notes |
-| Audit | Log selected note IDs |
-| Failure | No notes → escalate |
+| Side effect | Supabase read `car_templates` wide `notes_*` columns |
+| Audit | Log selected note column keys |
+| Failure | Stage 1 ambiguity → escalate; Stage 2 empty notes → success (zero notes OK) |
 | Recovery | Escalation |
 | Owner | NestJS template-matching / requirements |
 | Given / When / Then | Given product + body type, When selection runs, Then only relevant notes are passed to Langflow |

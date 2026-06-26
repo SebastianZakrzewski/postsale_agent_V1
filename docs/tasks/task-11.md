@@ -7,7 +7,7 @@ Owner: Implementation agent
 Codex Role: Audit Required  
 Risk Level: Medium  
 Created: 2026-06-18  
-Last updated: 2026-06-18
+Last updated: 2026-06-23
 
 ## Sources
 
@@ -352,7 +352,11 @@ ExecPlan update: task-11 marked Done in Progress table
 
 PR/Diff: https://github.com/SebastianZakrzewski/postsale_agent_V1/pull/4 (task-03 fix pass; task-11 ops load)
 
-Next recommended step: task-04 implementation
+Next recommended step: Historical PROD load superseded — tables dropped 2026-06-23 (see decision log)
+
+## Scripts retirement (2026-06-23)
+
+One-time import completed on PROD historically. Human Architect removed `scripts/import-evamats.ts`, pre-check/generate SQL helpers, and related `package.json` npm scripts. **PROD template tables dropped manually** per migration `supabase/migrations/20260623120000_drop_car_templates.sql`. Future data changes require new Human Architect decision (OD-015). See `docs/decision-log.md` (2026-06-23).
 
 ## Final Report Template
 

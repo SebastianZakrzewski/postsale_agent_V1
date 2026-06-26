@@ -1,10 +1,16 @@
 import { WorkflowStatus, TemplateMatchStatus } from '../enums';
+import { DealContext } from './deal-context.domain';
 
 export interface Workflow {
   id: string;
   bitrixDealId: string;
   status: WorkflowStatus;
   templateMatchStatus: TemplateMatchStatus | null;
+  dealContext: DealContext | null;
+  product: string | null;
+  carTemplateId: string | null;
+  followUpCount: number;
+  lastFollowUpAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

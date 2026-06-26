@@ -1,6 +1,6 @@
 # Task: Workflow Capability Foundation — Schema, Start Decomposition, CapabilityResult
 
-Status: Ready  
+Status: Done  
 Stage: Domain | Persistence | Use Case  
 Mode: Implementation  
 Owner: Implementation agent  
@@ -12,7 +12,7 @@ Last updated: 2026-06-19
 ## Sources
 
 ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
-Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / TBD  
+Linear: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec) / [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85)  
 PR: TBD
 
 ## Required Docs
@@ -265,8 +265,8 @@ Non-blocking:
 ## Linear Mapping
 
 Linear project: [Postsale Agent Evapremium V1](https://linear.app/sellgenius-dev/project/postsale-agent-evapremium-v1-56fb7e13e4ec)  
-Linear issue: TBD  
-Linear status: Backlog
+Linear issue: [SEL-85](https://linear.app/sellgenius-dev/issue/SEL-85/task-12-workflow-capability-foundation-schema-start-decomposition)  
+Linear status: Done (repo; sync Linear SEL-85 after Codex re-audit)
 
 ## Trace
 
@@ -279,6 +279,10 @@ Blocks: task-05
 ## History
 
 2026-06-19 - Created - Docs update for agent-loop capability path (Human Architect direction)
+2026-06-19 - Updated - Linear issue linked (SEL-85); blocks SEL-79
+2026-06-19 - Implemented - Capability foundation; 83/83 tests PASS; awaiting Codex Audit
+2026-06-19 - Merged - Human merge to master; 84/84 tests PASS; review fixes included
+2026-06-19 - Updated - Docs Fala A: Linear mapping Done (repo); Codex re-audit pending after fix commit
 
 ## Final Report Template
 

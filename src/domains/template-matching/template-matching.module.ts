@@ -1,18 +1,32 @@
 import { Module } from '@nestjs/common';
-import { TemplateImportModule } from '../template-import/template-import.module';
+import { SupabaseIntegrationModule } from '../../integrations/supabase/supabase.module';
+import { SupabaseCarTemplateRepository } from '../../integrations/supabase/supabase-car-template.repository';
+import {
+  CAR_TEMPLATE_REPOSITORY,
+  CarTemplateRepository,
+} from './repository/car-template.repository.port';
 import { TemplateMatchingService } from './services/template-matching.service';
-import { TemplateNotesService } from './services/template-notes.service';
-import { MatchTemplateUseCase } from './use-cases/match-template.use-case';
-import { SelectNotesUseCase } from './use-cases/select-notes.use-case';
+import { TemplateNoteSelectionService } from './services/template-note-selection.service';
 
 @Module({
-  imports: [TemplateImportModule],
+  imports: [SupabaseIntegrationModule],
   providers: [
+    {
+      provide: CAR_TEMPLATE_REPOSITORY,
+      useExisting: SupabaseCarTemplateRepository,
+    },
+    {
+      provide: CarTemplateRepository,
+      useExisting: SupabaseCarTemplateRepository,
+    },
     TemplateMatchingService,
-    TemplateNotesService,
-    MatchTemplateUseCase,
-    SelectNotesUseCase,
+    TemplateNoteSelectionService,
   ],
-  exports: [MatchTemplateUseCase, SelectNotesUseCase],
+  exports: [
+    CAR_TEMPLATE_REPOSITORY,
+    CarTemplateRepository,
+    TemplateMatchingService,
+    TemplateNoteSelectionService,
+  ],
 })
 export class TemplateMatchingModule {}

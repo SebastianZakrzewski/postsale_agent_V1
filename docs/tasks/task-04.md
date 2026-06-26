@@ -290,7 +290,7 @@ Linear tracks only status, owner, priority, PR link, review/audit state, and pro
 ## Trace
 
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
-Related PR: TBD  
+Related PR: https://github.com/SebastianZakrzewski/postsale_agent_V1/commit/b3c13d3  
 Related reviews: Review 2026-06-19 APPROVED_FOR_CODEX_AUDIT; Codex Audit 2026-06-19 APPROVED_FOR_HUMAN_REVIEW  
 Related QA evidence: Mocked integration tests (start-workflow, bitrix, webhooks); full runtime validation deferred to task-09 per task scope  
 Related decisions: `docs/decision-log.md` (Bitrix stages, template matching, 2026-06-17)  

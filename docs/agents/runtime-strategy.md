@@ -8,6 +8,30 @@ Humans decide. Composer implements. Codex audits. Checks verify. Human Architect
 
 Agents work by role and mode, never as unrestricted actors.
 
+## Context Budget Rules
+
+Use the smallest sufficient context.
+
+Before reading files, state which files are required and why.
+
+Do not read unrelated files.
+
+Do not re-read unchanged documentation if already summarized in this session.
+
+Prefer targeted file inspection over full repository scanning.
+
+Use grep/search first, then open only relevant files.
+
+Keep summaries short.
+
+After each iteration, preserve only:
+
+- changed files
+- hypothesis
+- test result
+- metric delta
+- next decision
+
 ## Runtime Responsibilities
 
 ## Architecture Runtime

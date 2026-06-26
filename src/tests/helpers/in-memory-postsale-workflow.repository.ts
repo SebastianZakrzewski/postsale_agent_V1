@@ -1,6 +1,8 @@
 import {
   CreateWorkflowInput,
   PostsaleWorkflowRepository,
+  UpdateDealContextInput,
+  UpdateTemplateMatchInput,
 } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { Workflow } from '../../lib/domain';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
@@ -31,6 +33,11 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
       bitrix_deal_id: input.bitrixDealId,
       status: input.status,
       template_match_status: null,
+      deal_context_json: null,
+      product: null,
+      car_template_id: null,
+      follow_up_count: 0,
+      last_follow_up_at: null,
       created_at: now,
       updated_at: now,
     };
@@ -59,6 +66,49 @@ export class InMemoryPostsaleWorkflowRepository extends PostsaleWorkflowReposito
       throw new Error(`Workflow not found: ${workflowId}`);
     }
     row.template_match_status = templateMatchStatus;
+    row.updated_at = new Date().toISOString();
+  }
+
+  async updateDealContext(
+    workflowId: string,
+    input: UpdateDealContextInput,
+  ): Promise<void> {
+    const row = this.workflows.get(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+    row.deal_context_json = { ...input.dealContext };
+    row.product = input.product;
+    row.status = input.status;
+    row.updated_at = new Date().toISOString();
+  }
+
+  async updateTemplateMatch(
+    workflowId: string,
+    input: UpdateTemplateMatchInput,
+  ): Promise<void> {
+    const row = this.workflows.get(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+    row.template_match_status = input.templateMatchStatus;
+    row.status = input.status;
+    if (input.carTemplateId !== undefined) {
+      row.car_template_id = input.carTemplateId;
+    }
+    row.updated_at = new Date().toISOString();
+  }
+
+  async incrementFollowUp(
+    workflowId: string,
+    followedUpAt: Date,
+  ): Promise<void> {
+    const row = this.workflows.get(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+    row.follow_up_count = (row.follow_up_count ?? 0) + 1;
+    row.last_follow_up_at = followedUpAt.toISOString();
     row.updated_at = new Date().toISOString();
   }
 

@@ -8,6 +8,8 @@ export interface BitrixFieldMapping {
   bodyType: string;
   generation: string;
   product: string;
+  productEnum: string;
+  setVariant: string;
 }
 
 export const DEFAULT_BITRIX_FIELD_MAPPING: BitrixFieldMapping = {
@@ -16,6 +18,8 @@ export const DEFAULT_BITRIX_FIELD_MAPPING: BitrixFieldMapping = {
   bodyType: 'UF_CRM_1760788343011',
   generation: 'UF_CRM_1768256762509',
   product: 'UF_CRM_1781552572183',
+  productEnum: 'UF_CRM_1757024835301',
+  setVariant: 'UF_CRM_1757024931236',
 };
 
 export function parseBitrixFieldMappingFromEnv(
@@ -33,6 +37,9 @@ export function parseBitrixFieldMappingFromEnv(
       bodyType: parsed.bodyType ?? DEFAULT_BITRIX_FIELD_MAPPING.bodyType,
       generation: parsed.generation ?? DEFAULT_BITRIX_FIELD_MAPPING.generation,
       product: parsed.product ?? DEFAULT_BITRIX_FIELD_MAPPING.product,
+      productEnum:
+        parsed.productEnum ?? DEFAULT_BITRIX_FIELD_MAPPING.productEnum,
+      setVariant: parsed.setVariant ?? DEFAULT_BITRIX_FIELD_MAPPING.setVariant,
     };
   } catch {
     return DEFAULT_BITRIX_FIELD_MAPPING;

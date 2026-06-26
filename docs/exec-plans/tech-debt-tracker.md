@@ -24,8 +24,8 @@ Impact: Provider payload used beyond single parse boundary
 Recommended fix: Use only DealContext or domain errors after parseBitrixDeal
 Risk: Medium
 Owner: Implementation / Cleanup
-Status: Open
-Source: Cleanup scan 2026-06-19
+Status: Resolved (task-12 — parse boundary only in LoadDealContextUseCase)
+Source: Cleanup scan 2026-06-19; resolved task-12 2026-06-19
 ```
 
 ```text
@@ -84,8 +84,46 @@ Impact: Layer ceremony inconsistency
 Recommended fix: Route through use cases or collapse thin wrappers (behavior-preserving)
 Risk: Low
 Owner: Cleanup
+Status: Resolved (2026-06-19 — B1a: workflow orchestrators use CheckIdempotencyUseCase + EmitWorkflowEventUseCase)
+Source: Cleanup scan 2026-06-19; resolved architect decision B1a 2026-06-19
+```
+
+```text
+ID: TD-OBS-003
+Domain: observability
+Issue: Unmatched reply escalation is structured log only (no workflow_events row; no workflow_id)
+Impact: Operator forensics rely on log pipeline until task-08 Telegram/webhook wiring
+Recommended fix: task-08 — wire unmatched outcome to operator notification
+Risk: Low (accepted for V1 task-06)
+Owner: task-08
 Status: Open
-Source: Cleanup scan 2026-06-19
+Source: Codex Audit task-06 2026-06-26
+```
+
+```text
+ID: TD-OBS-004
+Domain: observability
+Issue: langflow_run_id not linked in REPLY_ANALYSIS_ACCEPTED workflow_events payload
+Impact: Weaker 1:1 correlation between analysis audit event and langflow_runs row
+Recommended fix: Include langflow_run_id in audit payload when recorder returns id
+Risk: Low
+Owner: Implementation
+Status: Open
+Source: Codex Audit task-06 2026-06-26
+```
+
+## Resolved Items
+
+```text
+ID: TD-MATCH-001
+Domain: postsale-workflows
+Issue: Template matching and notes persistence removed (2026-06-23); MatchWorkflowTemplateUseCase returns template_mapping_not_implemented
+Impact: All workflow starts escalate on match step; task-05 blocked (OD-015)
+Recommended fix: Human Architect defines requirements/notes source; new repo task
+Risk: High until OD-015 resolved
+Owner: Human Architect / Implementation
+Status: Resolved (2026-06-24 — OD-015 wide car_templates + template-matching domain restored; see decision-log)
+Source: Docs sync 2026-06-23 (full removal); resolved Cleanup 2026-06-24
 ```
 
 ```text
@@ -96,11 +134,9 @@ Impact: Blocks workflow-wide agent loop (V3); couples n8n happy path to internal
 Recommended fix: Extract LoadDealContextUseCase; thin start orchestrator; WorkflowStateGuard + capability API per docs/design-docs/postsale-agent-capabilities-agent-loop.md (V2+)
 Risk: Low if deferred post-V1; Medium if agent MCP needed early
 Owner: Implementation / V2 planning
-Status: Open
-Source: Architecture discussion 2026-06-19; OD-009; **task-12 implements recommended fix**
+Status: Resolved (task-12 — LoadDealContextUseCase, MatchWorkflowTemplateUseCase, GetWorkflowContextUseCase, CapabilityResult)
+Source: Architecture discussion 2026-06-19; OD-009; resolved task-12 2026-06-19
 ```
-
-## Resolved Items
 
 ```text
 ID: TD-ARCH-004
@@ -134,6 +170,6 @@ Impact: Dev tooling friction
 Recommended fix: package.json scripts + track scripts
 Risk: Low
 Owner: Cleanup
-Status: Resolved (2026-06-19)
+Status: Superseded (2026-06-23 — template tables and modules removed; see decision log)
 Source: Cleanup Fala 4
 ```

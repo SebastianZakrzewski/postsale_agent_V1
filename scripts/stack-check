@@ -24,6 +24,16 @@ if [[ "${RUN_NODE_CHECKS:-false}" == "true" ]]; then
 
   echo "Running Node checks..."
 
+  if ! command -v npm >/dev/null 2>&1 || ! npm --version >/dev/null 2>&1; then
+    if command -v powershell.exe >/dev/null 2>&1; then
+      echo "npm unavailable in bash; delegating to PowerShell..."
+      powershell.exe -NoProfile -ExecutionPolicy Bypass -File "./scripts/stack-check-node.ps1"
+      exit $?
+    fi
+    echo "ERROR: npm not available"
+    exit 1
+  fi
+
   npm ci
 
   if [[ "${REQUIRE_LINT:-false}" == "true" ]]; then

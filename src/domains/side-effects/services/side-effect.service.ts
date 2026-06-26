@@ -4,6 +4,7 @@ import { SideEffectRecord } from '../../../lib/domain';
 import { SideEffectRecordStatus } from '../../../lib/enums';
 import { structuredLogFields } from '../../../lib/observability/structured-log-fields';
 import { toSideEffectRecord } from '../../../lib/persistence/mappers';
+import { SideEffectNotRecordedError } from '../errors/side-effect.errors';
 import {
   SIDE_EFFECT_RECORD_REPOSITORY,
   SideEffectRecordRepository,
@@ -36,6 +37,46 @@ export class SideEffectService {
     );
 
     return toSideEffectRecord(row);
+  }
+
+  async recordForExecution(
+    command: RecordSideEffectCommand,
+  ): Promise<SideEffectRecord> {
+    const existing = await this.findByIdempotencyKey(command.idempotencyKey);
+    if (!existing) {
+      return this.record(command);
+    }
+
+    if (existing.status === SideEffectRecordStatus.PENDING) {
+      return existing;
+    }
+
+    if (existing.status === SideEffectRecordStatus.SUCCEEDED) {
+      return existing;
+    }
+
+    if (
+      existing.status === SideEffectRecordStatus.FAILED &&
+      existing.retryAllowed
+    ) {
+      await this.repository.updateStatus(
+        existing.id,
+        SideEffectRecordStatus.PENDING,
+        undefined,
+        false,
+      );
+      const reopened = await this.findByIdempotencyKey(command.idempotencyKey);
+      if (!reopened) {
+        throw new Error(
+          `Side effect record missing after reopen: ${command.idempotencyKey}`,
+        );
+      }
+      return reopened;
+    }
+
+    throw new SideEffectNotRecordedError(
+      `Side effect record ${existing.id} cannot be re-executed (status: ${existing.status})`,
+    );
   }
 
   async findByIdempotencyKey(

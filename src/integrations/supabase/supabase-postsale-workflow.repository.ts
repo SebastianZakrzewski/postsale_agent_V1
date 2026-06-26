@@ -3,6 +3,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import {
   CreateWorkflowInput,
   PostsaleWorkflowRepository,
+  UpdateTemplateMatchInput,
+  UpdateDealContextInput,
 } from '../../domains/postsale-workflows/repository/postsale-workflow.repository';
 import { Workflow } from '../../lib/domain';
 import { TemplateMatchStatus, WorkflowStatus } from '../../lib/enums';
@@ -83,6 +85,66 @@ export class SupabasePostsaleWorkflowRepository extends PostsaleWorkflowReposito
       throw new Error(
         `Failed to update template match status: ${error.message}`,
       );
+    }
+  }
+
+  async updateDealContext(
+    workflowId: string,
+    input: UpdateDealContextInput,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        deal_context_json: input.dealContext,
+        product: input.product,
+        status: input.status,
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to update deal context: ${error.message}`);
+    }
+  }
+
+  async updateTemplateMatch(
+    workflowId: string,
+    input: UpdateTemplateMatchInput,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        template_match_status: input.templateMatchStatus,
+        status: input.status,
+        ...(input.carTemplateId !== undefined
+          ? { car_template_id: input.carTemplateId }
+          : {}),
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to update template match: ${error.message}`);
+    }
+  }
+
+  async incrementFollowUp(
+    workflowId: string,
+    followedUpAt: Date,
+  ): Promise<void> {
+    const row = await this.findRowById(workflowId);
+    if (!row) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+
+    const { error } = await this.client
+      .from('postsale_workflows')
+      .update({
+        follow_up_count: (row.follow_up_count ?? 0) + 1,
+        last_follow_up_at: followedUpAt.toISOString(),
+      })
+      .eq('id', workflowId);
+
+    if (error) {
+      throw new Error(`Failed to increment follow-up count: ${error.message}`);
     }
   }
 

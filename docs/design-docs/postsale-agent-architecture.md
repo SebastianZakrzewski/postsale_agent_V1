@@ -55,8 +55,6 @@ src/
       services/
       use-cases/
       policies/
-    template-import/
-    template-matching/
     requirements/
     langflow/
     email/
@@ -111,9 +109,8 @@ No business logic in controllers, repositories, integration clients, n8n workflo
 
 | Module | Responsibility |
 | --- | --- |
-| postsale-workflows | Workflow lifecycle, completion policy, orchestration |
-| template-import | One-time EVAMATS import batches |
-| template-matching | Normalize + exact/alias match |
+| postsale-workflows | Workflow lifecycle, completion policy, orchestration; delegates match to `MatchWorkflowTemplateUseCase` |
+| template-matching | Two-stage deal → wide `car_templates` match + `notes_*` selection (OD-015, 2026-06-24) |
 | requirements | Requirement CRUD, evidence linkage, status rules |
 | langflow | Flow invocation, output parsing, validation |
 | email | Draft validation gate, outbound send, inbound normalization |
@@ -137,11 +134,13 @@ No business logic in controllers, repositories, integration clients, n8n workflo
 
 ## Database Tables (V1)
 
+**2026-06-24:** wide `car_templates` **restored** (`20260624100000_recreate_car_templates_wide.sql`). `postsale_workflows.car_template_id` references matched template. `car_template_notes` / `template_import_batches` remain dropped; notes live in `notes_*` columns on `car_templates`.
+
+**2026-06-23:** `template_import_batches`, `car_templates`, `car_template_notes` removed (`20260623120000_drop_car_templates.sql`) — superseded by wide layout 2026-06-24.
+
 | Table | Purpose |
 | --- | --- |
-| template_import_batches | Import metadata |
-| car_templates | Normalized template rows + raw_row_json |
-| car_template_notes | Notes/questions per template |
+| car_templates | EVAMATS wide template rows + `notes_*` text (V1 match source) |
 | postsale_workflows | Workflow aggregate root |
 | workflow_requirements | Classified requirements per workflow |
 | customer_messages | Inbound/outbound message records |

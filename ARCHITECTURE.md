@@ -60,6 +60,10 @@ docs/
   references/
 ```
 
+**2026-06-24 module state:** `template-matching` domain **restored** (OD-015). Wide `car_templates` in Supabase (`20260624100000_recreate_car_templates_wide.sql`) is the V1 notes source. Two-stage match: `TemplateMatchingService` (deal → template row) + `TemplateNoteSelectionService` (product + set variant → `notes_*`). `MatchWorkflowTemplateUseCase` persists `car_template_id`, sets `TEMPLATE_MATCHED`, emits `TEMPLATE_MATCH_SUCCEEDED`. Stage 2 does not escalate on empty `notes_*`. **task-05** unblocked for Langflow classification path. See `docs/decision-log.md` (2026-06-24) and `docs/references/template-matching-validation.md`.
+
+**2026-06-23 (superseded for match step):** template modules removed; stub `template_mapping_not_implemented` — reversed 2026-06-24 per OD-015.
+
 ## Default Domain Architecture
 
 Each business domain should follow a predictable layered structure unless Human Architect approves another model.

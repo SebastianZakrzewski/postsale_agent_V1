@@ -1,38 +1,11 @@
 import { TemplateMatchStatus } from '../enums';
+import { SelectedTemplateNote } from '../../domains/template-matching/types';
 
-export interface CarTemplate {
-  id: string;
-  brand: string;
-  model: string;
-  bodyType: string;
-  generation: string | null;
-  aliases: string[];
-}
-
-export interface TemplateNote {
-  id: string;
-  carTemplateId: string;
-  product: string;
-  bodyType: string;
-  noteText: string;
-  sourceField: string | null;
-}
+export type { SelectedTemplateNote };
 
 export interface TemplateMatchResult {
   status: TemplateMatchStatus;
-  carTemplateId?: string;
-  matchedTemplates?: CarTemplate[];
   escalationReason?: string;
-}
-
-export interface TemplateNotesResult {
-  notes: TemplateNote[];
-  requiresEscalation: boolean;
-}
-
-export interface ImportBatchResult {
-  batchId: string;
-  rowCount: number;
-  errorCount: number;
-  status: string;
+  carTemplateId?: string;
+  selectedNotes?: SelectedTemplateNote[];
 }

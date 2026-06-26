@@ -13,4 +13,8 @@ export class CheckIdempotencyUseCase {
   ): Promise<IdempotencyResult> {
     return this.idempotencyService.checkAndRecord(command, workflowId);
   }
+
+  linkWorkflowId(idempotencyKey: string, workflowId: string): Promise<void> {
+    return this.idempotencyService.linkWorkflowId(idempotencyKey, workflowId);
+  }
 }

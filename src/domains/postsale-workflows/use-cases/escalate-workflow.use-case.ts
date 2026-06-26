@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { EscalateWorkflowCommand } from '../../../lib/commands/workflow.commands';
 import { Workflow } from '../../../lib/domain';
 import { WorkflowEventType, WorkflowStatus } from '../../../lib/enums';
-import { AuditService } from '../../audit/services/audit.service';
+import { EmitWorkflowEventUseCase } from '../../audit/use-cases/emit-workflow-event.use-case';
 import {
   POSTSALE_WORKFLOW_REPOSITORY,
   PostsaleWorkflowRepository,
@@ -13,7 +13,7 @@ export class EscalateWorkflowUseCase {
   constructor(
     @Inject(POSTSALE_WORKFLOW_REPOSITORY)
     private readonly workflowRepository: PostsaleWorkflowRepository,
-    private readonly auditService: AuditService,
+    private readonly emitWorkflowEventUseCase: EmitWorkflowEventUseCase,
   ) {}
 
   async execute(command: EscalateWorkflowCommand): Promise<Workflow> {
@@ -34,7 +34,7 @@ export class EscalateWorkflowUseCase {
       WorkflowStatus.ESCALATED,
     );
 
-    await this.auditService.emit({
+    await this.emitWorkflowEventUseCase.execute({
       workflowId: command.workflowId,
       eventType: WorkflowEventType.WORKFLOW_ESCALATED,
       statusBefore: existing.status,

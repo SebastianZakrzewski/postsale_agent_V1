@@ -12,23 +12,27 @@ Agents must not resolve blocking OPEN_DECISIONs themselves.
 
 ## Open Decisions
 
-### Blocking
+_No blocking open decisions._ Resolved OD-015 (2026-06-24) — see `docs/decision-log.md` and `docs/references/template-matching-validation.md`.
 
-None.
+### Non-blocking (resolved archive)
 
-V1 architecture, business rules, lifecycle, integrations, and acceptance criteria are accepted via Architecture Context Pack and approved product spec.
+#### OD-015 — Requirements input after template persistence removal
+
+**Status:** Resolved (2026-06-24). Moved to `docs/decision-log.md`. Evidence: `src/domains/template-matching/`, `docs/references/template-matching-validation.md`.
+
+---
 
 ### Non-blocking
 
 #### OD-001 — Email provider
 
-**Unknown:** Which transactional email provider and sending domain for V1 (SMTP, SendGrid, Resend, other).
+**Status:** Partially resolved (2026-06-25). Provider: **Gmail**. Integration: **n8n** owns send + receive; NestJS does not call Gmail API. See `docs/decision-log.md` (2026-06-25 — Email channel: Gmail via n8n).
 
-**Why it matters:** Affects adapter implementation, webhook format for inbound replies, and DNS configuration.
+**Still open (non-blocking):** Gmail sending address/domain; n8n workflow URLs/IDs for send and inbound forward; attachment `contentRef` fetch/storage; inbound DTO contract is defined in decision-log — n8n workflows must emit that shape.
 
-**Recommended default:** Provider already used by EVAPREMIUM for operational email, wired through n8n inbound + NestJS outbound adapter.
+**Why it mattered:** Adapter implementation, inbound webhook format, DNS/OAuth (in n8n).
 
-**Impact:** email module adapter only; does not change completion policy.
+**Impact:** `EmailProvider` → n8n HTTP for outbound; `inbound-email.parser.ts` → canonical n8n DTO for inbound (task-06).
 
 ---
 
@@ -148,6 +152,32 @@ V1 architecture, business rules, lifecycle, integrations, and acceptance criteri
 **Impact:** Non-blocking for V1. Guides refactor hygiene during task-05–08. See capability map in design doc.
 
 **Design reference:** `docs/design-docs/postsale-agent-capabilities-agent-loop.md`
+
+---
+
+#### OD-013 — Missing EVAMATS row supplementation
+
+**Unknown:** Who adds `car_templates` rows for true NOT_FOUND models (e.g. Captur 2 gen, Audi Q3 FJ 3 gen, Golf MK7, C-HR) and whether partial re-import is in V1 scope.
+
+**Why it matters:** Code and aliases cannot fix absent templates; FINAL_INVOICE needs ~15+ rows to reach 90% if duplicate fixes alone are insufficient.
+
+**Recommended default:** Human Architect provides updated EVAMATS export; one-time controlled DML via task-11-style script (task-13 Iteration 5 optional).
+
+**Impact:** Non-blocking for starting task-13 Iterations 1–4; blocking for guaranteed 90% if NOT_FOUND count remains high after dedup + aliases.
+
+---
+
+#### OD-014 — Template notes hit-rate acceptance floor (task-14)
+
+**Status:** Superseded — task-14 **Cancelled** 2026-06-19 (Human Architect: no Bitrix product/set-variant notes mapping). Legacy single-product `TemplateNotesService` retained; notes hit-rate floor no longer gates delivery.
+
+**Unknown (if notes mapping revived):** Minimum five-stage **notes** arithmetic mean for task-14 acceptance after Bitrix product/set-variant mapping (baseline **16.0%** on 2026-06-19 full audit; template mean **94.5%** same run).
+
+**Why it matters:** Remaining gaps may be mapping bugs or missing `car_template_notes` rows (OD-013).
+
+**Recommended default:** **≥ 60%** notes arithmetic mean on live `batch-stage-full-audit.ts`; template mean must stay **≥ 90%** (task-13 regression).
+
+**Impact:** Non-blocking while task-14 cancelled.
 
 ---
 

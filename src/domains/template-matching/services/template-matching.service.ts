@@ -1,89 +1,80 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { MatchTemplateCommand } from '../../../lib/commands/template.commands';
-import { TemplateMatchResult } from '../../../lib/domain';
-import { TemplateMatchStatus } from '../../../lib/enums';
-import { CarTemplateRow } from '../../../lib/persistence';
-import { toCarTemplate } from '../../../lib/persistence/mappers/car-template.mapper';
-import { TemplateNormalizationService } from '../../template-import/services/template-normalization.service';
+import { Injectable } from '@nestjs/common';
 import {
-  CAR_TEMPLATE_REPOSITORY,
-  CarTemplateRepository,
-} from '../repository/car-template.repository';
+  normalizeBodyType,
+  normalizeGeneration,
+  normalizeIdentifier,
+} from '../../../lib/normalization';
+import { VehicleDealContext } from '../../../lib/domain';
+import {
+  resolveBodyTypeProfile,
+  templateRowMatchesBodyType,
+} from '../config/body-type-compatibility';
+import { CarTemplateRepository } from '../repository/car-template.repository.port';
+import { TemplateMatchStage1Result } from '../types';
 
 @Injectable()
 export class TemplateMatchingService {
-  constructor(
-    @Inject(CAR_TEMPLATE_REPOSITORY)
-    private readonly carTemplateRepository: CarTemplateRepository,
-    private readonly normalizationService: TemplateNormalizationService,
-  ) {}
+  constructor(private readonly carTemplateRepository: CarTemplateRepository) {}
 
-  async match(command: MatchTemplateCommand): Promise<TemplateMatchResult> {
-    const normalized = this.normalizationService.normalizeVehicleFields({
-      brand: command.brand,
-      model: command.model,
-      bodyType: command.bodyType,
-      generation: command.generation,
-    });
+  async matchDealContext(
+    dealContext: VehicleDealContext,
+  ): Promise<TemplateMatchStage1Result> {
+    const brand = normalizeIdentifier(dealContext.brand);
+    const model = normalizeIdentifier(dealContext.model);
+    const generation = normalizeGeneration(dealContext.generation);
+    const bodyType = normalizeBodyType(dealContext.bodyType);
 
-    if (!this.normalizationService.hasRequiredVehicleFields(normalized)) {
+    if (!brand || !model || !bodyType) {
       return {
-        status: TemplateMatchStatus.NOT_FOUND,
+        status: 'NOT_FOUND',
         escalationReason: 'insufficient_vehicle_data',
       };
     }
 
-    const exactMatches = await this.carTemplateRepository.findByNormalizedKey(
-      normalized.brand,
-      normalized.model,
-      normalized.bodyType,
-      normalized.generation,
-    );
-
-    if (exactMatches.length === 1) {
+    if (!generation) {
       return {
-        status: TemplateMatchStatus.MATCHED,
-        carTemplateId: exactMatches[0].id,
-        matchedTemplates: [toCarTemplate(exactMatches[0])],
+        status: 'NOT_FOUND',
+        escalationReason: 'missing_generation',
       };
     }
 
-    if (exactMatches.length > 1) {
-      return this.ambiguousResult(exactMatches);
-    }
-
-    const aliasKey = this.normalizationService.buildMatchKey(
-      normalized.brand,
-      normalized.model,
-      normalized.bodyType,
-      normalized.generation,
+    const candidates = await this.carTemplateRepository.findByVehicleKey(
+      brand,
+      model,
+      generation,
     );
 
-    const aliasMatches = await this.carTemplateRepository.findByAlias(aliasKey);
-
-    if (aliasMatches.length === 1) {
+    if (candidates.length === 0) {
       return {
-        status: TemplateMatchStatus.MATCHED,
-        carTemplateId: aliasMatches[0].id,
-        matchedTemplates: [toCarTemplate(aliasMatches[0])],
+        status: 'NOT_FOUND',
+        escalationReason: 'template_not_found',
       };
     }
 
-    if (aliasMatches.length > 1) {
-      return this.ambiguousResult(aliasMatches);
+    const dealProfile = resolveBodyTypeProfile(bodyType);
+    const bodyMatches = candidates.filter((row) =>
+      templateRowMatchesBodyType(dealProfile, row),
+    );
+
+    if (bodyMatches.length === 0) {
+      return {
+        status: 'NOT_FOUND',
+        escalationReason: 'body_type_mismatch',
+      };
+    }
+
+    if (bodyMatches.length > 1) {
+      return {
+        status: 'AMBIGUOUS',
+        escalationReason: 'ambiguous_template',
+        candidateIds: bodyMatches.map((row) => row.id),
+      };
     }
 
     return {
-      status: TemplateMatchStatus.NOT_FOUND,
-      escalationReason: 'template_not_found',
-    };
-  }
-
-  private ambiguousResult(rows: CarTemplateRow[]): TemplateMatchResult {
-    return {
-      status: TemplateMatchStatus.AMBIGUOUS,
-      matchedTemplates: rows.map(toCarTemplate),
-      escalationReason: 'ambiguous_template',
+      status: 'MATCHED',
+      carTemplate: bodyMatches[0]!,
+      resolvedBodyProfile: dealProfile,
     };
   }
 }

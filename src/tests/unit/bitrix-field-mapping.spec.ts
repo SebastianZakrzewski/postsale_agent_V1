@@ -22,6 +22,8 @@ describe('bitrix field mapping', () => {
       bodyType: 'UF_CRM_1760788343011',
       generation: 'UF_CRM_1768256762509',
       product: 'UF_CRM_1781552572183',
+      productEnum: 'UF_CRM_1757024835301',
+      setVariant: 'UF_CRM_1757024931236',
     });
   });
 
