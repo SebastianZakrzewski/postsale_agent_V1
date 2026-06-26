@@ -74,6 +74,30 @@ This file records accepted architecture, product, security, reliability, integra
 
 **Owner:** Human Architect
 
+### 2026-06-26 — Follow-up policy: ACTIVE_REPLY vs SILENCE (task-17)
+
+**Decision:** Follow-up uses two triggers: `ACTIVE_REPLY` (immediate follow-up after each customer inbound when analyze returns incomplete; does not increment timer `follow_up_count`) and `SILENCE` (n8n `follow-up-check` timer chain: 24h → 48h → 60h, max 3 timer follow-ups then escalation). Completion policy PASS/INCOMPLETE/DENY rules unchanged.
+
+**Rationale:** Customers may answer numbered requirements across multiple emails; immediate follow-up improves effectiveness without replacing silence-based escalation timers.
+
+**Owner:** Human Architect
+
+### 2026-06-26 — Startup pipeline continuation in StartWorkflowUseCase (task-17)
+
+**Decision:** Because n8n only calls `POST /webhooks/workflow/start`, `StartWorkflowUseCase` must chain `CreateRequirementsUseCase` and `SendInitialEmailUseCase` in-process after `TEMPLATE_MATCH_SUCCEEDED` (and resume from `REQUIREMENTS_CREATED` on duplicate start). Separate webhook steps for requirements/initial email are not required for V1 n8n wiring.
+
+**Rationale:** Observed production stall at `TEMPLATE_MATCH_SUCCEEDED` when continuation lived only in E2E scripts.
+
+**Owner:** Human Architect
+
+### 2026-06-26 — task-16 / task-17 documentation split
+
+**Decision:** task-16 covers agent effectiveness (customer_question, Langflow payloads, segmentation, metrics, AMBIGUOUS Bitrix comment). task-17 covers orchestration and completion side effects (continueStartupPipeline, TryComplete, confirmation email, floor photos, ACTIVE_REPLY). Both may ship on one branch/PR; Review agents must not delete task-17 code as "out of task-16 scope" — defer to `docs/tasks/task-17.md`.
+
+**Rationale:** Prevents repeat of review-driven scope split without Human Architect approval.
+
+**Owner:** Human Architect
+
 ### 2026-06-17 — Langflow boundaries
 
 **Decision:** Langflow may classify, draft, analyze, propose, and use approved read tools. Langflow cannot send email, update Bitrix, mark complete, write Supabase, send Telegram, or create Bitrix comments directly.

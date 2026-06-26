@@ -263,6 +263,8 @@ All V1 implementation tasks are defined in `docs/tasks/`. Execute in dependency 
 | task-13 | Template match accuracy — 90% stage arithmetic mean (PROD persistence)         | task-03, task-04, task-11 | Done (historical; app matcher retired 2026-06-23) |
 | task-14 | Bitrix product + set-variant → template note selection                         | —                         | **Cancelled** (2026-06-23)                        |
 | task-15 | Template matching + normalization rebuild                                      | —                         | **Cancelled** (2026-06-23)                        |
+| task-16 | Agent effectiveness — customer_question, Langflow, segmentation, metrics       | task-05, task-06, task-07 | Done                                              |
+| task-17 | Startup orchestration, completion email, floor photos, ACTIVE_REPLY follow-up  | task-07, task-08, task-16 | In Review (`feat/task-16-agent-effectiveness`)    |
 
 Dependency graph:
 
@@ -271,6 +273,7 @@ task-01
   ├── task-02 ─────────────────────────────┐
   └── task-03 ── task-04 ── task-12 ── task-05 ── task-06 ── task-07 ── task-08 ── task-09
                 └ (task-02 used from 04 onward)
+        └── task-16 ── task-17 (same branch PR; task-17 extends orchestration + completion)
         └── task-11 (EVAMATS DML — Done; import scripts retired 2026-06-23)
         └── task-13 (PROD match accuracy — Done historical; app matcher retired 2026-06-23)
 ```
@@ -336,6 +339,8 @@ Blocking dependencies:
 - [done] task-13 - PROD template match accuracy 93.3% (historical; app matcher retired 2026-06-23)
 - [cancelled] task-14 - Bitrix product/set-variant → template note selection (2026-06-23 removal)
 - [cancelled] task-15 - template matching rebuild (2026-06-23 removal)
+- [done] task-16 - agent effectiveness (customer_question, Langflow specs, segmentation; `docs/tasks/task-16.md`)
+- [in review] task-17 - startup orchestration, completion email, floor photos, ACTIVE_REPLY (`feat/task-16-agent-effectiveness` f88db20..ffa1c1f)
 
 ## Surprises & Discoveries
 
@@ -347,6 +352,7 @@ Blocking dependencies:
 - task-12 (2026-06-19): Start workflow decomposed (LoadDealContext, MatchWorkflowTemplate, GetWorkflowContext); `deal_context_json` on workflow row; CapabilityResult internal contract.
 - **2026-06-24:** OD-015 — wide `car_templates`, `template-matching` domain, `MatchWorkflowTemplateUseCase` wired; PROD validation 99.4% Stage 1, 100% Stage 2 logic. See `docs/references/template-matching-validation.md`.
 - **2026-06-24:** task-05 Codex audit **APPROVED** — `langflow_runs` parse-only audit (`parsed_success`, stable `validation_errors`), zero-notes OD-015 path, no raw LLM persistence.
+- **2026-06-26:** task-16 / task-17 scope split documented in repo tasks after review agent deferred orchestration code; Human Architect: task-17 behaviors are in-scope on branch `feat/task-16-agent-effectiveness` — Review must not remove without explicit approval (`docs/tasks/task-17.md` Review Protection).
 - **2026-06-25:** task-05 Codex **re-audit APPROVED_FOR_HUMAN_REVIEW** after Fix (CRLF/lint) + Review pass; harness-check green; pending Human Architect merge.
 - **2026-06-23:** Human Architect temporarily removed template-import, template-matching, and Supabase template tables (`template_mapping_not_implemented`). **Superseded 2026-06-24** by OD-015 restoration (see above). Migration `20260623120000_drop_car_templates.sql`.
 

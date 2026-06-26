@@ -13,8 +13,9 @@ Last updated: 2026-06-26
 
 ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Benchmark: `scripts/.benchmark-50-models-reply-simulation.json` (seed=42, 2026-06-26)  
-PR: TBD  
-Depends on: task-05 (requirements), task-06 (analyze reply), task-07 (follow-up)
+PR: `feat/task-16-agent-effectiveness` (`f88db20`…`ffa1c1f`)  
+Depends on: task-05 (requirements), task-06 (analyze reply), task-07 (follow-up)  
+Out of scope (see `docs/tasks/task-17.md`): startup pipeline continuation, TryComplete, completion email, floor photos, ACTIVE_REPLY follow-up
 
 ## Required Docs
 
@@ -57,7 +58,7 @@ Complete when:
 Allowed changes:
 
 - Migration `workflow_requirements.customer_question`
-- `CreateRequirementsUseCase`, `AnalyzeReplyUseCase`, `SendInitialEmailUseCase`, `SendFollowupUseCase`, `IngestReplyUseCase`, `StartWorkflowUseCase`
+- `CreateRequirementsUseCase`, `AnalyzeReplyUseCase`, `SendInitialEmailUseCase`, `SendFollowupUseCase` (payload enrichment only), `IngestReplyUseCase`, `StartWorkflowUseCase` (NotifyTemplateMatchEscalation only — not `continueStartupPipeline`)
 - `NoteSegmentationService`, `OptionSelectionReplyHeuristicService`, `BitrixTemplateMatchCommentBuilder`, `NotifyTemplateMatchEscalationUseCase`
 - Langflow spec txt files under `src/integrations/langflow/specs/`
 - `.env.example`, unit/integration tests, `scripts/fixtures/` for regression samples
@@ -73,7 +74,7 @@ Likely files/areas:
 
 ## Forbidden Scope
 
-- Changing completion/followup policy outcomes (PASS/INCOMPLETE/DENY rules)
+- Changing completion/followup policy outcomes (PASS/INCOMPLETE/DENY rules) or follow-up triggers (`ACTIVE_REPLY` / `SILENCE` — task-17)
 - Poluzowanie PHOTO VALID without EMAIL_ATTACHMENT
 - Poluzowanie OPTION_SELECTION VALID without explicit option (except behind `FEATURE_OPTION_SELECTION_HEURISTIC=true`)
 - Direct Supabase PROD data fixes (Doblo, AMBIGUOUS templates) — document only
@@ -235,13 +236,14 @@ Linear tracks only status, owner, priority, PR link, review/audit state, and pro
 Related ExecPlan: `docs/exec-plans/active/postsale-agent-v1.md`  
 Related PR: TBD  
 Related QA evidence: `scripts/.benchmark-50-models-reply-simulation.json` (seed=42, 2026-06-26)  
-Related tasks: task-05, task-06, task-07
+Related tasks: task-05, task-06, task-07, task-17 (orchestration — separate scope on same branch)
 
 ## History
 
 2026-06-26 - Created - Task Designer: P0–P2 effectiveness improvements from 50-model benchmark  
 2026-06-26 - In Progress - Implementation: migration, Langflow payloads/specs, segmentation, heuristic, Bitrix escalation, tests  
-2026-06-26 - Done - Implementation: 217 tests PASS; harness-check PASS; Langflow deploy pending ops
+2026-06-26 - Done - Implementation: 217 tests PASS; harness-check PASS; Langflow deploy pending ops  
+2026-06-26 - Done - Docs: scope boundary documented in `task-17.md`; review must not remove task-17 code without Human Architect approval
 
 ## Final Report Template
 
