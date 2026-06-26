@@ -21,17 +21,18 @@ Last updated:
 Updated by:
 
 ```text
-Review 2026-06-26 — task-07/08/09 (PR #6); REQUEST_CHANGES
+Codex Audit 2026-06-26 (re-run) — task-07/08/09 (PR #6); REQUEST_CHANGES
 ```
 
 Evidence basis:
 
 ```text
-PR #6 feat/task-07-08-09: completion/followup/escalation policies; Bitrix write; n8n webhooks; 15-case policy suite
-npm test 181/181 PASS (46 suites); npm run test:policies 18/18 PASS; lint/typecheck/build PASS
-powershell ./scripts/harness-check.ps1 PASS (local); GitHub Actions Harness Check SUCCESS on PR #6
-Gaps: task-09 policy README missing; task-08 inbound/follow-up Supertest + auth not covered; task-07 propose_completion integration test missing; ExecPlan task-07/08/09 still pending
-Fix 2026-06-26: README + webhook Supertest + propose_completion IT added (187 tests PASS); pending re-Review
+PR #6 feat/task-07-08-09 (4 commits): policies, Bitrix write, n8n webhooks, policy tests, post-Codex fixes
+Re-Review + Codex re-audit 2026-06-26: prior gaps closed — retry on failed Bitrix side effect, escalation path blocking parity, follow-up-check blocked status, analyze-reply gated escalation
+Checks: harness-check.ps1 PASS; npm test 191/191 PASS (48 suites); npm run test:policies 18/18 PASS
+Remaining Codex finding: IngestReply fallback still uses EscalateWorkflowUseCase for non-WAITING/REQUIREMENTS_UPDATED states, which can bypass ESCALATION_PENDING_BITRIX_UPDATE gate
+Known deployment risk: webhook auth allows requests when N8N_WEBHOOK_SECRET is unset (OD-007 still non-blocking, production hardening pending)
+ExecPlan task-07/08/09 still pending; migration apply pending pre-prod
 ```
 
 ## Score Categories
@@ -39,13 +40,13 @@ Fix 2026-06-26: README + webhook Supertest + propose_completion IT added (187 te
 | Category | Max | Score |
 | --- | ---: | ---: |
 | Source of truth hygiene | 10 | 8 |
-| Architecture consistency | 10 | 9 |
+| Architecture consistency | 10 | 8 |
 | Product clarity | 10 | 7 |
-| Task quality | 10 | 8 |
-| Test coverage | 10 | 9 |
+| Task quality | 10 | 9 |
+| Test coverage | 10 | 10 |
 | Runtime validation | 10 | 7 |
 | Security | 10 | 8 |
-| Reliability | 10 | 9 |
+| Reliability | 10 | 8 |
 | Observability | 10 | 8 |
 | AI slop / maintainability | 10 | 9 |
 | **Total** | **100** | **84** |
@@ -54,7 +55,7 @@ Fix 2026-06-26: README + webhook Supertest + propose_completion IT added (187 te
 
 ### 1. Source Of Truth Hygiene
 
-Score: 9/10
+Score: 8/10
 
 Check: `AGENTS.md`, active ExecPlans, repo tasks, `docs/decision-log.md`, `docs/open-decisions.md`.
 
@@ -69,18 +70,20 @@ Recommended fixes:
 
 ### 2. Architecture Consistency
 
-Score: 9/10
+Score: 8/10
 
 Check: `ARCHITECTURE.md`, Providers, boundary parsing, forbidden edges.
 
 Problems found:
 
 - **Pass:** Completion/followup/escalation policies; ExecutePendingSideEffectsUseCase; side-effect guard preserved.
-- **Pass:** Langflow `invoke`-only boundary (case 14); analyze returns `propose_completion` capability, not direct COMPLETED.
+- **Pass:** Langflow `invoke`-only boundary (case 14); gated completion path via `propose_completion` IT.
+- **Gap:** `IngestReplyUseCase` fallback path still calls `EscalateWorkflowUseCase` for statuses outside `{REQUIREMENTS_UPDATED, WAITING_FOR_CUSTOMER_REPLY}` → possible terminal `ESCALATED` without `ESCALATION_PENDING_BITRIX_UPDATE` + `ExecutePendingSideEffectsUseCase`.
 - WebhookAuthGuard allows all traffic when `N8N_WEBHOOK_SECRET` unset (dev convenience; prod must set secret).
 
 Recommended fixes:
 
+- Route all ingest escalation paths through `EscalateToPendingBitrixUseCase` + `ExecutePendingSideEffectsUseCase` (remove fallback bypass).
 - Document prod requirement: `N8N_WEBHOOK_SECRET` mandatory before expose.
 
 ### 3. Product Clarity
@@ -99,54 +102,54 @@ Recommended fixes:
 
 ### 4. Task Quality
 
-Score: 9/10
+Score: 10/10
 
 Check: repo tasks vs `_template.md`.
 
 Problems found:
 
 - **Pass:** task-07/08/09 implementation on PR #6; policy suite 15 cases in Jest.
-- **Gap:** task-09 AC — policy test README not added.
-- **Gap:** task-08 AC — Supertest only covers `workflow/start`; not inbound/follow-up/auth.
-- **Gap:** task-07 AC — dedicated `propose_completion` bypass integration test missing.
+- **Pass:** task-09 policy README; task-08 webhook Supertest; task-07 propose_completion IT (fix commit `80ba26e`).
+- Codex: task-08 gate-bypass on analyze/ingest escalation paths not fully closed.
 
 Recommended fixes:
 
-- Fix mode: README + webhook integration tests + propose_completion integration test; then re-Review.
+- Fix mode: gated escalation for analyze/ingest + Bitrix retry + escalation error handling.
 
 ### 5. Test Coverage
 
-Score: 8/10
+Score: 9/10
 
 Check: Jest suites vs V1 acceptance baseline.
 
 Problems found:
 
-- **Pass:** 181 Jest tests; `npm run test:policies` 18/18; cases 1–15 in baseline-policy specs + unit specs.
-- Policy index documents case→spec mapping (partial OD-009 fixture doc).
+- **Pass:** 191 Jest tests; `npm run test:policies` 18/18; cases 1–15 in baseline-policy specs + unit specs.
+- **Pass:** `src/tests/policies/README.md` case→spec mapping.
+- **Pass:** regression test added for Bitrix side-effect retry after `retry_allowed` failure.
 
 Recommended fixes:
 
-- Add `src/tests/policies/README.md` per task-09.
+- Keep policy baseline map in sync with future case additions.
 
 ### 6. Runtime Validation
 
-Score: 6/10
+Score: 7/10
 
 Check: runtime evidence per ExecPlan.
 
 Problems found:
 
-- Supertest: `workflow/start` only (`webhooks.controller.spec.ts`).
+- **Pass:** Supertest covers `workflow/start`, `email/inbound`, `workflow/follow-up-check`, invalid `X-Webhook-Secret`.
 - No live n8n/Bitrix/Telegram E2E (acceptable pre-prod); migration `20260626120000_task07_followup_escalation_pending.sql` not applied in review env.
 
 Recommended fixes:
 
-- Add Supertest for `email/inbound`, `workflow/follow-up-check`, `X-Webhook-Secret` rejection.
+- Apply task-07 migration on Supabase before deploy.
 
 ### 7. Security
 
-Score: 9/10
+Score: 8/10
 
 Check: `docs/SECURITY.md`, webhook auth, npm audit, LLM boundary parsing.
 
@@ -162,18 +165,22 @@ Recommended fixes:
 
 ### 8. Reliability
 
-Score: 9/10
+Score: 8/10
 
 Check: idempotency, side effects, failure modes.
 
 Problems found:
 
-- **Pass:** Follow-up max 3; Bitrix failure blocks COMPLETED (cases 10, 13); idempotency on side effects.
+- **Pass:** Follow-up max 3; first Bitrix failure blocks COMPLETED (case 10); Telegram non-blocking (case 13).
+- **Pass:** Retry after failed Bitrix completion now reopens existing FAILED side_effect_record with `retryAllowed=true` and reuses idempotency key safely.
+- **Pass:** Escalation Bitrix path now reuses completion-style blocked handling (`bitrix_update_failed`) instead of throwing.
+- **Pass:** `ProcessFollowupCheckUseCase` now returns current pending status when side effects are blocked.
+- **Gap:** Ingest fallback gate bypass can finalize escalation without Bitrix pending-side-effect execution.
 - Migration apply pending before prod.
 
 Recommended fixes:
 
-- Apply task-07 migration on Supabase before deploy.
+- Remove ingest fallback bypass and add regression test for status transition through pending Bitrix gate.
 
 ### 9. Observability
 
@@ -215,20 +222,19 @@ Recommended fixes:
 0-39   = unstable; stop and repair source of truth
 ```
 
-Current band: **75–89 — good, with manageable debt** (task-07/08/09 Review REQUEST_CHANGES 2026-06-26).
+Current band: **75–89 — good, with manageable debt** (task-07/08/09 Codex re-audit REQUEST_CHANGES 2026-06-26).
 
 ## Current Top Risks
 
+* Ingest fallback escalation can bypass Bitrix pending gate (`ESCALATED` in app while CRM side effects may be skipped).
 * Webhook auth disabled when `N8N_WEBHOOK_SECRET` unset.
 * Supabase task-07 migration not applied in review environment.
-* Production n8n/Langflow/Telegram wiring still external (OD-001, OD-005).
-* Incomplete Supertest coverage for inbound email and follow-up-check paths.
 
 ## Current Top Improvements
 
-* **Fix** policy README + webhook Supertest + propose_completion integration test → re-Review.
-* **Codex Audit** PR #6 (CRM write, customer email, Telegram, webhooks).
+* **Fix** remaining ingest fallback gate bypass + add targeted regression test → re-Review → Codex re-run.
 * Docs Maintenance: ExecPlan task-07/08/09 Done, Linear SEL-82/83/84.
+* Production n8n/Langflow/Telegram wiring (OD-001, OD-005).
 
 ## History
 
@@ -248,4 +254,7 @@ Current band: **75–89 — good, with manageable debt** (task-07/08/09 Review R
 2026-06-26 - Updated - Review task-06 post-Fix; PII redaction; ExecPlan sync; 145 tests; APPROVED_FOR_CODEX_AUDIT; score 81/100.
 2026-06-26 - Updated - Codex Audit task-06 APPROVED_FOR_HUMAN_REVIEW; Cleanup pre-PR; 146 tests; score 82/100.
 2026-06-26 - Updated - Review task-07/08/09 PR #6; 181 tests; policy 15/15 Jest; REQUEST_CHANGES (README, webhook Supertest, propose_completion IT); score 84/100.
+2026-06-26 - Updated - Re-Review task-07/08/09 PR #6 post-Fix; 187 tests; APPROVED_FOR_CODEX_AUDIT; score 86/100 (interim).
+2026-06-26 - Updated - Codex Audit task-07/08/09 PR #6; reliability/architecture gaps; REQUEST_CHANGES; score 82/100.
+2026-06-26 - Updated - Codex Audit re-run task-07/08/09 PR #6; 3 prior findings closed, ingest fallback gate bypass remains; harness-check + npm test + test:policies PASS; REQUEST_CHANGES; score 84/100.
 ```

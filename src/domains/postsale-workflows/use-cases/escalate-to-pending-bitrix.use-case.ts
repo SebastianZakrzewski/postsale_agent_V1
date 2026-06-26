@@ -9,6 +9,12 @@ import {
 import { evaluateEscalationPolicy } from '../policies/escalation.policy';
 import { GetWorkflowContextUseCase } from './get-workflow-context.use-case';
 
+const TERMINAL_ESCALATION_STATUSES = new Set<WorkflowStatus>([
+  WorkflowStatus.COMPLETED,
+  WorkflowStatus.ESCALATED,
+  WorkflowStatus.FAILED,
+]);
+
 export type EscalateToPendingBitrixOutcome = {
   type: 'pending';
   capability: CapabilityResult;
@@ -42,13 +48,19 @@ export class EscalateToPendingBitrixUseCase {
 
     const statusBefore = workflow.status;
 
-    if (
-      statusBefore !== WorkflowStatus.REQUIREMENTS_UPDATED &&
-      statusBefore !== WorkflowStatus.WAITING_FOR_CUSTOMER_REPLY
-    ) {
+    if (TERMINAL_ESCALATION_STATUSES.has(statusBefore)) {
       throw new Error(
-        `Cannot escalate to pending Bitrix from status ${statusBefore}`,
+        `Cannot escalate to pending Bitrix from terminal status ${statusBefore}`,
       );
+    }
+
+    if (statusBefore === WorkflowStatus.ESCALATION_PENDING_BITRIX_UPDATE) {
+      return {
+        type: 'pending',
+        capability: buildCapabilityResult(workflow),
+        workflow,
+        reason: command.reason,
+      };
     }
 
     await this.workflowRepository.updateStatus(

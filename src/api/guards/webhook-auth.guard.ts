@@ -11,6 +11,9 @@ export class WebhookAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const secret = process.env.N8N_WEBHOOK_SECRET?.trim();
     if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new UnauthorizedException('Webhook secret not configured');
+      }
       return true;
     }
 

@@ -23,4 +23,9 @@ export type IngestReplyOutcome =
       capability: CapabilityResult;
       workflow: Workflow;
       reason: string;
+    }
+  | {
+      type: 'rejected';
+      workflow: Workflow;
+      reason: string;
     };

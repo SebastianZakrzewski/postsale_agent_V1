@@ -98,6 +98,9 @@ export class WebhooksController {
         ingestResult.type === 'escalated_unmatched'
           ? null
           : ingestResult.workflow.status,
+      ...(ingestResult.type === 'rejected'
+        ? { reason: ingestResult.reason }
+        : {}),
     };
   }
 
